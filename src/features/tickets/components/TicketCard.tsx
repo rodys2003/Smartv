@@ -98,17 +98,26 @@ export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
       </div>
 
       {/* Action CTA */}
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 space-y-2.5">
         <Button
           variant="whatsapp"
           size="lg"
           onClick={handleOpenWhatsApp}
-          className="w-full font-bold text-sm flex items-center justify-center gap-2"
+          className="w-full font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
         >
           <MessageCircle className="w-4 h-4" />
           <span>Enviar Ticket por WhatsApp para Iniciar</span>
         </Button>
-        <p className="text-[11px] text-center text-slate-400">
+
+        <a
+          href="#pago"
+          className="w-full py-2.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 text-emerald-300 hover:text-white hover:bg-emerald-500/20 text-xs font-bold flex items-center justify-center gap-2 transition-colors text-center"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Ver Medio de Pago Bre-B (Pagas tras conectar tu TV)</span>
+        </a>
+
+        <p className="text-[11px] text-center text-slate-400 pt-1">
           Atendemos en orden estricto de llegada. Ten a mano las fotos de tu TV.
         </p>
       </div>

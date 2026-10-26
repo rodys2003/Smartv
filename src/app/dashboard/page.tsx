@@ -9,6 +9,7 @@ import { useQueue } from '@/features/tickets/hooks/useQueue';
 import { getUserActiveTicket } from '@/features/tickets/services/ticketService';
 import { QueueTracker } from '@/features/tickets/components/QueueTracker';
 import { StepByStepGuide } from '@/features/guide/components/StepByStepGuide';
+import { PaymentSection } from '@/features/payment/components/PaymentSection';
 import { TicketModal } from '@/features/tickets/components/TicketModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { AuthModal } from '@/features/auth/components/AuthModal';
@@ -22,6 +23,7 @@ import {
   Ticket as TicketIcon,
   ShieldCheck,
   Video,
+  CreditCard,
   AlertTriangle,
   Lock,
   RefreshCw,
@@ -215,7 +217,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <a
                 href="#cola"
                 className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-colors flex items-center gap-1.5"
@@ -229,6 +231,13 @@ export default function DashboardPage() {
               >
                 <Video className="w-3.5 h-3.5 text-fuchsia-400" />
                 <span>2. Tutoriales TV</span>
+              </a>
+              <a
+                href="#pago"
+                className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-emerald-400 hover:border-slate-700 transition-colors flex items-center gap-1.5"
+              >
+                <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                <span>3. Pago Bre-B</span>
               </a>
             </div>
           </div>
@@ -249,6 +258,9 @@ export default function DashboardPage() {
           onOpenAuthModal={() => {}}
           onOpenTicketModal={() => setIsTicketModalOpen(true)}
         />
+
+        {/* SECTION 3: MEDIO DE PAGO BRE-B (Pagas tras conectar tu TV) */}
+        <PaymentSection userTicket={userTicket} />
       </main>
 
       {/* Ticket Modal */}
