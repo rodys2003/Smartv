@@ -116,7 +116,7 @@ export async function getActiveQueue(): Promise<{
   const completed = all.filter((t) => t.status === 'completed');
 
   return {
-    servingTicket: inProgress || waiting[0] || null,
+    servingTicket: inProgress || null,
     waitingTickets: waiting,
     completedCount: completed.length,
   };

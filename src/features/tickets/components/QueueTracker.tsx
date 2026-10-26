@@ -190,7 +190,7 @@ export function QueueTracker({
             </div>
 
             <p className="text-[11px] text-slate-400 mt-2">
-              Calculado a razón de 15 min por turno pendiente (+1h, +2h en horas).
+              Calculado a razón de 15 min por turno pendiente.
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function QueueTracker({
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <Zap className="w-4 h-4 text-cyan-400" />
-              <span>Próximos Turnos en Fila</span>
+              <span>Próximos 5 Turnos en Fila</span>
             </h3>
             <span className="text-xs text-slate-400">
               Total atendidos: <strong className="text-emerald-400">{completedCount}</strong> / {maxTickets}
@@ -225,7 +225,7 @@ export function QueueTracker({
             </div>
           ) : (
             <div className="divide-y divide-slate-800/80">
-              {waitingTickets.slice(0, 10).map((ticket) => (
+              {waitingTickets.slice(0, 5).map((ticket) => (
                 <div
                   key={ticket.id}
                   className="py-3 flex items-center justify-between gap-4 text-xs"
