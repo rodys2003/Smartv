@@ -154,23 +154,22 @@ export function StepByStepGuide({
                       </h3>
                     </div>
 
-                    {/* Step description */}
-                    <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                      {step.description}
-                    </p>
-
-                    {/* Detailed sub-list if provided */}
-                    {step.details && (
-                      <div className="space-y-2 mb-4 bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/80">
+                    {/* Detailed sub-list (Clean, No duplication) */}
+                    {step.details ? (
+                      <div className="space-y-2.5 mb-5 bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80">
                         {step.details.map((item, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-[11px] text-slate-300">
-                            <span className="font-bold text-cyan-400 shrink-0">
-                              {idx + 1}.
+                          <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-200">
+                            <span className="w-5 h-5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                              {idx + 1}
                             </span>
-                            <span className="leading-snug">{item}</span>
+                            <span className="leading-relaxed">{item}</span>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                        {step.description}
+                      </p>
                     )}
                   </div>
 
