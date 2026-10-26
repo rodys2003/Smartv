@@ -139,16 +139,11 @@ export function QueueTracker({
                   ? formatTicketNumber(servingTicket.ticket_number)
                   : 'Libre'}
               </span>
-              {servingTicket && (
-                <span className="text-xs text-slate-400 font-semibold truncate max-w-[120px]">
-                  ({servingTicket.tv_brand})
-                </span>
-              )}
             </div>
 
             <p className="text-[11px] text-slate-400 mt-2">
               {servingTicket
-                ? `Optimizando: ${servingTicket.service_name}`
+                ? 'Turno en proceso de atención técnica.'
                 : 'Cola despejada. Tu turno será atendido inmediatamente.'}
             </p>
           </div>
@@ -230,31 +225,15 @@ export function QueueTracker({
             </div>
           ) : (
             <div className="divide-y divide-slate-800/80">
-              {waitingTickets.slice(0, 10).map((ticket, index) => (
+              {waitingTickets.slice(0, 10).map((ticket) => (
                 <div
                   key={ticket.id}
                   className="py-3 flex items-center justify-between gap-4 text-xs"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-cyan-300 text-sm min-w-16">
-                      {formatTicketNumber(ticket.ticket_number)}
-                    </span>
-                    <div>
-                      <span className="font-semibold text-white block">
-                        {ticket.tv_brand}
-                      </span>
-                      <span className="text-slate-400 text-[11px]">
-                        {ticket.service_name} {ticket.has_magic_apps ? '+ Apps Mágicas' : ''}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] text-slate-500 hidden sm:inline">
-                      Turno #{index + 1} en fila
-                    </span>
-                    <Badge status={ticket.status} />
-                  </div>
+                  <span className="font-mono font-bold text-cyan-300 text-sm">
+                    {formatTicketNumber(ticket.ticket_number)}
+                  </span>
+                  <Badge status={ticket.status} />
                 </div>
               ))}
             </div>
