@@ -126,8 +126,8 @@ export function Hero({
 
             <div className="relative aspect-[16/9] w-full">
               <Image
-                src="/images/kakashi-theme.png"
-                alt="Smart TV Personalizado Tema Kakashi"
+                src="/images/itachi-theme.jpg"
+                alt="Smart TV Personalizado Tema Itachi Akatsuki"
                 fill
                 className="object-cover"
                 priority

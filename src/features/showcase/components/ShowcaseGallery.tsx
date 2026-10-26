@@ -32,7 +32,7 @@ export function ShowcaseGallery() {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              🔥 Personalización PRO (Tema Kakashi Anime)
+              🔥 Personalización PRO (Tema Itachi Akatsuki Anime)
             </button>
             <button
               onClick={() => setActiveTab('minimal')}
@@ -53,8 +53,8 @@ export function ShowcaseGallery() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               <div className="lg:col-span-8 relative aspect-[16/9] rounded-2xl overflow-hidden border border-fuchsia-500/40 shadow-[0_0_30px_rgba(217,70,239,0.2)]">
                 <Image
-                  src="/images/kakashi-theme.png"
-                  alt="Personalización Kakashi Smart TV"
+                  src="/images/itachi-theme.jpg"
+                  alt="Personalización Itachi Akatsuki Smart TV"
                   fill
                   className="object-cover"
                   priority
@@ -67,10 +67,10 @@ export function ShowcaseGallery() {
                   <span>Plan 70.000 COP</span>
                 </div>
                 <h3 className="text-2xl font-black text-white">
-                  Edición Temática Anime Kakashi
+                  Edición Temática Anime Itachi Akatsuki
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Fondo de pantalla oscuro en alta definición con el Sharingan de Kakashi, dock inferior flotante con apps destacadas (Netflix, Prime, TizenTube, Magis TV, Moonlight, Crunchyroll) y reloj minimalista.
+                  Fondo de pantalla oscuro en alta definición con Itachi Uchiha, cuervos en vuelo y luna carmesí, dock inferior flotante con apps destacadas (Netflix, Prime, TizenTube, Crunchyroll, Magis TV, Moonlight) y reloj minimalista.
                 </p>
 
                 <div className="pt-2 space-y-2.5">

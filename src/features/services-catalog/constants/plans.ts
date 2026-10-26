@@ -42,7 +42,7 @@ export const SERVICE_PLANS: ServicePlan[] = [
     badge: 'NIVEL PRO',
     tagline: 'Fondo de pantalla personalizado & Estilo cinematográfico',
     description: 'La experiencia definitiva: televisor ultra rápido con estética personalizada (Anime, Gamer, Cine o Arte) a tu gusto.',
-    previewImage: '/images/kakashi-theme.png',
+    previewImage: '/images/itachi-theme.jpg',
     features: [
       'Todo lo incluido en Optimización + Interfaz Ligera',
       'Fondo temático personalizado 4K (Anime, Gamer, Películas o Fotos propias)',
