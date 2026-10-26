@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { TV_GUIDES, TAILSCALE_TUTORIAL, USB_DEBUGGING_VIDEOS } from '../constants/brandSteps';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -18,7 +19,6 @@ import {
   Network,
   Usb,
   ArrowRight,
-  CheckCircle2,
   Tv
 } from 'lucide-react';
 
@@ -39,6 +39,21 @@ export function StepByStepGuide({
 
   const currentBrand = TV_GUIDES[0]; // Exclusively Android TV / Google TV
 
+  // Close fullscreen on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFullscreenVideo(null);
+      }
+    };
+    if (fullscreenVideo) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [fullscreenVideo]);
+
   const handleWhatsAppClick = () => {
     if (!currentTicket?.ticket_number) {
       onOpenTicketModal();
@@ -50,6 +65,11 @@ export function StepByStepGuide({
 
   const openFullscreen = (video: VideoTutorial) => {
     setFullscreenVideo(video);
+  };
+
+  const getAutoplayUrl = (url: string) => {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}autoplay=1&playsinline=1&rel=0`;
   };
 
   return (
@@ -136,7 +156,7 @@ export function StepByStepGuide({
               </p>
             </div>
 
-            {/* 3 STEPS GRID (REPLACING THE PREVIOUS 4) */}
+            {/* 3 STEPS GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
               {currentBrand.steps.map((step) => (
                 <div
@@ -197,7 +217,7 @@ export function StepByStepGuide({
                       Tutoriales Oficiales en Video (Play List)
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Haz clic en Reproducir o Ampliar Pantalla para ver cada guía en detalle.
+                      Haz clic en cualquier video para reproducirlo directamente en pantalla completa.
                     </p>
                   </div>
                 </div>
@@ -216,36 +236,46 @@ export function StepByStepGuide({
                   {USB_DEBUGGING_VIDEOS.map((video, idx) => (
                     <div
                       key={video.id}
-                      className="bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex flex-col justify-between group hover:border-cyan-500/50 transition-colors"
+                      className="bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex flex-col justify-between group hover:border-cyan-500/60 transition-all shadow-lg"
                     >
-                      {/* Video Player */}
-                      <div className="relative aspect-video w-full bg-black">
-                        <iframe
-                          src={video.embedUrl}
-                          title={video.title}
-                          className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                          allowFullScreen
-                        />
-                      </div>
-
-                      {/* Video Controls Bar: Play & Ampliar Pantalla */}
-                      <div className="p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">
-                            Video #{idx + 1}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => openFullscreen(video)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-400 text-[11px] font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
-                          >
-                            <Maximize2 className="w-3 h-3 text-cyan-400" />
-                            <span>Ampliar Pantalla</span>
-                          </button>
+                      {/* Video Thumbnail with interactive full-screen play trigger */}
+                      <button
+                        type="button"
+                        onClick={() => openFullscreen(video)}
+                        className="relative aspect-video w-full bg-slate-900 overflow-hidden cursor-pointer group text-left"
+                        aria-label={`Reproducir en pantalla completa: ${video.title}`}
+                      >
+                        {video.thumbnailUrl && (
+                          <Image
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                            unoptimized
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent group-hover:from-slate-950/70 transition-colors flex items-center justify-center">
+                          {/* Centered Glowing Red YouTube-style Play Button */}
+                          <div className="w-14 h-14 rounded-full bg-red-600/95 group-hover:bg-red-500 shadow-[0_0_25px_rgba(239,68,68,0.7)] group-hover:shadow-[0_0_35px_rgba(239,68,68,0.9)] flex items-center justify-center transition-all group-hover:scale-110">
+                            <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                          </div>
                         </div>
 
+                        {/* Top badge */}
+                        <div className="absolute top-2.5 right-2.5">
+                          <span className="px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-bold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1">
+                            <Maximize2 className="w-2.5 h-2.5" />
+                            <span>Pantalla Completa</span>
+                          </span>
+                        </div>
+                      </button>
+
+                      {/* Video Controls & Info Bar */}
+                      <div className="p-4 space-y-3">
                         <div>
+                          <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                            Video #{idx + 1}
+                          </span>
                           <h5 className="text-xs font-bold text-white line-clamp-1">
                             {video.title}
                           </h5>
@@ -254,13 +284,14 @@ export function StepByStepGuide({
                           </p>
                         </div>
 
+                        {/* Primary Action Button: Always Opens Fullscreen */}
                         <button
                           type="button"
                           onClick={() => openFullscreen(video)}
-                          className="w-full py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all cursor-pointer hover:scale-[1.01]"
                         >
-                          <Play className="w-3.5 h-3.5 fill-cyan-400" />
-                          <span>Ver en Pantalla Completa</span>
+                          <Play className="w-3.5 h-3.5 fill-slate-950" />
+                          <span>Reproducir en Pantalla Completa</span>
                         </button>
                       </div>
                     </div>
@@ -281,30 +312,42 @@ export function StepByStepGuide({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-950 p-4 md:p-6 rounded-2xl border border-fuchsia-500/30">
-                  <div className="lg:col-span-7 relative aspect-video w-full rounded-xl overflow-hidden group">
-                    <iframe
-                      src={TAILSCALE_TUTORIAL.embedUrl}
-                      title={TAILSCALE_TUTORIAL.title}
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                      allowFullScreen
-                    />
+                  {/* Tailscale Thumbnail with Play trigger */}
+                  <div className="lg:col-span-7">
+                    <button
+                      type="button"
+                      onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
+                      className="relative aspect-video w-full rounded-2xl overflow-hidden group cursor-pointer border border-fuchsia-500/40 text-left block"
+                      aria-label="Reproducir Tailscale en pantalla completa"
+                    >
+                      {TAILSCALE_TUTORIAL.thumbnailUrl && (
+                        <Image
+                          src={TAILSCALE_TUTORIAL.thumbnailUrl}
+                          alt={TAILSCALE_TUTORIAL.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          unoptimized
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-red-600/95 group-hover:bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.7)] flex items-center justify-center transition-all group-hover:scale-110">
+                          <Play className="w-7 h-7 text-white fill-white ml-0.5" />
+                        </div>
+                      </div>
+
+                      <div className="absolute top-3 right-3">
+                        <span className="px-2.5 py-1 rounded-md bg-black/80 text-xs font-bold text-fuchsia-300 border border-fuchsia-500/40 backdrop-blur-md flex items-center gap-1.5">
+                          <Maximize2 className="w-3 h-3" />
+                          <span>Pantalla Completa</span>
+                        </span>
+                      </div>
+                    </button>
                   </div>
 
                   <div className="lg:col-span-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase font-bold text-fuchsia-400 tracking-wider">
-                        Guía de Red VPN Segura
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-fuchsia-500/40 hover:border-fuchsia-400 text-xs font-bold text-fuchsia-200 transition-colors cursor-pointer"
-                      >
-                        <Maximize2 className="w-3.5 h-3.5 text-fuchsia-400" />
-                        <span>Ampliar Pantalla</span>
-                      </button>
-                    </div>
+                    <span className="text-xs uppercase font-bold text-fuchsia-400 tracking-wider block">
+                      Guía de Red VPN Segura
+                    </span>
 
                     <h5 className="text-base font-bold text-white">
                       ¿Por qué necesitas Tailscale?
@@ -320,9 +363,9 @@ export function StepByStepGuide({
                     <button
                       type="button"
                       onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
-                      className="w-full py-2.5 rounded-xl bg-fuchsia-500 hover:bg-fuchsia-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(217,70,239,0.3)] transition-colors cursor-pointer"
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,70,239,0.4)] transition-all cursor-pointer hover:scale-[1.01]"
                     >
-                      <Play className="w-3.5 h-3.5 fill-slate-950" />
+                      <Play className="w-4 h-4 fill-slate-950" />
                       <span>Reproducir Video en Pantalla Completa</span>
                     </button>
                   </div>
@@ -404,35 +447,44 @@ export function StepByStepGuide({
       {/* FULLSCREEN THEATER MODAL FOR VIDEOS */}
       {fullscreenVideo && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6"
           onClick={() => setFullscreenVideo(null)}
         >
           <div
-            className="relative w-full max-w-5xl bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.9)]"
+            className="relative w-full max-w-5xl bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.95)]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Bar with title and close button */}
-            <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-4">
+            {/* Top Bar with title, escape hint and close button */}
+            <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <Play className="w-4 h-4 text-cyan-400 fill-cyan-400" />
-                <h4 className="text-sm font-bold text-white truncate max-w-md sm:max-w-xl">
-                  {fullscreenVideo.title}
-                </h4>
+                <div className="p-1.5 rounded-lg bg-red-600 text-white">
+                  <Play className="w-3.5 h-3.5 fill-white" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-white truncate max-w-sm sm:max-w-lg md:max-w-2xl">
+                    {fullscreenVideo.title}
+                  </h4>
+                  <span className="text-[10px] text-cyan-400 block">
+                    Modo Pantalla Completa Activo · Presiona ESC o haz clic afuera para salir
+                  </span>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => setFullscreenVideo(null)}
-                className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                aria-label="Cerrar video ampliado"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs font-bold flex items-center gap-1.5"
+                aria-label="Cerrar video"
               >
-                <X className="w-5 h-5" />
+                <span>Cerrar</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Video Theater Iframe */}
+            {/* Video Theater Iframe with Autoplay */}
             <div className="relative aspect-video w-full bg-black">
               <iframe
-                src={`${fullscreenVideo.embedUrl}&autoplay=1`}
+                src={getAutoplayUrl(fullscreenVideo.embedUrl)}
                 title={fullscreenVideo.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
@@ -441,8 +493,15 @@ export function StepByStepGuide({
             </div>
 
             {/* Bottom info */}
-            <div className="p-4 bg-slate-900/90 text-xs text-slate-300">
-              <p>{fullscreenVideo.description}</p>
+            <div className="p-4 bg-slate-900/90 text-xs text-slate-300 flex items-center justify-between gap-4">
+              <p className="line-clamp-2">{fullscreenVideo.description}</p>
+              <button
+                type="button"
+                onClick={() => setFullscreenVideo(null)}
+                className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 shrink-0 cursor-pointer"
+              >
+                Listo, volver al paso a paso
+              </button>
             </div>
           </div>
         </div>

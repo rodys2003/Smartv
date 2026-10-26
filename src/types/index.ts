@@ -39,6 +39,7 @@ export interface VideoTutorial {
   title: string;
   description: string;
   embedUrl: string;
+  thumbnailUrl?: string;
   category: 'usb-debugging' | 'tailscale' | 'general';
 }
 

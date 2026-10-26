@@ -6,6 +6,7 @@ export const TAILSCALE_TUTORIAL: VideoTutorial = {
   description:
     'Tailscale nos permite conectarnos de forma segura y remota a tu Smart TV para realizar la optimización sin necesidad de abrir puertos ni poner en riesgo tu red.',
   embedUrl: 'https://www.youtube.com/embed/Gs-Q9kkfnmU?si=kli3Y0SKs7oOb-iP',
+  thumbnailUrl: 'https://img.youtube.com/vi/Gs-Q9kkfnmU/hqdefault.jpg',
   category: 'tailscale',
 };
 
@@ -15,6 +16,7 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
     title: 'Tutorial 1: Cómo habilitar Depuración USB en Android TV / Google TV',
     description: 'Paso a paso para desbloquear el menú de opciones de desarrollador y activar la depuración USB.',
     embedUrl: 'https://www.youtube.com/embed/YZdGtqNbfXw?si=nDFlNQwXlmd1mERT',
+    thumbnailUrl: 'https://img.youtube.com/vi/YZdGtqNbfXw/hqdefault.jpg',
     category: 'usb-debugging',
   },
   {
@@ -22,6 +24,7 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
     title: 'Tutorial 2: Depuración por red y permisos de conexión en TV',
     description: 'Cómo aceptar la clave RSA y autorizar la conexión remota desde tu control.',
     embedUrl: 'https://www.youtube.com/embed/zCZK1BDlNWE?si=rMAdSVLzcVuIcr_G',
+    thumbnailUrl: 'https://img.youtube.com/vi/zCZK1BDlNWE/hqdefault.jpg',
     category: 'usb-debugging',
   },
   {
@@ -29,6 +32,7 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
     title: 'Tutorial 3: Guía alternativa para diferentes marcas Android TV',
     description: 'Procedimiento para marcas como TCL, Xiaomi, Chromecast y cajas TV Box.',
     embedUrl: 'https://www.youtube.com/embed/izcec2QCTkk?si=X8CJNESIofG5Vogu',
+    thumbnailUrl: 'https://img.youtube.com/vi/izcec2QCTkk/hqdefault.jpg',
     category: 'usb-debugging',
   },
 ];
