@@ -27,9 +27,10 @@ export function useQueue() {
   useEffect(() => {
     refreshQueue();
 
-    // Subscribe to realtime changes in tickets table
+    // Use a unique channel name per mount to prevent StrictMode re-subscription collisions
+    const channelName = `tickets-queue-${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -40,8 +41,9 @@ export function useQueue() {
         () => {
           refreshQueue();
         }
-      )
-      .subscribe();
+      );
+
+    channel.subscribe();
 
     // Periodic polling fallback
     const interval = setInterval(refreshQueue, 15000);

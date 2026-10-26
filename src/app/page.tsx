@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Hero } from '@/components/layout/Hero';
 import { PricingSection } from '@/features/services-catalog/components/PricingSection';
 import { ShowcaseGallery } from '@/features/showcase/components/ShowcaseGallery';
+import { TestimonialsSection } from '@/features/testimonials/components/TestimonialsSection';
 import { StepByStepGuide } from '@/features/guide/components/StepByStepGuide';
 import { QueueTracker } from '@/features/tickets/components/QueueTracker';
 import { Footer } from '@/components/layout/Footer';
@@ -55,6 +56,9 @@ export default function HomePage() {
 
       {/* Results Showcase Gallery */}
       <ShowcaseGallery />
+
+      {/* Clientes Satisfechos / Real Setups */}
+      <TestimonialsSection />
 
       {/* Step by Step Guide & WhatsApp Checklist */}
       <StepByStepGuide

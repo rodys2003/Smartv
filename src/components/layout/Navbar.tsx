@@ -50,6 +50,9 @@ export function Navbar({ onOpenTicketModal, onOpenAuthModal }: NavbarProps) {
           <a href="#galeria" className="hover:text-cyan-400 transition-colors">
             Galería PRO
           </a>
+          <a href="#testimonios" className="hover:text-cyan-400 transition-colors">
+            Clientes Satisfechos
+          </a>
           <a href="#guia" className="hover:text-cyan-400 transition-colors">
             Paso a Paso TV
           </a>
