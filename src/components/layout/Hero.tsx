@@ -32,7 +32,7 @@ export function Hero({
             <span className="text-xs font-semibold text-slate-200">
               {isAuthenticated
                 ? `Cola Activa · ${waitingCount > 0 ? `${waitingCount} turnos en espera` : 'Turno inmediato disponible'}`
-                : 'Servicio Remoto Exclusivo · Android TV & Samsung Tizen'}
+                : 'Servicio Remoto Exclusivo · Android TV & Google TV'}
             </span>
           </div>
 
@@ -68,8 +68,8 @@ export function Hero({
           {/* Compatible devices highlight */}
           <div className="pt-1">
             <p className="text-xs text-slate-400">
-              Soporte: <strong className="text-white">Android TV / Google TV</strong> y <strong className="text-white">Samsung Smart TV (Tizen)</strong>
-              <span className="text-amber-400/90 ml-2">(LG webOS descartado)</span>
+              Soporte exclusivo: <strong className="text-white">Android TV y Google TV</strong> (TCL, Xiaomi, Sony, Chromecast, TV Box)
+              <span className="text-amber-400/90 ml-2">(Samsung Tizen y LG webOS descartados)</span>
             </p>
           </div>
 

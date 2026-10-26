@@ -108,15 +108,15 @@ export function StepByStepGuide({
         ) : (
           /* AUTHENTICATED STATE: FULL GUIDE & VIDEOS */
           <div className="space-y-12">
-            {/* Device Compatibility Notice: ONLY Android TV / Samsung, NO WebOS */}
+            {/* Device Compatibility Notice: ONLY Android TV / Google TV */}
             <div className="p-4 md:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5 text-xs text-amber-200">
               <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-amber-300 text-sm">
-                  Dispositivos soportados: Únicamente Android TV / Google TV y Samsung Smart TV (Tizen OS)
+                  Dispositivos soportados: Únicamente Android TV y Google TV
                 </p>
                 <p className="mt-0.5 text-amber-200/90 leading-relaxed">
-                  Los televisores con <strong>LG webOS quedan totalmente descartados</strong> para este servicio debido a bloqueos de seguridad del fabricante. Si tu televisor es LG o Roku, puedes adquirir una TV Box o Chromecast con Google TV para optimizarlo.
+                  Los televisores <strong>Samsung Smart TV (Tizen OS)</strong> y <strong>LG (webOS)</strong> quedan <strong>totalmente descartados</strong> debido a bloqueos de seguridad del fabricante. Si tu televisor es Samsung o LG, puedes conectarle un Chromecast con Google TV o TV Box Android para optimizarlo.
                 </p>
               </div>
             </div>

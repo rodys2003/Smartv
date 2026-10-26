@@ -36,89 +36,46 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
 export const TV_GUIDES: TVBrandGuide[] = [
   {
     id: 'android-tv',
-    name: 'Android TV / Google TV',
+    name: 'Android TV / Google TV (Único Sistema Soportado)',
     logo: '📺',
-    tag: 'TCL, Xiaomi, Sony, Chromecast con Google TV, Onn, TV Box Android',
+    tag: 'TCL, Xiaomi, Sony Bravia, Chromecast con Google TV, Onn, TV Box Android',
     steps: [
       {
         step: 1,
         title: 'Habilitar Opciones de Desarrollador y Depuración USB',
         description:
-          'Ve a Ajustes > Sistema > Información > Compilación del SO y pulsa 7 veces OK. Luego entra a "Opciones de desarrollador" y activa "Depuración por USB" o "Depuración por red".',
-        actionable: 'Mira la lista de videos tutoriales abajo para tu modelo exacto.',
+          'Ve a Ajustes > Sistema > Información > Compilación del SO y pulsa 7 veces seguidas el botón OK hasta que aparezca el mensaje de desarrollador. Luego entra a "Opciones de desarrollador" y activa "Depuración por USB".',
+        actionable: 'Mira los 3 videos tutoriales abajo para tu modelo exacto.',
       },
       {
         step: 2,
-        title: 'Instalar y Vincular Tailscale en la TV (Obligatorio)',
+        title: 'Instalar y Activar Tailscale en tu TV (Obligatorio)',
         description:
-          'Descarga "Tailscale" desde la Google Play Store de tu televisor. Ábrelo, inicia sesión con tu cuenta y déjalo conectado (estado "Connected").',
-        actionable: 'Sigue el video tutorial de Tailscale para dejar lista la IP de conexión.',
+          'Entra a Google Play Store en tu televisor, busca "Tailscale" e instálala. Inicia sesión y déjala en estado "Connected".',
+        actionable: 'Anota o toma foto a la IP asignada (ej. 100.x.x.x).',
       },
       {
         step: 3,
-        title: 'Prueba de Velocidad de Conexión',
+        title: 'Test de Velocidad de Internet',
         description:
-          'Abre el navegador web o descarga Speedtest en tu TV para verificar la estabilidad de tu red.',
-        actionable: 'Toma una foto clara a la velocidad de descarga en pantalla.',
+          'Descarga Speedtest o abre Fast.com en el navegador de tu TV para verificar que la red esté estable.',
+        actionable: 'Toma una foto clara al resultado de velocidad en pantalla.',
       },
       {
         step: 4,
-        title: 'Descargar e Instalar Downloader by AFTVnews',
+        title: 'Instalar la App Downloader by AFTVnews',
         description:
-          'Instala la aplicación naranja "Downloader" desde Google Play Store. Servirá para descargar el launcher optimizado y las herramientas.',
-        actionable: 'Confirma que Downloader abra sin problemas en tu televisor.',
+          'Instala la aplicación naranja "Downloader" desde Google Play Store para descargar el launcher optimizado.',
+        actionable: 'Abre la app y acepta los permisos de almacenamiento.',
       },
     ],
     whatsappChecklist: [
-      'Foto nítida de Ajustes > Información (Modelo de TV y versión de Android)',
-      'Foto de Tailscale en tu TV mostrando la IP asignada (ej. 100.x.x.x)',
-      'Foto de la Depuración USB activada',
-      'Si elegiste plan de 70k: Personaje o temática deseada (Anime, Gamer, Película)',
-      'Confirmación si deseas añadir el paquete de Apps Mágicas (+20.000 COP)',
+      'Foto nítida de Ajustes > Información (Modelo de TV y versión de Android TV/Google TV)',
+      'Foto de Tailscale en la TV con la IP visible (ej. 100.x.x.x)',
+      'Foto de las Opciones de Desarrollador con Depuración USB activa',
+      'Si elegiste plan de 70k: Foto o temática que deseas (Anime, Gamer, Cine)',
+      'Confirmar si deseas el paquete de Apps Mágicas (+20.000 COP)',
     ],
     videos: USB_DEBUGGING_VIDEOS,
-  },
-  {
-    id: 'samsung-tizen',
-    name: 'Samsung Smart TV (Tizen OS)',
-    logo: '🪐',
-    tag: 'Tizen OS (QLED, Crystal UHD, Neo QLED, Series 7/8/9)',
-    steps: [
-      {
-        step: 1,
-        title: 'Revisar versión de Tizen y Almacenamiento Disponible',
-        description:
-          'Menú > Configuración > Soporte técnico > Acerca de este TV. Revisa la versión de software.',
-        actionable: 'Toma foto clara a la versión del firmware de tu Samsung.',
-      },
-      {
-        step: 2,
-        title: 'Activar Modo Desarrollador en Samsung Tizen (Apps)',
-        description:
-          'Abre la sección "Apps" en tu Samsung. En el control remoto presiona 1, 2, 3, 4, 5. En la ventana emergente activa "Developer Mode: ON" e ingresa la IP del host que te facilitaremos.',
-        actionable: 'Te brindaremos la IP por WhatsApp cuando sea tu turno.',
-      },
-      {
-        step: 3,
-        title: 'Instalar Tailscale o puente de red remoto',
-        description:
-          'Configuraremos el túnel seguro para acceder al sistema Tizen y desplegar el nuevo perfil optimizado.',
-        actionable: 'Mira el video de configuración de red Tailscale para sincronizar tu red.',
-      },
-      {
-        step: 4,
-        title: 'Desactivar Autorun Samsung TV Plus y Bloatware',
-        description:
-          'Configuración > General > Funciones inteligentes > Desactiva Autorun Samsung TV Plus y Autorun Smart Hub.',
-        actionable: 'Evita que el TV se quede cargando canales publicitarios al encender.',
-      },
-    ],
-    whatsappChecklist: [
-      'Foto de Soporte técnico > Acerca de este TV',
-      'Foto de la pantalla de Apps con el Developer Mode visible',
-      'Foto del test de velocidad (Fast.com desde el navegador web de Samsung)',
-      'Nombre de tu operador de internet para asignar los DNS óptimos',
-    ],
-    videos: [TAILSCALE_TUTORIAL],
   },
 ];

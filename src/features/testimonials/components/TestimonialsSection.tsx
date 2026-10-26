@@ -52,13 +52,13 @@ const TESTIMONIALS: Testimonial[] = [
     id: 'client-3',
     name: 'Sebastián Gómez',
     location: 'Medellín, Antioquia',
-    tvInfo: 'Samsung Crystal UHD 55"',
+    tvInfo: 'Chromecast con Google TV 4K',
     plan: 'Interfaz Ultra-Ligera (50k)',
     rating: 5,
-    tag: 'Samsung Revivido',
-    highlight: 'Adiós a los menús lentos de Tizen',
+    tag: 'Google TV Acelerado',
+    highlight: 'Adiós al lag y menús pesados',
     comment:
-      'Tenía ganas de cambiar mi televisor porque el menú de Samsung cada año se pone más pesado con anuncios de películas que ni veo. Con el launcher ligero vuela, la respuesta del control remoto es inmediata y me ahorré comprar otro TV.',
+      'Mi Chromecast 4K andaba saturado de publicidad y apps de fábrica. Con el launcher ligero vuela, la respuesta del control remoto es inmediata y el consumo de RAM quedó súper optimizado.',
   },
   {
     id: 'client-4',

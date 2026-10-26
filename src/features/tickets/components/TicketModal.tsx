@@ -20,8 +20,7 @@ interface TicketModalProps {
 }
 
 const BRANDS = [
-  'Android TV / Google TV (TCL, Xiaomi, Sony, Chromecast, TV Box)',
-  'Samsung Smart TV (Tizen OS)',
+  'Android TV / Google TV (TCL, Xiaomi, Sony, Chromecast, Onn, TV Box)',
 ];
 
 export function TicketModal({
@@ -179,7 +178,7 @@ export function TicketModal({
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <span>
-              <strong>Solo Android TV y Samsung Tizen.</strong> Los televisores LG con webOS están descartados.
+              <strong>Exclusivo para Android TV y Google TV.</strong> Equipos con Samsung (Tizen OS) y LG (webOS) quedan descartados.
             </span>
           </div>
 
