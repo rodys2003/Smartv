@@ -1,4 +1,5 @@
 import { ServicePlan } from '@/types';
+import { getR2Url } from '@/lib/r2';
 
 export const MAGIC_APPS_PRICE = 20000;
 export const MAGIC_APPS_PRICE_COP = 20000;
@@ -33,7 +34,7 @@ export const SERVICE_PLANS: ServicePlan[] = [
     badge: 'MÁS POPULAR',
     tagline: 'Bajo consumo de recursos & Cero bloatware',
     description: 'Optimización completa combinada con un launcher minimalista ultra-liviano que revive cualquier televisor.',
-    previewImage: '/images/minimal-theme.png',
+    previewImage: getR2Url('/images/minimal-theme.png'),
     features: [
       'Todo lo incluido en el plan de Optimización Esencial',
       'Instalación y configuración de Launcher Ultra-Ligero',
@@ -50,7 +51,7 @@ export const SERVICE_PLANS: ServicePlan[] = [
     badge: 'NIVEL PRO',
     tagline: 'Fondo de pantalla personalizado & Estilo cinematográfico',
     description: 'La experiencia definitiva: televisor ultra rápido con estética personalizada (Anime, Gamer, Cine o Arte) a tu gusto.',
-    previewImage: '/images/itachi-theme.jpg',
+    previewImage: getR2Url('/images/itachi-theme.jpg'),
     features: [
       'Todo lo incluido en Optimización + Interfaz Ligera',
       'Fondo temático personalizado 4K (Anime, Gamer, Películas o Fotos propias)',

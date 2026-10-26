@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getR2Url } from '@/lib/r2';
 import { getWhatsAppNumber } from '@/lib/whatsapp/generateLink';
 import { Shield } from 'lucide-react';
 
@@ -16,7 +17,7 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/30">
               <Image
-                src="/images/logo.jpg"
+                src={getR2Url('/images/logo.jpg')}
                 alt="Smart TV Like a Pro"
                 fill
                 className="object-cover"

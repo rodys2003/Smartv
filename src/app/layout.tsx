@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getR2Url } from "@/lib/r2";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Smart TV Like a Pro | Optimización y Personalización Global",
     description: "Convierte tu Smart TV en una máquina rápida con launchers de bajo consumo y temas premium.",
-    images: [{ url: "/images/logo.jpg" }],
+    images: [{ url: getR2Url('/images/logo.jpg') }],
   },
 };
 

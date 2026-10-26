@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
+import { getR2Url } from '@/lib/r2';
 import { Sparkles, Gauge, Layers, CheckCircle2 } from 'lucide-react';
 
 export function ShowcaseGallery() {
@@ -53,7 +54,7 @@ export function ShowcaseGallery() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               <div className="lg:col-span-8 relative aspect-[16/9] rounded-2xl overflow-hidden border border-fuchsia-500/40 shadow-[0_0_30px_rgba(217,70,239,0.2)]">
                 <Image
-                  src="/images/itachi-theme.jpg"
+                  src={getR2Url('/images/itachi-theme.jpg')}
                   alt="Personalización Itachi Akatsuki Smart TV"
                   fill
                   className="object-cover"
@@ -93,7 +94,7 @@ export function ShowcaseGallery() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               <div className="lg:col-span-8 relative aspect-[16/9] rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
                 <Image
-                  src="/images/minimal-theme.png"
+                  src={getR2Url('/images/minimal-theme.png')}
                   alt="Interfaz Minimalista Bajo Consumo"
                   fill
                   className="object-cover"

@@ -15,6 +15,7 @@ import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Ticket, ServicePlan } from '@/types';
+import { getR2Url } from '@/lib/r2';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -96,7 +97,7 @@ export default function DashboardPage() {
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/40">
-                <Image src="/images/logo.jpg" alt="Logo" fill className="object-cover" />
+                <Image src={getR2Url('/images/logo.jpg')} alt="Logo" fill className="object-cover" />
               </div>
               <span className="font-black text-white text-base">Smart TV Like a Pro</span>
             </Link>
@@ -167,7 +168,7 @@ export default function DashboardPage() {
 
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-                <Image src="/images/logo.jpg" alt="Logo" fill className="object-cover" priority />
+                <Image src={getR2Url('/images/logo.jpg')} alt="Logo" fill className="object-cover" priority />
               </div>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-1.5">

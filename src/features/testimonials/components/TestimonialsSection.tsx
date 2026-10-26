@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
+import { getR2Url } from '@/lib/r2';
 import { ShieldCheck, MapPin, Sparkles, ZoomIn, X } from 'lucide-react';
 
 interface Testimonial {
@@ -28,7 +29,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Tema Deadpool Chimenea 4K',
     comment:
       'Quedó de locos el fondo de Deadpool junto a la chimenea. Mi TV Haier se demoraba una eternidad en prender y ahora con el dock limpio entra a Netflix, TizenTube y Magis TV de un solo toque sin trabarse.',
-    image: '/images/client-deadpool.png',
+    image: getR2Url('/images/client-deadpool.png'),
   },
   {
     id: 'client-tcl-gojo',
@@ -40,7 +41,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Tema Gojo Satoru Morado',
     comment:
       'Mi televisor TCL de fábrica se quedaba pegado abriendo cualquier app. Me hicieron la optimización remota por WhatsApp en 20 minutos, me pusieron el tema de Gojo con TizenTube sin anuncios y el cambio en fluidez fue brutal.',
-    image: '/images/client-gojo-purple.png',
+    image: getR2Url('/images/client-gojo-purple.png'),
   },
   {
     id: 'client-ambient-gojo',
@@ -52,7 +53,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Integración con Tira LED',
     comment:
       'Miren cómo luce con las luces LED de la habitación. No solo se ve cinematográfico con el arte de Gojo en alta resolución, sino que el consumo de memoria bajó una barbaridad. La navegación entre apps es instantánea.',
-    image: '/images/client-gojo-ambient.png',
+    image: getR2Url('/images/client-gojo-ambient.png'),
   },
 ];
 

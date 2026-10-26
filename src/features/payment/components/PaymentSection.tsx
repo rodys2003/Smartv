@@ -14,6 +14,7 @@ import {
 } from '@/features/services-catalog/constants/plans';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { getR2Url } from '@/lib/r2';
 import {
   CreditCard,
   QrCode,
@@ -308,7 +309,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
                 {/* QR Code Container */}
                 <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto bg-white p-3 rounded-3xl shadow-[0_0_35px_rgba(255,255,255,0.15)] flex items-center justify-center overflow-hidden border-2 border-red-500">
                   <Image
-                    src="/images/bre-b-qr.png"
+                    src={getR2Url('/images/bre-b-qr.png')}
                     alt="Código QR Bre-B para pagos"
                     fill
                     className="object-contain p-2"
@@ -471,7 +472,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
                 {/* QR Code Container with Binance Yellow Border Accent */}
                 <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto bg-white p-3 rounded-3xl shadow-[0_0_35px_rgba(251,191,36,0.15)] flex items-center justify-center overflow-hidden border-2 border-amber-400">
                   <Image
-                    src="/images/binance-usdt-qr.png"
+                    src={getR2Url('/images/binance-usdt-qr.png')}
                     alt="Código QR Binance USDT TRC20"
                     fill
                     className="object-contain p-2"

@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getR2Url } from '@/lib/r2';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
@@ -128,7 +129,7 @@ export function Hero({
 
             <div className="relative aspect-[16/9] w-full">
               <Image
-                src="/images/itachi-theme.jpg"
+                src={getR2Url('/images/itachi-theme.jpg')}
                 alt="Smart TV Personalizado Tema Itachi Akatsuki"
                 fill
                 className="object-cover"

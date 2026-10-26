@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { getR2Url } from '@/lib/r2';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
@@ -21,7 +22,7 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:scale-105 transition-transform">
             <Image
-              src="/images/logo.jpg"
+              src={getR2Url('/images/logo.jpg')}
               alt="Smart TV Like a Pro"
               fill
               className="object-cover"
