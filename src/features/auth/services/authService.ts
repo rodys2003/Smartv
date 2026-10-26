@@ -2,7 +2,10 @@ import { supabase } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 export async function signInWithGoogle() {
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin =
+    typeof window !== 'undefined' && window.location.origin
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5173';
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
