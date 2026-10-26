@@ -52,6 +52,7 @@ export interface TVBrandGuide {
     title: string;
     description: string;
     actionable: string;
+    details?: string[];
   }[];
   whatsappChecklist: string[];
   videos?: VideoTutorial[];

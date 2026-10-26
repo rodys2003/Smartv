@@ -36,44 +36,54 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
 export const TV_GUIDES: TVBrandGuide[] = [
   {
     id: 'android-tv',
-    name: 'Android TV / Google TV (Único Sistema Soportado)',
+    name: 'Android TV & Google TV',
     logo: '📺',
     tag: 'TCL, Xiaomi, Sony Bravia, Chromecast con Google TV, Onn, TV Box Android',
     steps: [
       {
         step: 1,
-        title: 'Habilitar Opciones de Desarrollador y Depuración USB',
+        title: 'Activar el Modo Desarrollador en tu TV',
         description:
-          'Ve a Ajustes > Sistema > Información > Compilación del SO y pulsa 7 veces seguidas el botón OK hasta que aparezca el mensaje de desarrollador. Luego entra a "Opciones de desarrollador" y activa "Depuración por USB".',
-        actionable: 'Mira los 3 videos tutoriales abajo para tu modelo exacto.',
+          'En tu control remoto, ingresá a Ajustes (ícono de tuerca) ➔ Preferencias del dispositivo (o Sistema) ➔ Información. Bajá hasta la opción "Compilación del SO de Android TV" (o "Número de compilación"). Presioná el botón central del control 7 veces seguidas hasta que aparezca el mensaje: "¡Ya eres desarrollador!". Volvé atrás, ingresá al nuevo menú "Opciones para desarrolladores" y activá Depuración por USB (y si te aparece, también activa Depuración de red).',
+        actionable: 'Mira los 3 videos tutoriales abajo para tu modelo si tienes dudas.',
+        details: [
+          'En tu control remoto, ingresá a Ajustes (ícono de tuerca) ➔ Preferencias del dispositivo (o Sistema) ➔ Información.',
+          'Bajá hasta la opción "Compilación del SO de Android TV" (o "Número de compilación").',
+          'Presioná el botón central del control 7 veces seguidas sobre esa opción hasta que aparezca el mensaje: "¡Ya eres desarrollador!".',
+          'Volvé atrás, ingresá al nuevo menú "Opciones para desarrolladores" y activá: ✅ Depuración por USB (y si te aparece, también activa Depuración de red).',
+        ],
       },
       {
         step: 2,
-        title: 'Instalar y Activar Tailscale en tu TV (Obligatorio)',
+        title: 'Instalar y Conectar la Red Segura (Tailscale)',
         description:
-          'Entra a Google Play Store en tu televisor, busca "Tailscale" e instálala. Inicia sesión y déjala en estado "Connected".',
-        actionable: 'Anota o toma foto a la IP asignada (ej. 100.x.x.x).',
+          'Abrí la Google Play Store en tu televisor y buscá la app gratuita: Tailscale. Dale a Instalar y luego a Abrir. Presioná el botón "Get Started". Cuando el televisor te muestre la ventana: "Solicitud de conexión / Tailscale quiere configurar una VPN", seleccioná ACEPTAR. Mantené la pantalla abierta donde aparece el código o el estado de conexión.',
+        actionable: 'Mantené abierta la pantalla con el código o estado de conexión de Tailscale.',
+        details: [
+          'Abrí la Google Play Store en tu televisor y buscá la app gratuita: Tailscale.',
+          'Dale a Instalar y luego a Abrir.',
+          'Presioná el botón "Get Started".',
+          'Cuando el televisor te muestre la ventana: "Solicitud de conexión / Tailscale quiere configurar una VPN", seleccioná ACEPTAR.',
+          'Mantené la pantalla abierta donde aparece el código o el estado de conexión.',
+        ],
       },
       {
         step: 3,
-        title: 'Test de Velocidad de Internet',
+        title: 'Confirmación por WhatsApp y Conexión',
         description:
-          'Descarga Speedtest o abre Fast.com en el navegador de tu TV para verificar que la red esté estable.',
-        actionable: 'Toma una foto clara al resultado de velocidad en pantalla.',
-      },
-      {
-        step: 4,
-        title: 'Instalar la App Downloader by AFTVnews',
-        description:
-          'Instala la aplicación naranja "Downloader" desde Google Play Store para descargar el launcher optimizado.',
-        actionable: 'Abre la app y acepta los permisos de almacenamiento.',
+          'Cuando sea la hora de tu turno: 1. Tomale una foto con tu celular a la pantalla de tu televisor mostrando la app Tailscale abierta. 2. Escribinos a nuestro WhatsApp enviando la foto de la pantalla junto con tu número de comprobante/turno. 3. En ese momento iniciaremos la conexión: en tu televisor aparecerá una ventana que dice "¿Permitir depuración por USB?". Solo deberás marcar la casilla "Permitir siempre" y presionar ACEPTAR.',
+        actionable: 'Envía la foto de la pantalla con Tailscale abierto y tu número de turno a WhatsApp.',
+        details: [
+          'Tomale una foto con tu celular a la pantalla de tu televisor mostrando la app Tailscale abierta.',
+          'Escribinos a nuestro WhatsApp enviando la foto de la pantalla junto con tu número de comprobante/turno.',
+          'En ese momento iniciaremos la conexión: en tu televisor aparecerá una ventana que dice "¿Permitir depuración por USB?". Solo deberás marcar la casilla "Permitir siempre" y presionar ACEPTAR.',
+        ],
       },
     ],
     whatsappChecklist: [
-      'Foto nítida de Ajustes > Información (Modelo de TV y versión de Android TV/Google TV)',
-      'Foto de Tailscale en la TV con la IP visible (ej. 100.x.x.x)',
-      'Foto de las Opciones de Desarrollador con Depuración USB activa',
-      'Si elegiste plan de 70k: Foto o temática que deseas (Anime, Gamer, Cine)',
+      'Foto nítida de la pantalla de tu televisor mostrando la app Tailscale abierta',
+      'Número de comprobante / ticket de turno obtenido en la web',
+      'Si elegiste plan de 70k: Foto o temática que deseas para tu TV (Anime, Gamer, Cine)',
       'Confirmar si deseas el paquete de Apps Mágicas (+20.000 COP)',
     ],
     videos: USB_DEBUGGING_VIDEOS,
