@@ -12,6 +12,7 @@ import {
 import { ServicePlan, Ticket } from '@/types';
 import { formatCOP } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useQueue } from '../hooks/useQueue';
 import { createTicket } from '../services/ticketService';
 import { TicketCard } from './TicketCard';
 import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours';
@@ -37,6 +38,7 @@ export function TicketModal({
   onTicketCreated,
 }: TicketModalProps) {
   const { user, isAuthenticated, signInWithGoogle } = useAuth();
+  const { waitingTickets, whatsappThreshold } = useQueue();
 
   const [selectedBrand, setSelectedBrand] = useState(BRANDS[0]);
   const [tvModel, setTvModel] = useState('');
@@ -145,7 +147,15 @@ export function TicketModal({
     >
       {createdTicket ? (
         <div className="pt-2">
-          <TicketCard ticket={createdTicket} />
+          <TicketCard
+            ticket={createdTicket}
+            whatsappThreshold={whatsappThreshold}
+            queuePosition={
+              waitingTickets.findIndex((t) => t.id === createdTicket.id) !== -1
+                ? waitingTickets.findIndex((t) => t.id === createdTicket.id) + 1
+                : waitingTickets.length + 1
+            }
+          />
           <div className="mt-4 text-center">
             <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs text-slate-400">
               Cerrar y volver a la web

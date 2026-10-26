@@ -33,6 +33,7 @@ export function QueueTracker({
     totalCount,
     maxTickets,
     ticketsEnabled,
+    whatsappThreshold,
     canIssueTicket,
     loading,
     refreshQueue,
@@ -125,6 +126,7 @@ export function QueueTracker({
             <TicketCard
               ticket={userTicket}
               onEditPlan={onEditPlan}
+              whatsappThreshold={whatsappThreshold}
               queuePosition={
                 waitingTickets.findIndex((t) => t.id === userTicket.id) !== -1
                   ? waitingTickets.findIndex((t) => t.id === userTicket.id) + 1

@@ -7,15 +7,21 @@ import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours'
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
-import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil, Globe } from 'lucide-react';
+import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil, Globe, Lock } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: Ticket;
   queuePosition?: number;
   onEditPlan?: () => void;
+  whatsappThreshold?: number;
 }
 
-export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProps) {
+export function TicketCard({
+  ticket,
+  queuePosition,
+  onEditPlan,
+  whatsappThreshold = 5,
+}: TicketCardProps) {
   const paymentInfo = parseTicketPaymentInfo(ticket);
   const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
 
@@ -27,6 +33,13 @@ export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProp
     const link = generateWhatsAppLink(ticket);
     window.open(link, '_blank');
   };
+
+  const isBeingServed = ticket.status === 'in_progress';
+  const isCompleted = ticket.status === 'completed';
+  const isCancelled = ticket.status === 'cancelled';
+  const hasQueuePosition = queuePosition !== undefined && queuePosition > 0;
+  const isWithinThreshold = hasQueuePosition ? queuePosition <= whatsappThreshold : true;
+  const isWhatsAppUnlocked = !isCancelled && (isBeingServed || isCompleted || isWithinThreshold);
 
   return (
     <div className="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-cyan-500/40 rounded-3xl p-6 md:p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] overflow-hidden">
@@ -171,15 +184,45 @@ export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProp
 
       {/* Action CTA */}
       <div className="mt-6 space-y-2.5">
-        <Button
-          variant="whatsapp"
-          size="lg"
-          onClick={handleOpenWhatsApp}
-          className="w-full font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>Enviar Ticket por WhatsApp para Iniciar</span>
-        </Button>
+        {isWhatsAppUnlocked ? (
+          <Button
+            variant="whatsapp"
+            size="lg"
+            onClick={handleOpenWhatsApp}
+            className="w-full font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>
+              {isBeingServed
+                ? '¡Tu Turno está en Atención! Abrir WhatsApp'
+                : hasQueuePosition
+                ? `Enviar Ticket por WhatsApp (Top ${whatsappThreshold} en Fila)`
+                : 'Enviar Ticket por WhatsApp para Iniciar'}
+            </span>
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <div className="w-full py-3.5 px-4 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-slate-400 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed select-none">
+              <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>WhatsApp disponible en el Top {whatsappThreshold} de la fila</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/25 text-xs text-slate-300 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-amber-300 flex items-center gap-1.5 text-xs">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Tu posición actual: #{queuePosition} en fila</span>
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                  Top {whatsappThreshold} requerido
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
+                Para garantizar atención 1 a 1 de calidad, el botón de WhatsApp se desbloquea de forma automática cuando estés entre los <strong className="text-white">{whatsappThreshold} primeros</strong> de la fila. Mientras tanto, completa los 3 pasos en tu TV.
+              </p>
+            </div>
+          </div>
+        )}
 
         {onEditPlan && (
           <button

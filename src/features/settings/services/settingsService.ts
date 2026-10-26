@@ -4,12 +4,14 @@ export interface QueueSettings {
   max_tickets: number;
   tickets_enabled: boolean;
   announcement?: string | null;
+  whatsapp_queue_threshold?: number;
 }
 
 const DEFAULT_SETTINGS: QueueSettings = {
   max_tickets: 100,
   tickets_enabled: true,
   announcement: null,
+  whatsapp_queue_threshold: 5,
 };
 
 export async function getQueueSettings(): Promise<QueueSettings> {
@@ -28,6 +30,7 @@ export async function getQueueSettings(): Promise<QueueSettings> {
       max_tickets: data.value.max_tickets ?? 100,
       tickets_enabled: data.value.tickets_enabled ?? true,
       announcement: data.value.announcement ?? null,
+      whatsapp_queue_threshold: data.value.whatsapp_queue_threshold ?? 5,
     };
   } catch (err) {
     console.error('Error fetching queue settings:', err);

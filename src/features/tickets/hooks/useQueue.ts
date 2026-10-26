@@ -15,6 +15,7 @@ export function useQueue() {
   const [settings, setSettings] = useState<QueueSettings>({
     max_tickets: 100,
     tickets_enabled: true,
+    whatsapp_queue_threshold: 5,
   });
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -86,6 +87,7 @@ export function useQueue() {
   const waitTimeFormatted = formatWaitTime(waitingCount);
   const isLimitReached = totalCount >= settings.max_tickets;
   const canIssueTicket = settings.tickets_enabled && !isLimitReached;
+  const whatsappThreshold = settings.whatsapp_queue_threshold ?? 5;
 
   return {
     servingTicket,
@@ -97,6 +99,7 @@ export function useQueue() {
     settings,
     maxTickets: settings.max_tickets,
     ticketsEnabled: settings.tickets_enabled,
+    whatsappThreshold,
     isLimitReached,
     canIssueTicket,
     loading,

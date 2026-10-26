@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [settings, setSettings] = useState<QueueSettings>({
     max_tickets: 100,
     tickets_enabled: true,
+    whatsapp_queue_threshold: 5,
   });
   const [loading, setLoading] = useState(true);
   const [updatingSettings, setUpdatingSettings] = useState(false);
@@ -95,6 +96,18 @@ export default function AdminPage() {
     const updated = await updateQueueSettings({
       tickets_enabled: true,
       max_tickets: newMax,
+    });
+    if (updated) {
+      setSettings(updated);
+    }
+    setUpdatingSettings(false);
+  };
+
+  const handleUpdateWhatsAppThreshold = async (threshold: number) => {
+    if (threshold < 1) return;
+    setUpdatingSettings(true);
+    const updated = await updateQueueSettings({
+      whatsapp_queue_threshold: threshold,
     });
     if (updated) {
       setSettings(updated);
@@ -240,6 +253,43 @@ export default function AdminPage() {
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Habilitar Más Cupos (+50)</span>
             </Button>
+          </div>
+        </div>
+
+        {/* WHATSAPP QUEUE THRESHOLD SETTING */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5">
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-extrabold text-white">
+                Filtro de Activación de WhatsApp para Clientes
+              </h3>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Top {settings.whatsapp_queue_threshold ?? 5} Activo
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 max-w-xl">
+              El botón de WhatsApp para clientes solo se habilita cuando su posición en la fila esté dentro de este número. Quienes estén más atrás verán el botón bloqueado para evitar saturación de chats.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs text-slate-400 font-medium">Habilitar en Top:</span>
+            {[1, 3, 5, 10, 15].map((num) => (
+              <button
+                key={num}
+                type="button"
+                disabled={updatingSettings}
+                onClick={() => handleUpdateWhatsAppThreshold(num)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  (settings.whatsapp_queue_threshold ?? 5) === num
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-emerald-500/50 hover:text-white'
+                }`}
+              >
+                {num}
+              </button>
+            ))}
           </div>
         </div>
 

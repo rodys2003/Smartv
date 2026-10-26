@@ -27,6 +27,8 @@ interface StepByStepGuideProps {
   isAuthenticated: boolean;
   onOpenAuthModal: () => void;
   onOpenTicketModal: () => void;
+  queuePosition?: number;
+  whatsappThreshold?: number;
 }
 
 export function StepByStepGuide({
@@ -34,6 +36,8 @@ export function StepByStepGuide({
   isAuthenticated,
   onOpenAuthModal,
   onOpenTicketModal,
+  queuePosition,
+  whatsappThreshold = 5,
 }: StepByStepGuideProps) {
   const [fullscreenVideo, setFullscreenVideo] = useState<VideoTutorial | null>(null);
 
@@ -408,15 +412,27 @@ export function StepByStepGuide({
                       <span className="text-3xl font-black text-white block mt-1">
                         #{currentTicket.ticket_number.toString().padStart(3, '0')}
                       </span>
-                      <Button
-                        variant="whatsapp"
-                        size="lg"
-                        onClick={handleWhatsAppClick}
-                        className="w-full mt-4 text-sm font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Abrir WhatsApp con mi Ticket</span>
-                      </Button>
+                      {queuePosition !== undefined && queuePosition > whatsappThreshold && currentTicket.status !== 'in_progress' ? (
+                        <div className="mt-4 space-y-2">
+                          <div className="w-full py-3 px-3 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-400 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none">
+                            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                            <span>WhatsApp en Top {whatsappThreshold} (Turno #{queuePosition})</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-snug">
+                            Se habilitará automáticamente cuando estés en el Top {whatsappThreshold} de la fila.
+                          </p>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="whatsapp"
+                          size="lg"
+                          onClick={handleWhatsAppClick}
+                          className="w-full mt-4 text-sm font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>Abrir WhatsApp con mi Ticket</span>
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div>

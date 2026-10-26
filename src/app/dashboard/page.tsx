@@ -34,7 +34,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, loading: authLoading, signInWithGoogle } = useAuth();
-  const { canIssueTicket, maxTickets, totalCount, refreshQueue } = useQueue();
+  const { canIssueTicket, maxTickets, totalCount, refreshQueue, waitingTickets, whatsappThreshold } = useQueue();
 
   const [userTicket, setUserTicket] = useState<Ticket | null>(null);
   const [ticketLoading, setTicketLoading] = useState(true);
@@ -258,6 +258,12 @@ export default function DashboardPage() {
         <StepByStepGuide
           currentTicket={userTicket}
           isAuthenticated={true}
+          queuePosition={
+            userTicket && waitingTickets.findIndex((t) => t.id === userTicket.id) !== -1
+              ? waitingTickets.findIndex((t) => t.id === userTicket.id) + 1
+              : undefined
+          }
+          whatsappThreshold={whatsappThreshold}
           onOpenAuthModal={() => {}}
           onOpenTicketModal={() => setIsTicketModalOpen(true)}
         />
