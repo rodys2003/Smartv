@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
-import { Star, ShieldCheck, MapPin, Tv, Sparkles, CheckCircle2, ZoomIn, X } from 'lucide-react';
+import { ShieldCheck, MapPin, Sparkles, ZoomIn, X } from 'lucide-react';
 
 interface Testimonial {
   id: string;
@@ -14,40 +14,49 @@ interface Testimonial {
   rating: number;
   comment: string;
   image?: string;
-  imageOrientation?: 'landscape' | 'portrait';
-  tag: string;
   highlight: string;
 }
 
-const TESTIMONIALS: Testimonial[] = [
+const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
   {
-    id: 'client-1',
-    name: 'Juan Camilo V.',
-    location: 'Soledad, Atlántico',
-    tvInfo: 'TCL 55" 4K Smart TV',
+    id: 'client-deadpool',
+    name: 'Alejandro P.',
+    location: 'Bucaramanga, Santander',
+    tvInfo: 'Haier 50" Smart TV (Android TV)',
     plan: 'Personalización PRO (70k) + Apps Mágicas',
     rating: 5,
-    tag: 'TCL Acelerado',
-    highlight: 'Tema Gojo Satoru + Cero publicidad',
+    highlight: 'Tema Deadpool Chimenea 4K',
     comment:
-      'Mi televisor TCL con Google TV de fábrica se quedaba pegado abriendo cualquier app. Me hicieron la optimización remota por WhatsApp en 20 minutos, me pusieron el tema de Gojo con TizenTube sin anuncios y el cambio en fluidez fue brutal. Prende al instante.',
-    image: '/images/client-gojo-purple.png',
-    imageOrientation: 'landscape',
+      'Quedó de locos el fondo de Deadpool junto a la chimenea. Mi TV Haier se demoraba una eternidad en prender y ahora con el dock limpio entra a Netflix, TizenTube y Magis TV de un solo toque sin trabarse.',
+    image: '/images/client-deadpool.png',
   },
   {
-    id: 'client-2',
+    id: 'client-tcl-gojo',
+    name: 'Juan Camilo V.',
+    location: 'Soledad, Atlántico',
+    tvInfo: 'TCL 55" 4K Google TV',
+    plan: 'Personalización PRO (70k) + Apps Mágicas',
+    rating: 5,
+    highlight: 'Tema Gojo Satoru Morado',
+    comment:
+      'Mi televisor TCL de fábrica se quedaba pegado abriendo cualquier app. Me hicieron la optimización remota por WhatsApp en 20 minutos, me pusieron el tema de Gojo con TizenTube sin anuncios y el cambio en fluidez fue brutal.',
+    image: '/images/client-gojo-purple.png',
+  },
+  {
+    id: 'client-ambient-gojo',
     name: 'Mateo R. & Camila',
     location: 'Bogotá D.C.',
     tvInfo: 'Smart TV 50" + Luces Ambientales',
     plan: 'Personalización PRO (70k) + Apps Mágicas',
     rating: 5,
-    tag: 'Setup Gamer',
-    highlight: 'Integración visual con tira LED',
+    highlight: 'Integración con Tira LED',
     comment:
-      'Miren cómo luce con las luces LED de la habitación. No solo se ve cinematográfico con el arte de Gojo en alta resolución, sino que el consumo de memoria bajó una barbaridad. La navegación entre YouTube, Spotify y streaming es instantánea.',
+      'Miren cómo luce con las luces LED de la habitación. No solo se ve cinematográfico con el arte de Gojo en alta resolución, sino que el consumo de memoria bajó una barbaridad. La navegación entre apps es instantánea.',
     image: '/images/client-gojo-ambient.png',
-    imageOrientation: 'portrait',
   },
+];
+
+const OTHER_REVIEWS = [
   {
     id: 'client-3',
     name: 'Sebastián Gómez',
@@ -55,8 +64,6 @@ const TESTIMONIALS: Testimonial[] = [
     tvInfo: 'Chromecast con Google TV 4K',
     plan: 'Interfaz Ultra-Ligera (50k)',
     rating: 5,
-    tag: 'Google TV Acelerado',
-    highlight: 'Adiós al lag y menús pesados',
     comment:
       'Mi Chromecast 4K andaba saturado de publicidad y apps de fábrica. Con el launcher ligero vuela, la respuesta del control remoto es inmediata y el consumo de RAM quedó súper optimizado.',
   },
@@ -67,8 +74,6 @@ const TESTIMONIALS: Testimonial[] = [
     tvInfo: 'Xiaomi Mi TV P1 43"',
     plan: 'Optimización Esencial (20k)',
     rating: 5,
-    tag: 'Optimización Rápida',
-    highlight: 'Excelente relación costo-beneficio',
     comment:
       'Por solo 20.000 COP le quitaron todo el lag a mi Xiaomi. Me atendieron en el turno exacto que tomé en la página y la guía de WhatsApp para enviar los datos fue súper clara.',
   },
@@ -89,7 +94,7 @@ export function TestimonialsSection() {
             Clientes Satisfechos a Nivel Global
           </h2>
           <p className="text-slate-400 mt-3 text-sm md:text-base leading-relaxed">
-            Así es como quedan los televisores de nuestros clientes tras la optimización y personalización 1 a 1.
+            Fotografías reales enviadas por nuestros clientes tras la optimización y personalización en sus hogares.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-300">
@@ -97,7 +102,7 @@ export function TestimonialsSection() {
               <span className="text-amber-400 flex">
                 {'★'.repeat(5)}
               </span>
-              <strong className="text-white">4.9 / 5.0</strong> en satisfacción
+              <strong className="text-white">5.0 / 5.0</strong> en satisfacción
             </span>
             <span className="flex items-center gap-1.5 font-semibold">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -110,144 +115,86 @@ export function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Featured Real Client Setups (With User Images) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-10">
-          {/* Client Setup 1: TCL Gojo Purple (Landscape) */}
-          <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-5 md:p-6 flex flex-col justify-between hover:border-cyan-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-cyan-500/30 mb-5 bg-slate-950">
-                <Image
-                  src={TESTIMONIALS[0].image!}
-                  alt="Instalación real cliente Gojo TCL"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full bg-slate-900/90 border border-cyan-400/40 text-[11px] font-bold text-cyan-300 backdrop-blur-md">
-                    Foto Real de Cliente · {TESTIMONIALS[0].location}
+        {/* Featured 3-Column Real Photo Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {FEATURED_CLIENT_PHOTOS.map((client) => (
+            <div
+              key={client.id}
+              className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 flex flex-col justify-between hover:border-cyan-500/50 transition-all duration-300 shadow-xl group"
+            >
+              <div>
+                {/* Photo container */}
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-700/80 mb-4 bg-slate-950">
+                  <Image
+                    src={client.image!}
+                    alt={`Instalación real cliente ${client.name}`}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-cyan-400/40 text-[10px] font-bold text-cyan-300 backdrop-blur-md">
+                      Foto Real · {client.location}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPhoto(client.image!)}
+                    className="absolute bottom-2.5 right-2.5 p-1.5 rounded-xl bg-slate-900/80 hover:bg-cyan-500 hover:text-slate-950 text-white transition-colors cursor-pointer border border-slate-700 backdrop-blur-md"
+                    title="Ampliar foto"
+                    aria-label="Ampliar foto"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center text-amber-400 text-xs">
+                    {'★'.repeat(client.rating)}
+                  </div>
+                  <span className="text-[10px] font-semibold text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                    {client.plan}
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPhoto(TESTIMONIALS[0].image!)}
-                  className="absolute bottom-3 right-3 p-2 rounded-xl bg-slate-900/80 hover:bg-cyan-500 hover:text-slate-950 text-white transition-colors cursor-pointer border border-slate-700 backdrop-blur-md"
-                  title="Ampliar foto"
-                  aria-label="Ampliar foto"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </button>
+
+                <h3 className="text-base font-black text-white mt-1">
+                  &ldquo;{client.highlight}&rdquo;
+                </h3>
+
+                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                  {client.comment}
+                </p>
               </div>
 
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-1 text-amber-400 text-sm">
-                  {'★'.repeat(TESTIMONIALS[0].rating)}
+              <div className="mt-5 pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 text-slate-950 font-bold flex items-center justify-center text-xs">
+                    {client.name.charAt(0)}
+                  </div>
+                  <div>
+                    <span className="font-bold text-white block text-xs">{client.name}</span>
+                    <span className="text-slate-400 text-[10px] flex items-center gap-1">
+                      <MapPin className="w-2.5 h-2.5 text-cyan-400" />
+                      {client.location}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-xs font-semibold text-cyan-400 bg-cyan-950/40 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
-                  {TESTIMONIALS[0].plan}
+                <span className="text-[10px] text-slate-400 font-medium text-right max-w-[110px] truncate">
+                  {client.tvInfo}
                 </span>
               </div>
-
-              <h3 className="text-lg font-black text-white mt-1">
-                &ldquo;{TESTIMONIALS[0].highlight}&rdquo;
-              </h3>
-
-              <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">
-                {TESTIMONIALS[0].comment}
-              </p>
             </div>
-
-            <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 text-slate-950 font-bold flex items-center justify-center text-xs">
-                  {TESTIMONIALS[0].name.charAt(0)}
-                </div>
-                <div>
-                  <span className="font-bold text-white block">{TESTIMONIALS[0].name}</span>
-                  <span className="text-slate-400 text-[11px] flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-cyan-400" />
-                    {TESTIMONIALS[0].location}
-                  </span>
-                </div>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium">
-                {TESTIMONIALS[0].tvInfo}
-              </span>
-            </div>
-          </div>
-
-          {/* Client Setup 2: Bedroom Ambient Gojo (Portrait / Showcase) */}
-          <div className="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-3xl p-5 md:p-6 flex flex-col justify-between hover:border-fuchsia-500/50 transition-all duration-300 shadow-xl group">
-            <div>
-              <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[4/5] rounded-2xl overflow-hidden border border-fuchsia-500/30 mb-5 bg-slate-950">
-                <Image
-                  src={TESTIMONIALS[1].image!}
-                  alt="Instalación real cliente con luces ambientales"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-full bg-slate-900/90 border border-fuchsia-400/40 text-[11px] font-bold text-fuchsia-300 backdrop-blur-md">
-                    Foto Real de Cliente · {TESTIMONIALS[1].location}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPhoto(TESTIMONIALS[1].image!)}
-                  className="absolute bottom-3 right-3 p-2 rounded-xl bg-slate-900/80 hover:bg-fuchsia-500 hover:text-white text-white transition-colors cursor-pointer border border-slate-700 backdrop-blur-md"
-                  title="Ampliar foto"
-                  aria-label="Ampliar foto"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-1 text-amber-400 text-sm">
-                  {'★'.repeat(TESTIMONIALS[1].rating)}
-                </div>
-                <span className="text-xs font-semibold text-fuchsia-400 bg-fuchsia-950/40 px-2.5 py-0.5 rounded-full border border-fuchsia-500/30">
-                  {TESTIMONIALS[1].plan}
-                </span>
-              </div>
-
-              <h3 className="text-lg font-black text-white mt-1">
-                &ldquo;{TESTIMONIALS[1].highlight}&rdquo;
-              </h3>
-
-              <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">
-                {TESTIMONIALS[1].comment}
-              </p>
-            </div>
-
-            <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-fuchsia-400 to-rose-600 text-white font-bold flex items-center justify-center text-xs">
-                  {TESTIMONIALS[1].name.charAt(0)}
-                </div>
-                <div>
-                  <span className="font-bold text-white block">{TESTIMONIALS[1].name}</span>
-                  <span className="text-slate-400 text-[11px] flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-fuchsia-400" />
-                    {TESTIMONIALS[1].location}
-                  </span>
-                </div>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium">
-                {TESTIMONIALS[1].tvInfo}
-              </span>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Secondary Testimonials Row (Other Plans 20k / 50k) */}
+        {/* Secondary Reviews Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {TESTIMONIALS.slice(2).map((t) => (
+          {OTHER_REVIEWS.map((t) => (
             <div
               key={t.id}
               className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 hover:border-slate-700 transition-colors"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-1 text-amber-400 text-xs">
+                <div className="flex items-center text-amber-400 text-xs">
                   {'★'.repeat(t.rating)}
                 </div>
                 <span className="text-[11px] font-semibold text-slate-400 bg-slate-800/80 px-2.5 py-0.5 rounded-md">

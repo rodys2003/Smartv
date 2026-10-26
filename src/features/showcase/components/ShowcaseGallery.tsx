@@ -32,7 +32,7 @@ export function ShowcaseGallery() {
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              🔥 Personalización PRO (Tema Itachi Akatsuki Anime)
+              🔥 Personalización PRO
             </button>
             <button
               onClick={() => setActiveTab('minimal')}
