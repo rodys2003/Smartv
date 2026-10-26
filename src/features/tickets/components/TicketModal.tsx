@@ -3,13 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { SERVICE_PLANS, MAGIC_APPS_PRICE } from '@/features/services-catalog/constants/plans';
+import {
+  SERVICE_PLANS,
+  MAGIC_APPS_PRICE_COP,
+  MAGIC_APPS_PRICE_USDT,
+  PLAN_USDT_PRICES,
+} from '@/features/services-catalog/constants/plans';
 import { ServicePlan, Ticket } from '@/types';
 import { formatCOP } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { createTicket } from '../services/ticketService';
 import { TicketCard } from './TicketCard';
-import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock } from 'lucide-react';
+import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock, CreditCard, Coins } from 'lucide-react';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -38,6 +43,7 @@ export function TicketModal({
     initialPlan || SERVICE_PLANS[1]
   );
   const [hasMagicApps, setHasMagicApps] = useState<boolean>(initialMagicApps);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'bre_b' | 'binance'>('bre_b');
   const [clientName, setClientName] = useState('');
   const [clientWhatsApp, setClientWhatsApp] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,8 +66,13 @@ export function TicketModal({
     }
   }, [user, clientName]);
 
-  const calculateTotal = () => {
-    return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE : 0);
+  const calculateTotalCOP = () => {
+    return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
+  };
+
+  const calculateTotalUSDT = () => {
+    const base = PLAN_USDT_PRICES[selectedPlan.id] ?? 17;
+    return base + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,6 +87,14 @@ export function TicketModal({
     setLoading(true);
 
     try {
+      const isBinance = selectedPaymentMethod === 'binance';
+      const totalPrice = isBinance ? calculateTotalUSDT() : calculateTotalCOP();
+      const notesJson = JSON.stringify({
+        payment_method: selectedPaymentMethod,
+        usdt_price: calculateTotalUSDT(),
+        cop_price: calculateTotalCOP(),
+      });
+
       const ticket = await createTicket({
         user_id: user?.id ?? null,
         user_email: user?.email ?? null,
@@ -86,8 +105,9 @@ export function TicketModal({
         service_tier: selectedPlan.id,
         service_name: selectedPlan.name,
         has_magic_apps: hasMagicApps,
-        total_price: calculateTotal(),
+        total_price: totalPrice,
         client_whatsapp: clientWhatsApp.trim() || null,
+        notes: notesJson,
       });
 
       setCreatedTicket(ticket);
@@ -235,31 +255,84 @@ export function TicketModal({
             </div>
           </div>
 
+          {/* Payment Method Selector */}
+          <div>
+            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+              Método de Pago:
+            </label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod('bre_b')}
+                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                  selectedPaymentMethod === 'bre_b'
+                    ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                    : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                }`}
+              >
+                <CreditCard className="w-4 h-4 text-cyan-400 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold block text-white">🇨🇴 Llave Bre-B</span>
+                  <span className="text-[10px] text-slate-400 block">En Pesos (COP)</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod('binance')}
+                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                  selectedPaymentMethod === 'binance'
+                    ? 'bg-amber-400/20 border-amber-400 text-white shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                    : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                }`}
+              >
+                <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold block text-white">🌐 Binance (USDT)</span>
+                  <span className="text-[10px] text-slate-400 block">Red Tron (TRC20)</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {/* Plan selection */}
           <div>
             <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
               Selecciona tu Plan:
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {SERVICE_PLANS.map((plan) => (
-                <button
-                  type="button"
-                  key={plan.id}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                    selectedPlan.id === plan.id
-                      ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
-                      : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
-                  }`}
-                >
-                  <span className="text-xs font-bold text-white block">
-                    {plan.name}
-                  </span>
-                  <span className="text-sm font-black text-cyan-300 mt-2 block">
-                    {formatCOP(plan.price)}
-                  </span>
-                </button>
-              ))}
+              {SERVICE_PLANS.map((plan) => {
+                const isBinance = selectedPaymentMethod === 'binance';
+                const priceFormatted = isBinance
+                  ? `${PLAN_USDT_PRICES[plan.id]} USDT`
+                  : formatCOP(plan.price);
+
+                return (
+                  <button
+                    type="button"
+                    key={plan.id}
+                    onClick={() => setSelectedPlan(plan)}
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                      selectedPlan.id === plan.id
+                        ? isBinance
+                          ? 'bg-amber-400/20 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.25)]'
+                          : 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                        : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-white block">
+                      {plan.name}
+                    </span>
+                    <span
+                      className={`text-sm font-black mt-2 block ${
+                        isBinance ? 'text-amber-300 font-mono' : 'text-cyan-300'
+                      }`}
+                    >
+                      {priceFormatted}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -269,7 +342,7 @@ export function TicketModal({
               <Sparkles className="w-4 h-4 text-fuchsia-400 shrink-0" />
               <div className="text-xs">
                 <span className="font-bold text-white block">
-                  Add-on Apps Mágicas (+20k)
+                  Add-on Apps Mágicas ({selectedPaymentMethod === 'binance' ? '+7 USDT' : '+20.000 COP'})
                 </span>
                 <span className="text-slate-400 text-[11px]">
                   Instalación de apps de streaming libres de anuncios.
@@ -288,10 +361,18 @@ export function TicketModal({
           <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-4">
             <div>
               <span className="text-[10px] uppercase text-slate-400 block font-bold">
-                Total a pagar:
+                Total a pagar ({selectedPaymentMethod === 'binance' ? 'Binance USDT' : 'Bre-B COP'}):
               </span>
-              <span className="text-2xl font-black text-cyan-400">
-                {formatCOP(calculateTotal())}
+              <span
+                className={`text-2xl font-black ${
+                  selectedPaymentMethod === 'binance'
+                    ? 'text-amber-400 font-mono'
+                    : 'text-cyan-400'
+                }`}
+              >
+                {selectedPaymentMethod === 'binance'
+                  ? `${calculateTotalUSDT()} USDT`
+                  : formatCOP(calculateTotalCOP())}
               </span>
             </div>
 

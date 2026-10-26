@@ -1,6 +1,14 @@
 import { ServicePlan } from '@/types';
 
 export const MAGIC_APPS_PRICE = 20000;
+export const MAGIC_APPS_PRICE_COP = 20000;
+export const MAGIC_APPS_PRICE_USDT = 7;
+
+export const PLAN_USDT_PRICES: Record<string, number> = {
+  basic_20k: 7,
+  ultra_light_50k: 17,
+  custom_pro_70k: 23,
+};
 
 export const SERVICE_PLANS: ServicePlan[] = [
   {

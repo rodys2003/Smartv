@@ -10,7 +10,7 @@ import {
   updateQueueSettings,
   QueueSettings,
 } from '@/features/settings/services/settingsService';
-import { formatCOP, formatTicketNumber } from '@/lib/utils';
+import { formatCOP, formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
@@ -387,9 +387,20 @@ export default function AdminPage() {
 
                   {/* Right: Price & Quick Action buttons */}
                   <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center flex-wrap">
-                    <span className="text-base font-black text-white mr-2">
-                      {formatCOP(t.total_price)}
-                    </span>
+                    <div className="text-right mr-2">
+                      <span
+                        className={`text-base font-black block ${
+                          parseTicketPaymentInfo(t).isCrypto
+                            ? 'text-amber-400 font-mono'
+                            : 'text-white'
+                        }`}
+                      >
+                        {parseTicketPaymentInfo(t).formattedPrice}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block font-semibold">
+                        {parseTicketPaymentInfo(t).isCrypto ? 'Binance TRC20' : 'Bre-B (COP)'}
+                      </span>
+                    </div>
 
                     {/* Direct WhatsApp link with prefilled ticket */}
                     <button

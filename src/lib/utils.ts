@@ -41,3 +41,58 @@ export function formatWaitTime(pendingCount: number): string {
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
 }
+
+/**
+ * Parsea la información de pago del ticket para determinar
+ * si el cobro es en COP (Bre-B) o en USDT (Binance).
+ */
+export function parseTicketPaymentInfo(ticket?: {
+  total_price?: number;
+  notes?: string | null;
+} | null): {
+  method: 'bre_b' | 'binance';
+  formattedPrice: string;
+  isCrypto: boolean;
+} {
+  if (!ticket) {
+    return { method: 'bre_b', formattedPrice: '$0 COP', isCrypto: false };
+  }
+
+  try {
+    if (ticket.notes) {
+      if (ticket.notes.startsWith('{')) {
+        const parsed = JSON.parse(ticket.notes);
+        if (parsed.payment_method === 'binance') {
+          const usdt = parsed.usdt_price ?? ticket.total_price;
+          return {
+            method: 'binance',
+            formattedPrice: `${usdt} USDT`,
+            isCrypto: true,
+          };
+        }
+      } else if (ticket.notes.includes('binance') || ticket.notes.includes('USDT')) {
+        return {
+          method: 'binance',
+          formattedPrice: `${ticket.total_price} USDT`,
+          isCrypto: true,
+        };
+      }
+    }
+  } catch {
+    // ignore JSON parsing fallback
+  }
+
+  if (ticket.total_price !== undefined && ticket.total_price > 0 && ticket.total_price <= 100) {
+    return {
+      method: 'binance',
+      formattedPrice: `${ticket.total_price} USDT`,
+      isCrypto: true,
+    };
+  }
+
+  return {
+    method: 'bre_b',
+    formattedPrice: formatCOP(ticket.total_price || 0),
+    isCrypto: false,
+  };
+}

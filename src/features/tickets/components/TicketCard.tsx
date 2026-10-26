@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Ticket } from '@/types';
-import { formatCOP, formatTicketNumber } from '@/lib/utils';
+import { formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
-import { Tv, MessageCircle, Clock, Sparkles } from 'lucide-react';
+import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -14,6 +14,8 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
+  const paymentInfo = parseTicketPaymentInfo(ticket);
+
   const handleOpenWhatsApp = () => {
     const link = generateWhatsAppLink(ticket);
     window.open(link, '_blank');
@@ -86,13 +88,31 @@ export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
               <Sparkles className="w-3.5 h-3.5" />
               Apps Mágicas:
             </span>
-            <span className="font-semibold">Incluidas</span>
+            <span className="font-semibold">
+              {paymentInfo.isCrypto ? 'Incluidas (+7 USDT)' : 'Incluidas (+20k)'}
+            </span>
           </div>
         )}
+        <div className="flex items-center justify-between">
+          <span className="text-slate-400">Método de Pago:</span>
+          <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+            {paymentInfo.isCrypto ? (
+              <>
+                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                <span>Binance (USDT TRC20)</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Llave Bre-B (COP)</span>
+              </>
+            )}
+          </span>
+        </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-slate-400 font-medium">Total:</span>
-          <span className="text-base font-bold text-white">
-            {formatCOP(ticket.total_price)}
+          <span className="text-slate-400 font-medium">Total a pagar:</span>
+          <span className="text-base font-black text-cyan-400">
+            {paymentInfo.formattedPrice}
           </span>
         </div>
       </div>
@@ -114,7 +134,11 @@ export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
           className="w-full py-2.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 text-emerald-300 hover:text-white hover:bg-emerald-500/20 text-xs font-bold flex items-center justify-center gap-2 transition-colors text-center"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Ver Medio de Pago Bre-B (Pagas tras conectar tu TV)</span>
+          <span>
+            {paymentInfo.isCrypto
+              ? 'Ver Datos de Binance USDT (Pagas tras conectar tu TV)'
+              : 'Ver Llave Bre-B (Pagas tras conectar tu TV)'}
+          </span>
         </a>
 
         <p className="text-[11px] text-center text-slate-400 pt-1">

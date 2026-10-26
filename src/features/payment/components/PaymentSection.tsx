@@ -3,7 +3,15 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Ticket } from '@/types';
-import { formatCOP, formatTicketNumber } from '@/lib/utils';
+import {
+  formatCOP,
+  formatTicketNumber,
+  parseTicketPaymentInfo,
+} from '@/lib/utils';
+import {
+  PLAN_USDT_PRICES,
+  MAGIC_APPS_PRICE_USDT,
+} from '@/features/services-catalog/constants/plans';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
@@ -24,7 +32,11 @@ interface PaymentSectionProps {
 }
 
 export function PaymentSection({ userTicket }: PaymentSectionProps) {
-  const [activeMethod, setActiveMethod] = useState<'bre_b' | 'binance'>('bre_b');
+  const paymentInfo = parseTicketPaymentInfo(userTicket);
+
+  const [activeMethod, setActiveMethod] = useState<'bre_b' | 'binance'>(
+    userTicket && paymentInfo.isCrypto ? 'binance' : 'bre_b'
+  );
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedCryptoAddress, setCopiedCryptoAddress] = useState(false);
 
@@ -33,9 +45,12 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
   const binanceNetwork = 'TRX Tron (TRC20)';
   const binanceAsset = 'USDT';
 
-  // Calculate approximate USDT equivalent (rate ~4,100 COP per USD)
-  const getUsdtEquivalent = (copAmount: number) => {
-    return Math.max(5, Math.round(copAmount / 4100));
+  // Fixed USDT pricing calculation:
+  // 7 USDT optimizacion, 17 USDT interfaz ligera, 23 USDT custom pro, 7 USDT magic apps
+  const getTicketUsdtPrice = (ticket?: Ticket | null) => {
+    if (!ticket) return 17;
+    const base = PLAN_USDT_PRICES[ticket.service_tier] ?? 17;
+    return base + (ticket.has_magic_apps ? MAGIC_APPS_PRICE_USDT : 0);
   };
 
   const handleCopyBreBKey = async () => {
@@ -72,7 +87,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
         `¡Hola! Ya realicé el pago de ${ticketStr}${amountStr ? ` por valor de ${amountStr}` : ''}${planStr} mediante llave Bre-B (${breBKey}). Adjunto el comprobante de pago para continuar con la optimización de mi Smart TV.`
       );
     } else {
-      const usdtVal = userTicket ? `${getUsdtEquivalent(userTicket.total_price)} USDT` : 'USDT';
+      const usdtVal = userTicket ? `${getTicketUsdtPrice(userTicket)} USDT` : 'USDT';
       text = encodeURIComponent(
         `¡Hola! Ya realicé el pago de ${ticketStr} (${usdtVal})${planStr} a través de Binance en USDT por la red ${binanceNetwork} a la dirección ${binanceAddress}. Adjunto el comprobante / captura de la transacción para continuar con la optimización.`
       );
@@ -326,23 +341,26 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
                   <div className="mb-6 p-4 rounded-2xl bg-amber-950/30 border border-amber-500/40 flex items-center justify-between gap-4">
                     <div>
                       <span className="text-[10px] uppercase font-bold text-amber-300 tracking-wider block">
-                        Equivalente para tu turno:
+                        Total a pagar en Binance:
                       </span>
                       <span className="text-xs text-white font-semibold">
-                        {formatTicketNumber(userTicket.ticket_number)} · {userTicket.service_name} ({formatCOP(userTicket.total_price)})
+                        {formatTicketNumber(userTicket.ticket_number)} · {userTicket.service_name}
+                        {userTicket.has_magic_apps && (
+                          <span className="text-fuchsia-400 font-bold ml-1">+ Apps Mágicas (+7 USDT)</span>
+                        )}
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-black text-amber-400 block font-mono">
-                        ~{getUsdtEquivalent(userTicket.total_price)} USDT
+                        {getTicketUsdtPrice(userTicket)} USDT
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div className="mb-6 p-4 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300">
-                    <span className="text-slate-400 block mb-0.5">Equivalente por plan:</span>
+                    <span className="text-slate-400 block mb-0.5">Tarifas oficiales en Binance:</span>
                     <span className="text-white font-bold">
-                      Básico ~5 USDT · Ultra-Light ~12 USDT · Custom PRO ~17 USDT (+5 USDT Apps Mágicas).
+                      7 USDT (Optimización) · 17 USDT (Optimización + Interfaz Ligera) · 23 USDT (Personalización Premium) · +7 USDT (Apps Mágicas).
                     </span>
                   </div>
                 )}
