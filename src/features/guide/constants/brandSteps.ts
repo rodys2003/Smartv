@@ -1,155 +1,124 @@
-import { TVBrandGuide } from '@/types';
+import { TVBrandGuide, VideoTutorial } from '@/types';
+
+export const TAILSCALE_TUTORIAL: VideoTutorial = {
+  id: 'tailscale-guide',
+  title: 'Configuración Obligatoria: Instalar y Activar Tailscale',
+  description:
+    'Tailscale nos permite conectarnos de forma segura y remota a tu Smart TV para realizar la optimización sin necesidad de abrir puertos ni poner en riesgo tu red.',
+  embedUrl: 'https://www.youtube.com/embed/Gs-Q9kkfnmU?si=kli3Y0SKs7oOb-iP',
+  category: 'tailscale',
+};
+
+export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
+  {
+    id: 'usb-debug-1',
+    title: 'Tutorial 1: Cómo habilitar Depuración USB en Android TV / Google TV',
+    description: 'Paso a paso para desbloquear el menú de opciones de desarrollador y activar la depuración USB.',
+    embedUrl: 'https://www.youtube.com/embed/YZdGtqNbfXw?si=nDFlNQwXlmd1mERT',
+    category: 'usb-debugging',
+  },
+  {
+    id: 'usb-debug-2',
+    title: 'Tutorial 2: Depuración por red y permisos de conexión en TV',
+    description: 'Cómo aceptar la clave RSA y autorizar la conexión remota desde tu control.',
+    embedUrl: 'https://www.youtube.com/embed/zCZK1BDlNWE?si=rMAdSVLzcVuIcr_G',
+    category: 'usb-debugging',
+  },
+  {
+    id: 'usb-debug-3',
+    title: 'Tutorial 3: Guía alternativa para diferentes marcas Android TV',
+    description: 'Procedimiento para marcas como TCL, Xiaomi, Chromecast y cajas TV Box.',
+    embedUrl: 'https://www.youtube.com/embed/izcec2QCTkk?si=X8CJNESIofG5Vogu',
+    category: 'usb-debugging',
+  },
+];
 
 export const TV_GUIDES: TVBrandGuide[] = [
   {
     id: 'android-tv',
-    name: 'Android TV & Google TV',
+    name: 'Android TV / Google TV',
     logo: '📺',
-    tag: 'Xiaomi, Sony, TCL, Chromecast, Onn, TV Box',
+    tag: 'TCL, Xiaomi, Sony, Chromecast con Google TV, Onn, TV Box Android',
     steps: [
       {
         step: 1,
-        title: 'Verifica la versión y modelo del televisor',
-        description: 'Ve a Ajustes (icono de engranaje) > Sistema o Preferencias del dispositivo > Información / Acerca de.',
-        actionable: 'Toma una foto clara a la pantalla donde se vea la "Versión de Android" y el "Modelo".',
+        title: 'Habilitar Opciones de Desarrollador y Depuración USB',
+        description:
+          'Ve a Ajustes > Sistema > Información > Compilación del SO y pulsa 7 veces OK. Luego entra a "Opciones de desarrollador" y activa "Depuración por USB" o "Depuración por red".',
+        actionable: 'Mira la lista de videos tutoriales abajo para tu modelo exacto.',
       },
       {
         step: 2,
-        title: 'Activa Opciones de Desarrollador',
-        description: 'Dentro de Información, baja hasta "Compilación del SO de Android TV" y presiona 7 veces seguidas el botón OK de tu control hasta ver "¡Ya eres desarrollador!".',
-        actionable: 'Nos permitirá acelerar las animaciones del sistema a 0.5x y habilitar depuración para la optimización remota.',
+        title: 'Instalar y Vincular Tailscale en la TV (Obligatorio)',
+        description:
+          'Descarga "Tailscale" desde la Google Play Store de tu televisor. Ábrelo, inicia sesión con tu cuenta y déjalo conectado (estado "Connected").',
+        actionable: 'Sigue el video tutorial de Tailscale para dejar lista la IP de conexión.',
       },
       {
         step: 3,
-        title: 'Prueba de velocidad de tu conexión',
-        description: 'Abre el navegador de tu TV o descarga "Analiti / Speedtest" desde la Play Store.',
-        actionable: 'Toma foto al resultado de velocidad de bajada (Mbps) y ping (latencia).',
+        title: 'Prueba de Velocidad de Conexión',
+        description:
+          'Abre el navegador web o descarga Speedtest en tu TV para verificar la estabilidad de tu red.',
+        actionable: 'Toma una foto clara a la velocidad de descarga en pantalla.',
       },
       {
         step: 4,
-        title: 'Instala la aplicación Downloader',
-        description: 'Busca en Google Play Store la app naranja llamada "Downloader by AFTVnews" e instálala.',
-        actionable: 'Será la herramienta con la que te instalaremos el launcher ligero y tus aplicaciones.',
+        title: 'Descargar e Instalar Downloader by AFTVnews',
+        description:
+          'Instala la aplicación naranja "Downloader" desde Google Play Store. Servirá para descargar el launcher optimizado y las herramientas.',
+        actionable: 'Confirma que Downloader abra sin problemas en tu televisor.',
       },
     ],
     whatsappChecklist: [
-      'Foto nítida de Ajustes > Información (Modelo y Versión de Android)',
-      'Foto del test de velocidad de Internet en la TV',
-      'Si elegiste plan de 70k: Qué fondo o personaje deseas (Anime, Gamer, Película)',
+      'Foto nítida de Ajustes > Información (Modelo de TV y versión de Android)',
+      'Foto de Tailscale en tu TV mostrando la IP asignada (ej. 100.x.x.x)',
+      'Foto de la Depuración USB activada',
+      'Si elegiste plan de 70k: Personaje o temática deseada (Anime, Gamer, Película)',
       'Confirmación si deseas añadir el paquete de Apps Mágicas (+20.000 COP)',
     ],
+    videos: USB_DEBUGGING_VIDEOS,
   },
   {
     id: 'samsung-tizen',
-    name: 'Samsung Smart TV',
+    name: 'Samsung Smart TV (Tizen OS)',
     logo: '🪐',
-    tag: 'Tizen OS (Cualquier serie QLED, Crystal UHD, Neo QLED)',
+    tag: 'Tizen OS (QLED, Crystal UHD, Neo QLED, Series 7/8/9)',
     steps: [
       {
         step: 1,
-        title: 'Revisar versión de Tizen y Almacenamiento',
-        description: 'Presiona Inicio (Home) en el control remoto > Menú > Configuración > Soporte técnico > Acerca de este TV.',
-        actionable: 'Toma una foto de la pantalla con la versión de software (ej. T-KTSU... o versión Tizen).',
+        title: 'Revisar versión de Tizen y Almacenamiento Disponible',
+        description:
+          'Menú > Configuración > Soporte técnico > Acerca de este TV. Revisa la versión de software.',
+        actionable: 'Toma foto clara a la versión del firmware de tu Samsung.',
       },
       {
         step: 2,
-        title: 'Liberar memoria RAM (Samsung Device Care)',
-        description: 'Ve a Configuración > Soporte técnico > Cuidado del dispositivo > Autodiagnóstico o Iniciar Cuidado del Dispositivo.',
-        actionable: 'Ejecuta la limpieza para cerrar procesos colgados de fábrica.',
+        title: 'Activar Modo Desarrollador en Samsung Tizen (Apps)',
+        description:
+          'Abre la sección "Apps" en tu Samsung. En el control remoto presiona 1, 2, 3, 4, 5. En la ventana emergente activa "Developer Mode: ON" e ingresa la IP del host que te facilitaremos.',
+        actionable: 'Te brindaremos la IP por WhatsApp cuando sea tu turno.',
       },
       {
         step: 3,
-        title: 'Desactivar Samsung TV Plus en segundo plano',
-        description: 'Configuración > General > Funciones inteligentes > Desactiva Autorun Samsung TV Plus y Autorun Smart Hub.',
-        actionable: 'Esto hace que el televisor encienda inmediatamente sin trabarse cargando canales automáticos.',
+        title: 'Instalar Tailscale o puente de red remoto',
+        description:
+          'Configuraremos el túnel seguro para acceder al sistema Tizen y desplegar el nuevo perfil optimizado.',
+        actionable: 'Mira el video de configuración de red Tailscale para sincronizar tu red.',
       },
       {
         step: 4,
-        title: 'Configurar DNS de alta velocidad',
-        description: 'Configuración > General > Red > Estado de red > Configuración de IP > Servidor DNS: manual.',
-        actionable: 'Te daremos el DNS óptimo según tu proveedor de internet para evitar buffering.',
+        title: 'Desactivar Autorun Samsung TV Plus y Bloatware',
+        description:
+          'Configuración > General > Funciones inteligentes > Desactiva Autorun Samsung TV Plus y Autorun Smart Hub.',
+        actionable: 'Evita que el TV se quede cargando canales publicitarios al encender.',
       },
     ],
     whatsappChecklist: [
       'Foto de Soporte técnico > Acerca de este TV',
-      'Foto de Cuidado del dispositivo (Espacio disponible)',
-      'Si cuentas con una memoria USB o TV Box adicional',
-      'Nombre de tu proveedor de internet (Claro, Tigo, Movistar, ETB, etc.)',
+      'Foto de la pantalla de Apps con el Developer Mode visible',
+      'Foto del test de velocidad (Fast.com desde el navegador web de Samsung)',
+      'Nombre de tu operador de internet para asignar los DNS óptimos',
     ],
-  },
-  {
-    id: 'lg-webos',
-    name: 'LG Smart TV',
-    logo: '🔴',
-    tag: 'webOS (OLED, NanoCell, QNED, UHD)',
-    steps: [
-      {
-        step: 1,
-        title: 'Verificar versión de webOS',
-        description: 'Mantén presionado el botón de Engranaje (Ajustes) > Todos los ajustes > General > Acerca de esta TV.',
-        actionable: 'Toma foto al "Modelo de TV" y "Versión de software de webOS".',
-      },
-      {
-        step: 2,
-        title: 'Desactivar QuickStart+ y Publicidad de LG',
-        description: 'En General > Sistema > Ajustes adicionales > Desactiva "QuickStart+" y en Privacidad desactiva "Anuncios basados en intereses".',
-        actionable: 'QuickStart+ acumula memoria residual que satura el procesador tras varios días encendido.',
-      },
-      {
-        step: 3,
-        title: 'Limpiar caché del Navegador Web',
-        description: 'Abre la app Navegador de LG > Ajustes (tres puntos arriba a la derecha) > Borrar datos de navegación.',
-        actionable: 'Libera hasta 500MB de memoria temporal del sistema.',
-      },
-      {
-        step: 4,
-        title: 'Modo Desarrollador LG (Si aplica para sideloading)',
-        description: 'Te guiaremos para instalar Developer Mode desde la LG Content Store para instalar apps sin restricciones.',
-        actionable: 'Te enviaremos los comandos exactos por WhatsApp.',
-      },
-    ],
-    whatsappChecklist: [
-      'Foto de Acerca de esta TV (Modelo exacto de LG)',
-      'Foto del test de velocidad (Fast.com desde el navegador web de tu LG)',
-      'Apps que más utilizas y las que deseas optimizar',
-    ],
-  },
-  {
-    id: 'amazon-firetv',
-    name: 'Amazon Fire TV',
-    logo: '🔥',
-    tag: 'Fire TV Stick Lite, 4K, 4K Max, Cube',
-    steps: [
-      {
-        step: 1,
-        title: 'Revisar modelo y almacenamiento',
-        description: 'Configuración > Mi Fire TV > Acerca de > Almacenamiento.',
-        actionable: 'Toma foto de cuánto almacenamiento libre te queda (mínimo recomendamos 1.5 GB).',
-      },
-      {
-        step: 2,
-        title: 'Activar Opciones de Desarrollador en Fire OS',
-        description: 'En Mi Fire TV > Acerca de, resalta el nombre de tu dispositivo y pulsa OK 7 veces seguidas.',
-        actionable: 'Aparecerá el menú "Opciones de desarrollador" en Mi Fire TV.',
-      },
-      {
-        step: 3,
-        title: 'Habilitar Apps de fuentes desconocidas',
-        description: 'Entra a Opciones de Desarrollador > Activa "Depuración ADB" e "Instalar apps desconocidas".',
-        actionable: 'Necesario para instalar el launcher ultra-ligero y las apps mágicas.',
-      },
-      {
-        step: 4,
-        title: 'Instalar Downloader desde la tienda de Amazon',
-        description: 'Busca "Downloader" en la lupa de Amazon Appstore y descárgala gratis.',
-        actionable: 'Quedará lista para ingresar el código especial de instalación que te pasaremos por WhatsApp.',
-      },
-    ],
-    whatsappChecklist: [
-      'Foto de Mi Fire TV > Acerca de > Almacenamiento',
-      'Captura de velocidad de conexión a Internet',
-      'Si elegiste plan de 70k: Elige tu fondo (ej. Naruto, Batman, Minimalista Cyberpunk)',
-      'Confirmar si deseas Apps Mágicas (+20.000 COP)',
-    ],
+    videos: [TAILSCALE_TUTORIAL],
   },
 ];

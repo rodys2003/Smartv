@@ -34,6 +34,14 @@ export interface Ticket {
   updated_at: string;
 }
 
+export interface VideoTutorial {
+  id: string;
+  title: string;
+  description: string;
+  embedUrl: string;
+  category: 'usb-debugging' | 'tailscale' | 'general';
+}
+
 export interface TVBrandGuide {
   id: string;
   name: string;
@@ -46,4 +54,5 @@ export interface TVBrandGuide {
     actionable: string;
   }[];
   whatsappChecklist: string[];
+  videos?: VideoTutorial[];
 }

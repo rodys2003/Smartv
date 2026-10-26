@@ -6,18 +6,32 @@ import { ServicePlan } from '@/types';
 import { ServiceCard } from './ServiceCard';
 import { formatCOP } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { Sparkles, Wand2, ShieldAlert } from 'lucide-react';
+import { Sparkles, Wand2, ShieldAlert, Lock, ArrowRight } from 'lucide-react';
 
 interface PricingSectionProps {
+  isAuthenticated: boolean;
+  onOpenAuthModal: () => void;
   onPlanChosen: (plan: ServicePlan, hasMagicApps: boolean) => void;
 }
 
-export function PricingSection({ onPlanChosen }: PricingSectionProps) {
+export function PricingSection({
+  isAuthenticated,
+  onOpenAuthModal,
+  onPlanChosen,
+}: PricingSectionProps) {
   const [selectedPlan, setSelectedPlan] = useState<ServicePlan>(SERVICE_PLANS[1]); // Ultra-Light default
   const [hasMagicApps, setHasMagicApps] = useState<boolean>(true);
 
   const calculateTotal = () => {
     return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE : 0);
+  };
+
+  const handleAction = () => {
+    if (!isAuthenticated) {
+      onOpenAuthModal();
+      return;
+    }
+    onPlanChosen(selectedPlan, hasMagicApps);
   };
 
   return (
@@ -109,17 +123,27 @@ export function PricingSection({ onPlanChosen }: PricingSectionProps) {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => onPlanChosen(selectedPlan, hasMagicApps)}
+              onClick={handleAction}
               className="px-6 py-3 font-bold text-sm"
             >
-              Tomar Turno con este Plan →
+              {isAuthenticated ? (
+                <>
+                  <span>Tomar Turno con este Plan</span>
+                  <ArrowRight className="w-4 h-4 ml-1.5" />
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-1.5" />
+                  <span>Ingresar con Google para Turno</span>
+                </>
+              )}
             </Button>
           </div>
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
           <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
-          <span>Atención remota paso a paso 1 a 1 por WhatsApp. No requiere abrir tu TV ni perder garantía.</span>
+          <span>Atención remota paso a paso 1 a 1 por WhatsApp solo para usuarios registrados.</span>
         </div>
       </div>
     </section>

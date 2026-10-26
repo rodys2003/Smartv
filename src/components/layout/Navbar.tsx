@@ -5,14 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
-import { Tv, Sparkles } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
 
 interface NavbarProps {
+  isAuthenticated: boolean;
   onOpenTicketModal: () => void;
   onOpenAuthModal: () => void;
 }
 
-export function Navbar({ onOpenTicketModal, onOpenAuthModal }: NavbarProps) {
+export function Navbar({ isAuthenticated, onOpenTicketModal, onOpenAuthModal }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/75 border-b border-slate-800/80">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
@@ -53,27 +54,47 @@ export function Navbar({ onOpenTicketModal, onOpenAuthModal }: NavbarProps) {
           <a href="#testimonios" className="hover:text-cyan-400 transition-colors">
             Clientes Satisfechos
           </a>
-          <a href="#guia" className="hover:text-cyan-400 transition-colors">
-            Paso a Paso TV
-          </a>
-          <a href="#cola" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            Cola en Vivo
-          </a>
+          {isAuthenticated ? (
+            <>
+              <a href="#guia" className="hover:text-cyan-400 transition-colors">
+                Paso a Paso & Videos
+              </a>
+              <a href="#cola" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                Cola en Vivo
+              </a>
+            </>
+          ) : (
+            <a href="#guia" className="hover:text-cyan-400 transition-colors flex items-center gap-1 text-slate-400">
+              <Lock className="w-3 h-3 text-cyan-400" />
+              <span>Tutoriales TV</span>
+            </a>
+          )}
         </nav>
 
         {/* Actions & User */}
         <div className="flex items-center gap-3">
           <UserMenu onOpenAuth={onOpenAuthModal} />
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onOpenTicketModal}
-            className="text-xs font-bold hidden sm:inline-flex"
-          >
-            Tomar Turno
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onOpenTicketModal}
+              className="text-xs font-bold hidden sm:inline-flex"
+            >
+              Tomar Turno
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={onOpenAuthModal}
+              className="text-xs font-bold hidden sm:inline-flex"
+            >
+              Ingresar con Google
+            </Button>
+          )}
         </div>
       </div>
     </header>

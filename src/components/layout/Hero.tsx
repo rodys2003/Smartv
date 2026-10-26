@@ -4,14 +4,21 @@ import React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Play } from 'lucide-react';
+import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
 
 interface HeroProps {
   onOpenTicketModal: () => void;
+  onOpenAuthModal: () => void;
+  isAuthenticated: boolean;
   waitingCount: number;
 }
 
-export function Hero({ onOpenTicketModal, waitingCount }: HeroProps) {
+export function Hero({
+  onOpenTicketModal,
+  onOpenAuthModal,
+  isAuthenticated,
+  waitingCount,
+}: HeroProps) {
   return (
     <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden">
       {/* Background ambient neon glow lights */}
@@ -19,11 +26,13 @@ export function Hero({ onOpenTicketModal, waitingCount }: HeroProps) {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto space-y-6">
-          {/* Live Queue Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          {/* Compatibility & Status Pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.2)] flex-wrap justify-center">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
             <span className="text-xs font-semibold text-slate-200">
-              Sistema de Turnos Global Activo · {waitingCount > 0 ? `${waitingCount} en espera` : 'Turno inmediato disponible'}
+              {isAuthenticated
+                ? `Cola Activa · ${waitingCount > 0 ? `${waitingCount} turnos en espera` : 'Turno inmediato disponible'}`
+                : 'Servicio Remoto Exclusivo · Android TV & Samsung Tizen'}
             </span>
           </div>
 
@@ -56,24 +65,44 @@ export function Hero({ onOpenTicketModal, waitingCount }: HeroProps) {
             </span>
           </div>
 
+          {/* Compatible devices highlight */}
+          <div className="pt-1">
+            <p className="text-xs text-slate-400">
+              Soporte: <strong className="text-white">Android TV / Google TV</strong> y <strong className="text-white">Samsung Smart TV (Tizen)</strong>
+              <span className="text-amber-400/90 ml-2">(LG webOS descartado)</span>
+            </p>
+          </div>
+
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={onOpenTicketModal}
-              className="w-full sm:w-auto px-8 py-4 text-sm md:text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
-            >
-              <span>Tomar Turno Digital</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={onOpenTicketModal}
+                className="w-full sm:w-auto px-8 py-4 text-sm md:text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+              >
+                <span>Tomar Turno Digital</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={onOpenAuthModal}
+                className="w-full sm:w-auto px-8 py-4 text-sm md:text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+              >
+                <Lock className="w-4 h-4" />
+                <span>Iniciar con Google para Tomar Turno</span>
+              </Button>
+            )}
 
             <a
               href="#planes"
               className="w-full sm:w-auto px-6 py-4 rounded-xl text-xs md:text-sm font-bold text-slate-300 hover:text-white bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors inline-flex items-center justify-center gap-2"
             >
               <Tv className="w-4 h-4 text-cyan-400" />
-              <span>Ver Tarifas & Comparativa</span>
+              <span>Ver Servicios & Precios</span>
             </a>
           </div>
         </div>
@@ -82,7 +111,7 @@ export function Hero({ onOpenTicketModal, waitingCount }: HeroProps) {
         <div className="mt-14 md:mt-20 max-w-4xl mx-auto relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/30 via-purple-500/20 to-fuchsia-500/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-1000" />
           <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border border-slate-700/80 bg-slate-950 shadow-2xl">
-            {/* TV Bezel and Speaker bar */}
+            {/* TV Bezel */}
             <div className="bg-slate-900/90 px-4 py-2 border-b border-slate-800/80 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
