@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ticket } from '@/types';
 import { formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
+import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
-import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil } from 'lucide-react';
+import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil, Globe } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -16,6 +17,11 @@ interface TicketCardProps {
 
 export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProps) {
   const paymentInfo = parseTicketPaymentInfo(ticket);
+  const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
+
+  useEffect(() => {
+    setHoursInfo(getOperatingHoursInfo());
+  }, []);
 
   const handleOpenWhatsApp = () => {
     const link = generateWhatsAppLink(ticket);
@@ -129,6 +135,26 @@ export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProp
             {paymentInfo.formattedPrice}
           </span>
         </div>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+          <span className="text-slate-400 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Horario de Atención:</span>
+          </span>
+          <div className="text-right">
+            <span className="font-semibold text-white">6:00 AM - 9:00 PM COL</span>
+            {!hoursInfo.isSameAsColombia && (
+              <span className="block text-[11px] text-fuchsia-300 font-medium">
+                {hoursInfo.localHours} ({hoursInfo.userCity})
+              </span>
+            )}
+          </div>
+        </div>
+        {!hoursInfo.isOpen && (
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+            <span>Fuera de horario. {hoursInfo.nextOpeningText}.</span>
+          </div>
+        )}
       </div>
 
       {/* Action CTA */}

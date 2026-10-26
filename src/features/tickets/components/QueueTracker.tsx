@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueue } from '../hooks/useQueue';
 import { formatTicketNumber, formatWaitTime } from '@/lib/utils';
+import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Clock, Users, Tv, RefreshCw, Zap, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Clock, Users, Tv, RefreshCw, Zap, Lock, AlertTriangle, ShieldCheck, Globe } from 'lucide-react';
 import { Ticket } from '@/types';
 import { TicketCard } from './TicketCard';
 
@@ -38,6 +39,15 @@ export function QueueTracker({
   } = useQueue();
 
   const waitTimeDisplay = formatWaitTime(waitingCount);
+  const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
+
+  useEffect(() => {
+    setHoursInfo(getOperatingHoursInfo());
+    const interval = setInterval(() => {
+      setHoursInfo(getOperatingHoursInfo());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section id="cola" className="py-8 md:py-12 relative z-10">
@@ -123,6 +133,56 @@ export function QueueTracker({
             />
           </div>
         )}
+
+        {/* OPERATING HOURS & TIMEZONE BANNER */}
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-lg">
+          <div className="flex items-start sm:items-center gap-3">
+            <div
+              className={`p-2 rounded-xl shrink-0 mt-0.5 sm:mt-0 ${
+                hoursInfo.isOpen
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-white">Horario de Atención:</span>
+                <span className="text-cyan-400 font-semibold">{hoursInfo.colombiaHours} (Hora Colombia)</span>
+                {!hoursInfo.isSameAsColombia && (
+                  <span className="text-slate-300 font-medium flex items-center gap-1">
+                    <Globe className="w-3 h-3 text-fuchsia-400 inline" />
+                    <span>En tu país ({hoursInfo.userCity}):</span>
+                    <strong className="text-fuchsia-300 font-bold">{hoursInfo.localHours}</strong>
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {hoursInfo.isOpen
+                  ? 'Técnicos conectados atendiendo turnos en tiempo real.'
+                  : hoursInfo.nextOpeningText}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                hoursInfo.isOpen
+                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  hoursInfo.isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                }`}
+              />
+              <span>{hoursInfo.isOpen ? 'Atendiendo Ahora' : 'Fuera de Horario'}</span>
+            </span>
+          </div>
+        </div>
 
         {/* Dashboard 3 Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
