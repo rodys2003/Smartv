@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
@@ -76,15 +77,16 @@ export function Hero({
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
             {isAuthenticated ? (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={onOpenTicketModal}
-                className="w-full sm:w-auto px-8 py-4 text-sm md:text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
-              >
-                <span>Tomar Turno Digital</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+              <Link href="/dashboard" className="w-full sm:w-auto">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full sm:w-auto px-8 py-4 text-sm md:text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+                >
+                  <span>Ir a Mi Panel de Turnos</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
             ) : (
               <Button
                 variant="primary"

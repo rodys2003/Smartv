@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 import { Ticket, TicketStatus } from '@/types';
+import { checkTicketAvailability } from '@/features/settings/services/settingsService';
 
 export interface CreateTicketDTO {
   user_id?: string | null;
@@ -17,6 +18,19 @@ export interface CreateTicketDTO {
 }
 
 export async function createTicket(dto: CreateTicketDTO): Promise<Ticket> {
+  // Check ticket capacity and enabled state
+  const availability = await checkTicketAvailability();
+  if (!availability.available) {
+    if (availability.reason === 'limit_reached') {
+      throw new Error(
+        `Límite de atención alcanzado (${availability.maxTickets} clientes). Espera a que el administrador vuelva a habilitar turnos.`
+      );
+    }
+    throw new Error(
+      'La asignación de nuevos turnos se encuentra pausada temporalmente por el administrador.'
+    );
+  }
+
   const { data, error } = await supabase
     .from('tickets')
     .insert([
@@ -36,7 +50,37 @@ export async function createTicket(dto: CreateTicketDTO): Promise<Ticket> {
   return data as Ticket;
 }
 
-export async function getTickets(limit = 50): Promise<Ticket[]> {
+export async function getUserActiveTicket(
+  userId?: string | null,
+  userEmail?: string | null
+): Promise<Ticket | null> {
+  if (!userId && !userEmail) return null;
+
+  try {
+    let query = supabase
+      .from('tickets')
+      .select('*')
+      .in('status', ['waiting', 'in_progress'])
+      .order('created_at', { ascending: false });
+
+    if (userId && userEmail) {
+      query = query.or(`user_id.eq.${userId},user_email.eq.${userEmail}`);
+    } else if (userId) {
+      query = query.eq('user_id', userId);
+    } else if (userEmail) {
+      query = query.eq('user_email', userEmail);
+    }
+
+    const { data, error } = await query.limit(1).maybeSingle();
+    if (error || !data) return null;
+    return data as Ticket;
+  } catch (err) {
+    console.error('Error fetching user active ticket:', err);
+    return null;
+  }
+}
+
+export async function getTickets(limit = 100): Promise<Ticket[]> {
   const { data, error } = await supabase
     .from('tickets')
     .select('*')

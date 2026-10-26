@@ -4,19 +4,36 @@ import { useState, useEffect, useCallback } from 'react';
 import { Ticket } from '@/types';
 import { supabase } from '@/lib/supabase/client';
 import { getActiveQueue } from '../services/ticketService';
+import { getQueueSettings, QueueSettings } from '@/features/settings/services/settingsService';
+import { formatWaitTime } from '@/lib/utils';
 
 export function useQueue() {
   const [servingTicket, setServingTicket] = useState<Ticket | null>(null);
   const [waitingTickets, setWaitingTickets] = useState<Ticket[]>([]);
   const [completedCount, setCompletedCount] = useState<number>(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [settings, setSettings] = useState<QueueSettings>({
+    max_tickets: 100,
+    tickets_enabled: true,
+  });
   const [loading, setLoading] = useState<boolean>(true);
 
   const refreshQueue = useCallback(async () => {
     try {
-      const data = await getActiveQueue();
-      setServingTicket(data.servingTicket);
-      setWaitingTickets(data.waitingTickets);
-      setCompletedCount(data.completedCount);
+      const [queueData, settingsData] = await Promise.all([
+        getActiveQueue(),
+        getQueueSettings(),
+      ]);
+
+      setServingTicket(queueData.servingTicket);
+      setWaitingTickets(queueData.waitingTickets);
+      setCompletedCount(queueData.completedCount);
+      setTotalCount(
+        (queueData.servingTicket ? 1 : 0) +
+          queueData.waitingTickets.length +
+          queueData.completedCount
+      );
+      setSettings(settingsData);
     } catch (err) {
       console.error('Failed to load queue:', err);
     } finally {
@@ -41,6 +58,17 @@ export function useQueue() {
         () => {
           refreshQueue();
         }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'system_settings',
+        },
+        () => {
+          refreshQueue();
+        }
       );
 
     channel.subscribe();
@@ -54,11 +82,23 @@ export function useQueue() {
     };
   }, [refreshQueue]);
 
+  const waitingCount = waitingTickets.length;
+  const waitTimeFormatted = formatWaitTime(waitingCount);
+  const isLimitReached = totalCount >= settings.max_tickets;
+  const canIssueTicket = settings.tickets_enabled && !isLimitReached;
+
   return {
     servingTicket,
     waitingTickets,
     completedCount,
-    waitingCount: waitingTickets.length,
+    totalCount,
+    waitingCount,
+    waitTimeFormatted,
+    settings,
+    maxTickets: settings.max_tickets,
+    ticketsEnabled: settings.tickets_enabled,
+    isLimitReached,
+    canIssueTicket,
     loading,
     refreshQueue,
   };

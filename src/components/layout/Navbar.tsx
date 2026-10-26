@@ -5,15 +5,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
-import { Lock, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, LayoutDashboard } from 'lucide-react';
 
 interface NavbarProps {
   isAuthenticated: boolean;
-  onOpenTicketModal: () => void;
+  onOpenTicketModal?: () => void;
   onOpenAuthModal: () => void;
 }
 
-export function Navbar({ isAuthenticated, onOpenTicketModal, onOpenAuthModal }: NavbarProps) {
+export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/75 border-b border-slate-800/80">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
@@ -54,21 +54,14 @@ export function Navbar({ isAuthenticated, onOpenTicketModal, onOpenAuthModal }: 
           <a href="#testimonios" className="hover:text-cyan-400 transition-colors">
             Clientes Satisfechos
           </a>
-          {isAuthenticated ? (
-            <>
-              <a href="#guia" className="hover:text-cyan-400 transition-colors">
-                Paso a Paso & Videos
-              </a>
-              <a href="#cola" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                Cola en Vivo
-              </a>
-            </>
-          ) : (
-            <a href="#guia" className="hover:text-cyan-400 transition-colors flex items-center gap-1 text-slate-400">
-              <Lock className="w-3 h-3 text-cyan-400" />
-              <span>Tutoriales TV</span>
-            </a>
+          {isAuthenticated && (
+            <Link
+              href="/dashboard"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 font-bold"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Mi Panel de Turnos</span>
+            </Link>
           )}
         </nav>
 
@@ -77,14 +70,16 @@ export function Navbar({ isAuthenticated, onOpenTicketModal, onOpenAuthModal }: 
           <UserMenu onOpenAuth={onOpenAuthModal} />
 
           {isAuthenticated ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onOpenTicketModal}
-              className="text-xs font-bold hidden sm:inline-flex"
-            >
-              Tomar Turno
-            </Button>
+            <Link href="/dashboard" className="hidden sm:inline-flex">
+              <Button
+                variant="primary"
+                size="sm"
+                className="text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              >
+                <span>Mi Panel de Turnos</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           ) : (
             <Button
               variant="primary"
