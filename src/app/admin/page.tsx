@@ -13,6 +13,7 @@ import {
 import { formatCOP, formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
 import {
   Tv,
@@ -31,10 +32,12 @@ import {
   RotateCcw,
   Users,
   LayoutDashboard,
+  Pencil,
 } from 'lucide-react';
 
 export default function AdminPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [settings, setSettings] = useState<QueueSettings>({
     max_tickets: 100,
     tickets_enabled: true,
@@ -415,6 +418,16 @@ export default function AdminPage() {
                       <MessageCircle className="w-4 h-4" />
                     </button>
 
+                    {/* Edit plan button */}
+                    <button
+                      type="button"
+                      onClick={() => setEditingTicket(t)}
+                      className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-cyan-400 hover:bg-slate-700/60 border border-slate-700 transition-colors cursor-pointer"
+                      title="Modificar plan y método de pago"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+
                     {/* Status actions */}
                     {t.status === 'waiting' && (
                       <Button
@@ -466,6 +479,21 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Plan Modal for Admin */}
+      {editingTicket && (
+        <EditPlanModal
+          isOpen={!!editingTicket}
+          onClose={() => setEditingTicket(null)}
+          ticket={editingTicket}
+          onPlanUpdated={(updated) => {
+            setTickets((prev) =>
+              prev.map((t) => (t.id === updated.id ? updated : t))
+            );
+            setEditingTicket(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ interface QueueTrackerProps {
   userTicket?: Ticket | null;
   onOpenAuthModal: () => void;
   onOpenTicketModal: () => void;
+  onEditPlan?: () => void;
 }
 
 export function QueueTracker({
@@ -21,6 +22,7 @@ export function QueueTracker({
   userTicket,
   onOpenAuthModal,
   onOpenTicketModal,
+  onEditPlan,
 }: QueueTrackerProps) {
   const {
     servingTicket,
@@ -112,6 +114,7 @@ export function QueueTracker({
             </div>
             <TicketCard
               ticket={userTicket}
+              onEditPlan={onEditPlan}
               queuePosition={
                 waitingTickets.findIndex((t) => t.id === userTicket.id) !== -1
                   ? waitingTickets.findIndex((t) => t.id === userTicket.id) + 1

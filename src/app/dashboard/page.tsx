@@ -11,6 +11,7 @@ import { QueueTracker } from '@/features/tickets/components/QueueTracker';
 import { StepByStepGuide } from '@/features/guide/components/StepByStepGuide';
 import { PaymentSection } from '@/features/payment/components/PaymentSection';
 import { TicketModal } from '@/features/tickets/components/TicketModal';
+import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Ticket, ServicePlan } from '@/types';
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [userTicket, setUserTicket] = useState<Ticket | null>(null);
   const [ticketLoading, setTicketLoading] = useState(true);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [preselectedPlan, setPreselectedPlan] = useState<ServicePlan | null>(null);
   const [preselectedMagicApps, setPreselectedMagicApps] = useState(false);
@@ -249,6 +251,7 @@ export default function DashboardPage() {
           userTicket={userTicket}
           onOpenAuthModal={() => {}}
           onOpenTicketModal={() => setIsTicketModalOpen(true)}
+          onEditPlan={() => setIsEditPlanModalOpen(true)}
         />
 
         {/* SECTION 2: GUÍA TÉCNICA Y TUTORIALES (Pasos obligatorios + Videos de pantalla completa + WhatsApp) */}
@@ -271,6 +274,19 @@ export default function DashboardPage() {
         initialMagicApps={preselectedMagicApps}
         onTicketCreated={handleTicketCreated}
       />
+
+      {/* Edit Ticket Plan Modal */}
+      {userTicket && (
+        <EditPlanModal
+          isOpen={isEditPlanModalOpen}
+          onClose={() => setIsEditPlanModalOpen(false)}
+          ticket={userTicket}
+          onPlanUpdated={(updated) => {
+            setUserTicket(updated);
+            refreshQueue();
+          }}
+        />
+      )}
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>

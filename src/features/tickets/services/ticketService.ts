@@ -134,3 +134,37 @@ export async function updateTicketStatus(id: string, status: TicketStatus): Prom
   }
   return true;
 }
+
+export interface UpdateTicketPlanDTO {
+  service_tier: string;
+  service_name: string;
+  has_magic_apps: boolean;
+  total_price: number;
+  notes?: string | null;
+}
+
+export async function updateTicketPlan(
+  ticketId: string,
+  dto: UpdateTicketPlanDTO
+): Promise<Ticket | null> {
+  const { data, error } = await supabase
+    .from('tickets')
+    .update({
+      service_tier: dto.service_tier,
+      service_name: dto.service_name,
+      has_magic_apps: dto.has_magic_apps,
+      total_price: dto.total_price,
+      notes: dto.notes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ticketId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating ticket plan:', error);
+    return null;
+  }
+
+  return data as Ticket;
+}

@@ -6,14 +6,15 @@ import { formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
-import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins } from 'lucide-react';
+import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: Ticket;
   queuePosition?: number;
+  onEditPlan?: () => void;
 }
 
-export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
+export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProps) {
   const paymentInfo = parseTicketPaymentInfo(ticket);
 
   const handleOpenWhatsApp = () => {
@@ -80,7 +81,20 @@ export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-400">Plan:</span>
-          <span className="font-semibold text-cyan-300">{ticket.service_name}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-cyan-300">{ticket.service_name}</span>
+            {onEditPlan && (
+              <button
+                type="button"
+                onClick={onEditPlan}
+                className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                title="Modificar plan"
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>Modificar</span>
+              </button>
+            )}
+          </div>
         </div>
         {ticket.has_magic_apps && (
           <div className="flex items-center justify-between text-fuchsia-300">
@@ -128,6 +142,17 @@ export function TicketCard({ ticket, queuePosition }: TicketCardProps) {
           <MessageCircle className="w-4 h-4" />
           <span>Enviar Ticket por WhatsApp para Iniciar</span>
         </Button>
+
+        {onEditPlan && (
+          <button
+            type="button"
+            onClick={onEditPlan}
+            className="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-500/50 text-slate-300 hover:text-cyan-300 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Modificar Plan o Método de Pago</span>
+          </button>
+        )}
 
         <a
           href="#pago"
