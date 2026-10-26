@@ -42,6 +42,7 @@ export function UserMenu({ onOpenAuth }: UserMenuProps) {
           alt={name}
           width={24}
           height={24}
+          unoptimized
           className="rounded-full ring-1 ring-cyan-400/40"
         />
       ) : (
