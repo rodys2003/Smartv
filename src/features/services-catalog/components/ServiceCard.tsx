@@ -1,0 +1,120 @@
+'use client';
+
+import React from 'react';
+import Image from 'next/image';
+import { ServicePlan } from '@/types';
+import { formatCOP } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Check, Sparkles, Zap, Tv } from 'lucide-react';
+
+interface ServiceCardProps {
+  plan: ServicePlan;
+  isSelected?: boolean;
+  onSelect: (plan: ServicePlan) => void;
+}
+
+export function ServiceCard({ plan, isSelected, onSelect }: ServiceCardProps) {
+  const isCustomPro = plan.id === 'custom_pro_70k';
+  const isUltraLight = plan.id === 'ultra_light_50k';
+
+  return (
+    <div
+      className={`relative rounded-3xl p-6 md:p-7 flex flex-col justify-between transition-all duration-300 border ${
+        isSelected
+          ? 'bg-slate-900/90 border-cyan-400 shadow-[0_0_35px_rgba(6,182,212,0.35)] scale-[1.02]'
+          : isUltraLight
+          ? 'bg-slate-900/70 border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.15)] hover:border-cyan-400/80 hover:scale-[1.01]'
+          : isCustomPro
+          ? 'bg-slate-900/70 border-fuchsia-500/40 shadow-[0_0_25px_rgba(217,70,239,0.15)] hover:border-fuchsia-400/80 hover:scale-[1.01]'
+          : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:scale-[1.01]'
+      }`}
+    >
+      {/* Popular or PRO Badge */}
+      {plan.badge && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <Badge variant={isCustomPro ? 'fuchsia' : 'cyan'}>
+            {plan.badge}
+          </Badge>
+        </div>
+      )}
+
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-cyan-400">
+            {isCustomPro ? (
+              <Sparkles className="w-5 h-5 text-fuchsia-400" />
+            ) : isUltraLight ? (
+              <Zap className="w-5 h-5 text-cyan-400" />
+            ) : (
+              <Tv className="w-5 h-5 text-slate-300" />
+            )}
+          </div>
+          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+            {plan.tagline}
+          </span>
+        </div>
+
+        <h3 className="text-xl md:text-2xl font-black text-white tracking-tight">
+          {plan.name}
+        </h3>
+
+        <p className="text-xs text-slate-400 mt-2 line-clamp-2">
+          {plan.description}
+        </p>
+
+        {/* Preview image if available */}
+        {plan.previewImage && (
+          <div className="my-4 rounded-xl overflow-hidden border border-slate-700/60 relative aspect-video group">
+            <Image
+              src={plan.previewImage}
+              alt={plan.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2.5">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded-md border border-cyan-500/30">
+                {isCustomPro ? 'Fondo Temático Personalizado' : 'Interfaz Minimalista Ligera'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Price */}
+        <div className="my-5 flex items-baseline gap-1.5">
+          <span className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            {formatCOP(plan.price)}
+          </span>
+          <span className="text-xs text-slate-400 font-medium">/ pago único</span>
+        </div>
+
+        {/* Feature List */}
+        <ul className="space-y-2.5 mb-6 text-xs text-slate-300">
+          {plan.features.map((feature, idx) => (
+            <li key={idx} className="flex items-start gap-2.5">
+              <div
+                className={`p-0.5 rounded-full mt-0.5 shrink-0 ${
+                  isCustomPro
+                    ? 'bg-fuchsia-500/20 text-fuchsia-400'
+                    : 'bg-cyan-500/20 text-cyan-400'
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+              </div>
+              <span className="leading-snug">{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <Button
+        variant={isSelected ? 'accent' : isCustomPro ? 'accent' : 'primary'}
+        onClick={() => onSelect(plan)}
+        className="w-full py-3 text-sm font-bold mt-auto"
+      >
+        {isSelected ? '✓ Plan Seleccionado' : 'Elegir este Plan'}
+      </Button>
+    </div>
+  );
+}

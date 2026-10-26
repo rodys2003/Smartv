@@ -1,0 +1,29 @@
+import { Ticket } from '@/types';
+import { formatCOP, formatTicketNumber } from '@/lib/utils';
+
+export function getWhatsAppNumber(): string {
+  return process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '573105555555';
+}
+
+export function generateWhatsAppLink(ticket: Partial<Ticket>): string {
+  const phone = getWhatsAppNumber().replace(/\D/g, '');
+  const ticketStr = ticket.ticket_number ? formatTicketNumber(ticket.ticket_number) : 'Sin asignar';
+  const planName = ticket.service_name || 'Optimización';
+  const priceStr = ticket.total_price ? formatCOP(ticket.total_price) : '';
+  const magicAppsStr = ticket.has_magic_apps ? 'Sí (+$20.000 COP)' : 'No';
+  const brand = ticket.tv_brand || 'Smart TV';
+  const userName = ticket.user_name ? ` (Cliente: ${ticket.user_name})` : '';
+
+  const message = `¡Hola *Smart TV Like a Pro*! 🚀${userName}
+
+Acabo de separar mi turno en la plataforma:
+🎫 *Turno / Ticket:* ${ticketStr}
+📺 *Dispositivo:* ${brand} ${ticket.tv_model ? `(${ticket.tv_model})` : ''}
+📦 *Servicio elegido:* ${planName}
+🪄 *Apps Mágicas:* ${magicAppsStr}
+💰 *Total a pagar:* ${priceStr}
+
+Ya tengo listas las fotos solicitadas en la guía paso a paso para que me atiendas. ¿Me confirmas mi turno, por favor?`;
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
