@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { ServicePlan } from '@/types';
 import { formatCOP } from '@/lib/utils';
+import { PLAN_USDT_PRICES } from '../constants/plans';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Check, Sparkles, Zap, Tv } from 'lucide-react';
@@ -11,18 +12,22 @@ import { Check, Sparkles, Zap, Tv } from 'lucide-react';
 interface ServiceCardProps {
   plan: ServicePlan;
   isSelected?: boolean;
+  currency?: 'COP' | 'USDT';
   onSelect: (plan: ServicePlan) => void;
 }
 
-export function ServiceCard({ plan, isSelected, onSelect }: ServiceCardProps) {
+export function ServiceCard({ plan, isSelected, currency = 'COP', onSelect }: ServiceCardProps) {
   const isCustomPro = plan.id === 'custom_pro_70k';
   const isUltraLight = plan.id === 'ultra_light_50k';
+  const isUSDT = currency === 'USDT';
 
   return (
     <div
       className={`relative rounded-3xl p-6 md:p-7 flex flex-col justify-between transition-all duration-300 border ${
         isSelected
-          ? 'bg-slate-900/90 border-cyan-400 shadow-[0_0_35px_rgba(6,182,212,0.35)] scale-[1.02]'
+          ? isUSDT
+            ? 'bg-slate-900/90 border-amber-400 shadow-[0_0_35px_rgba(251,191,36,0.35)] scale-[1.02]'
+            : 'bg-slate-900/90 border-cyan-400 shadow-[0_0_35px_rgba(6,182,212,0.35)] scale-[1.02]'
           : isUltraLight
           ? 'bg-slate-900/70 border-cyan-500/40 shadow-[0_0_25px_rgba(6,182,212,0.15)] hover:border-cyan-400/80 hover:scale-[1.01]'
           : isCustomPro
@@ -83,8 +88,12 @@ export function ServiceCard({ plan, isSelected, onSelect }: ServiceCardProps) {
 
         {/* Price */}
         <div className="my-5 flex items-baseline gap-1.5">
-          <span className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            {formatCOP(plan.price)}
+          <span
+            className={`text-3xl md:text-4xl font-extrabold tracking-tight ${
+              isUSDT ? 'text-amber-400 font-mono' : 'text-white'
+            }`}
+          >
+            {isUSDT ? `${PLAN_USDT_PRICES[plan.id]} USDT` : formatCOP(plan.price)}
           </span>
           <span className="text-xs text-slate-400 font-medium">/ pago único</span>
         </div>
@@ -109,7 +118,7 @@ export function ServiceCard({ plan, isSelected, onSelect }: ServiceCardProps) {
       </div>
 
       <Button
-        variant={isSelected ? 'accent' : isCustomPro ? 'accent' : 'primary'}
+        variant={isSelected ? (isUSDT ? 'whatsapp' : 'accent') : isCustomPro ? 'accent' : 'primary'}
         onClick={() => onSelect(plan)}
         className="w-full py-3 text-sm font-bold mt-auto"
       >
