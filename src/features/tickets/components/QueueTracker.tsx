@@ -161,7 +161,10 @@ export function QueueTracker({
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {hoursInfo.isOpen
                   ? 'Técnicos conectados atendiendo turnos en tiempo real.'
-                  : hoursInfo.nextOpeningText}
+                  : `${hoursInfo.nextOpeningText}. Turnos en modo reserva anticipada.`}
+              </p>
+              <p className="text-[10.5px] text-amber-300/90 mt-1">
+                ⏱️ <strong>Tolerancia por turno:</strong> Al llegar tu turno o reanudarse la jornada, dispones de <strong>5 min</strong> para responder por WhatsApp y enviar tus fotos/documentos, o el ticket se cancelará.
               </p>
             </div>
           </div>

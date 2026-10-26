@@ -385,7 +385,7 @@ export function StepByStepGuide({
                     Checklist para enviar a tu Técnico
                   </h3>
                   <p className="text-xs md:text-sm text-slate-300">
-                    Envía estos datos cuando tomes tu turno para que la atención sea ágil:
+                    Envía estos datos cuando tomes tu turno para que la atención sea ágil. Recuerda que al llegar tu turno dispones de <strong className="text-amber-300 font-bold">5 minutos</strong> para responder y adjuntar estas fotos antes de que el ticket se cancele:
                   </p>
 
                   <div className="space-y-2 pt-2">

@@ -30,7 +30,7 @@ Acabo de separar mi turno en la plataforma:
 💳 *Medio de pago:* ${methodLabel}
 💰 *Total a pagar:* ${priceStr}
 
-Ya tengo listas las fotos solicitadas en la guía paso a paso para que me atiendas. ¿Me confirmas mi turno, por favor?`;
+Ya tengo listas las fotos solicitadas en la guía paso a paso para que me atiendas. Entiendo que una vez llegue mi turno dispongo de 5 minutos para responder y enviar los soportes. ¿Me confirmas mi turno, por favor?`;
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }

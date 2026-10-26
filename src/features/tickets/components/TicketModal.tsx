@@ -208,10 +208,10 @@ export function TicketModal({
             </span>
           </div>
 
-          {/* Operating hours info banner */}
-          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2.5">
+          {/* Operating hours info banner & 5 min response rule */}
+          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2.5">
             <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
+            <div className="space-y-1.5 w-full">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-white">Horario de atención:</span>
                 <span className="text-cyan-300 font-semibold">{hoursInfo.colombiaHours} (Hora Colombia)</span>
@@ -224,10 +224,13 @@ export function TicketModal({
                 )}
               </div>
               {!hoursInfo.isOpen && (
-                <p className="text-amber-300 pt-0.5">
-                  🌙 Nota: Actualmente estamos fuera de jornada. Puedes apartar tu turno y te atenderemos a primera hora al abrir ({hoursInfo.localOpenTime} en tu hora local).
+                <p className="text-amber-300 font-medium leading-relaxed">
+                  🌙 <strong>Reserva anticipada activa:</strong> Puedes apartar tu turno ahora mismo y serás atendido a primera hora al abrir ({hoursInfo.localOpenTime} en tu hora local).
                 </p>
               )}
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-[10.5px] leading-relaxed">
+                ⏱️ <strong>Tolerancia de 5 minutos:</strong> Una vez reanudada la jornada o cuando llegue tu turno, tienes un tiempo de espera de <strong>5 minutos</strong> para responder y enviar tus documentos/fotos por WhatsApp. Si no se recibe respuesta en 5 minutos, el ticket se cancelará automáticamente para dar paso al siguiente en la fila.
+              </div>
             </div>
           </div>
 

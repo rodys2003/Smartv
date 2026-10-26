@@ -467,7 +467,7 @@ export default function AdminPage() {
                       <button
                         onClick={() => handleStatusChange(t.id, 'cancelled')}
                         className="p-2 text-slate-500 hover:text-rose-400 text-xs transition-colors cursor-pointer"
-                        title="Cancelar ticket"
+                        title="Cancelar ticket (ej. sin respuesta en 5 min)"
                       >
                         <XCircle className="w-4 h-4" />
                       </button>

@@ -149,10 +149,22 @@ export function TicketCard({ ticket, queuePosition, onEditPlan }: TicketCardProp
             )}
           </div>
         </div>
+
+        {/* 5 min response tolerance policy */}
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-200/95 space-y-1">
+          <div className="flex items-center gap-1.5 font-bold text-amber-300">
+            <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Tolerancia de atención: 5 minutos</span>
+          </div>
+          <p className="text-[10.5px] leading-relaxed text-slate-300">
+            Al llegar tu turno (o al reanudarse la atención a las 6:00 AM COL), tienes <strong className="text-white">5 minutos</strong> para responder por WhatsApp y enviar los documentos/fotos de tu TV. Si no hay respuesta en ese lapso, el ticket se cancelará automáticamente para atender al siguiente turno.
+          </p>
+        </div>
+
         {!hoursInfo.isOpen && (
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-center gap-2">
+          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-amber-300 flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-            <span>Fuera de horario. {hoursInfo.nextOpeningText}.</span>
+            <span>Fuera de horario. {hoursInfo.nextOpeningText}. Tu turno está reservado.</span>
           </div>
         )}
       </div>
