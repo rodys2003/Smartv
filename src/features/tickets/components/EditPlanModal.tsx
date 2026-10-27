@@ -114,21 +114,21 @@ export function EditPlanModal({
         )}
 
         {/* Current ticket info badge */}
-        <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-300 flex items-center justify-between">
+        <div className="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20 text-xs text-cyan-800 dark:text-cyan-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Tv className="w-4 h-4 text-cyan-400 shrink-0" />
+            <Tv className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
             <span>
               Dispositivo: <strong>{ticket.tv_brand} {ticket.tv_model ? `(${ticket.tv_model})` : ''}</strong>
             </span>
           </div>
-          <span className="font-mono font-bold text-white">
+          <span className="font-mono font-bold text-slate-900 dark:text-white">
             {formatTicketNumber(ticket.ticket_number)}
           </span>
         </div>
 
         {/* Payment Method Selector */}
         <div>
-          <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
             Método de Pago:
           </label>
           <div className="grid grid-cols-2 gap-2.5">
@@ -137,14 +137,14 @@ export function EditPlanModal({
               onClick={() => setSelectedPaymentMethod('bre_b')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                 selectedPaymentMethod === 'bre_b'
-                  ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                  : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                  ? 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                  : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
-              <CreditCard className="w-4 h-4 text-cyan-400 shrink-0" />
+              <CreditCard className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
               <div>
-                <span className="text-xs font-bold block text-white">🇨🇴 Llave Bre-B</span>
-                <span className="text-[10px] text-slate-400 block">En Pesos (COP)</span>
+                <span className="text-xs font-bold block text-slate-900 dark:text-white">🇨🇴 Llave Bre-B</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">En Pesos (COP)</span>
               </div>
             </button>
 
@@ -153,14 +153,14 @@ export function EditPlanModal({
               onClick={() => setSelectedPaymentMethod('binance')}
               className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                 selectedPaymentMethod === 'binance'
-                  ? 'bg-amber-400/20 border-amber-400 text-white shadow-[0_0_12px_rgba(251,191,36,0.25)]'
-                  : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                  ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                  : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
-              <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+              <Coins className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
               <div>
-                <span className="text-xs font-bold block text-white">🌐 Binance (USDT)</span>
-                <span className="text-[10px] text-slate-400 block">Red Tron (TRC20)</span>
+                <span className="text-xs font-bold block text-slate-900 dark:text-white">🌐 Binance (USDT)</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Red Tron (TRC20)</span>
               </div>
             </button>
           </div>
@@ -168,7 +168,7 @@ export function EditPlanModal({
 
         {/* Plan selection */}
         <div>
-          <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
             Selecciona el Nuevo Plan:
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -186,17 +186,17 @@ export function EditPlanModal({
                   className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                     selectedPlan.id === plan.id
                       ? isBinance
-                        ? 'bg-amber-400/20 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.25)]'
-                        : 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
-                      : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                        ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 shadow-sm dark:shadow-[0_0_15px_rgba(251,191,36,0.25)]'
+                        : 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 shadow-sm dark:shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span className="text-xs font-bold text-white block">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white block">
                     {plan.name}
                   </span>
                   <span
                     className={`text-sm font-black mt-2 block ${
-                      isBinance ? 'text-amber-300 font-mono' : 'text-cyan-300'
+                      isBinance ? 'text-amber-700 dark:text-amber-300 font-mono' : 'text-cyan-700 dark:text-cyan-300'
                     }`}
                   >
                     {priceFormatted}
@@ -208,14 +208,14 @@ export function EditPlanModal({
         </div>
 
         {/* Magic apps add-on checkbox */}
-        <div className="bg-fuchsia-950/20 border border-fuchsia-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+        <div className="bg-fuchsia-50 dark:bg-fuchsia-950/20 border border-fuchsia-200 dark:border-fuchsia-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-fuchsia-400 shrink-0" />
+            <Sparkles className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400 shrink-0" />
             <div className="text-xs">
-              <span className="font-bold text-white block">
+              <span className="font-bold text-slate-900 dark:text-white block">
                 Add-on Apps Mágicas ({selectedPaymentMethod === 'binance' ? '+7 USDT' : '+20.000 COP'})
               </span>
-              <span className="text-slate-400 text-[11px]">
+              <span className="text-slate-500 dark:text-slate-400 text-[11px]">
                 Instalación de apps de streaming libres de anuncios.
               </span>
             </div>
@@ -229,16 +229,16 @@ export function EditPlanModal({
         </div>
 
         {/* Price & Submit Button */}
-        <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-4">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] uppercase text-slate-400 block font-bold">
+            <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
               Nuevo Total a pagar:
             </span>
             <span
               className={`text-2xl font-black ${
                 selectedPaymentMethod === 'binance'
-                  ? 'text-amber-400 font-mono'
-                  : 'text-cyan-400'
+                  ? 'text-amber-600 dark:text-amber-400 font-mono'
+                  : 'text-cyan-600 dark:text-cyan-400'
               }`}
             >
               {selectedPaymentMethod === 'binance'
@@ -254,7 +254,7 @@ export function EditPlanModal({
               size="md"
               onClick={onClose}
               disabled={loading}
-              className="text-xs text-slate-400"
+              className="text-xs text-slate-500 dark:text-slate-400"
             >
               Cancelar
             </Button>

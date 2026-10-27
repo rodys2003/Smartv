@@ -42,21 +42,21 @@ export function TicketCard({
   const isWhatsAppUnlocked = !isCancelled && (isBeingServed || isCompleted || isWithinThreshold);
 
   return (
-    <div className="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-cyan-500/40 rounded-3xl p-6 md:p-8 shadow-[0_0_40px_rgba(6,182,212,0.2)] overflow-hidden">
+    <div className="relative bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 border border-cyan-400/50 dark:border-cyan-500/40 rounded-3xl p-6 md:p-8 shadow-xl dark:shadow-[0_0_40px_rgba(6,182,212,0.2)] overflow-hidden transition-colors duration-200">
       {/* Decorative neon glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
 
       {/* Ticket Header */}
-      <div className="flex items-center justify-between gap-4 pb-5 border-b border-slate-800">
+      <div className="flex items-center justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+          <div className="p-2.5 rounded-2xl bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30">
             <Tv className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
+            <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold block">
               Pase Digital Oficial
             </span>
-            <span className="text-sm font-bold text-white">Smart TV Like a Pro</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">Smart TV Like a Pro</span>
           </div>
         </div>
 
@@ -66,20 +66,20 @@ export function TicketCard({
       {/* Ticket Number & Queue Position */}
       <div className="my-6 flex items-center justify-between">
         <div>
-          <span className="text-xs uppercase tracking-wider text-slate-400 block font-semibold">
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-semibold">
             Tu Número de Turno
           </span>
-          <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 tracking-tight">
+          <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 dark:from-cyan-400 dark:via-blue-400 dark:to-indigo-400 tracking-tight">
             {formatTicketNumber(ticket.ticket_number)}
           </span>
         </div>
 
         {queuePosition !== undefined && queuePosition > 0 && (
-          <div className="text-right bg-slate-800/60 border border-slate-700/60 px-4 py-2 rounded-2xl">
-            <span className="text-[10px] uppercase text-slate-400 font-bold block">
+          <div className="text-right bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-4 py-2 rounded-2xl shadow-sm">
+            <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold block">
               Posición en cola
             </span>
-            <span className="text-lg font-bold text-amber-300">
+            <span className="text-lg font-bold text-amber-700 dark:text-amber-300">
               #{queuePosition} en fila
             </span>
           </div>
@@ -87,26 +87,26 @@ export function TicketCard({
       </div>
 
       {/* Ticket Details */}
-      <div className="space-y-3 py-4 border-t border-b border-slate-800 text-xs">
+      <div className="space-y-3 py-4 border-t border-b border-slate-200 dark:border-slate-800 text-xs">
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Cliente:</span>
-          <span className="font-semibold text-white">{ticket.user_name || 'Cliente'}</span>
+          <span className="text-slate-500 dark:text-slate-400">Cliente:</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{ticket.user_name || 'Cliente'}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Marca / TV:</span>
-          <span className="font-semibold text-white">
+          <span className="text-slate-500 dark:text-slate-400">Marca / TV:</span>
+          <span className="font-semibold text-slate-900 dark:text-white">
             {ticket.tv_brand} {ticket.tv_model ? `(${ticket.tv_model})` : ''}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Plan:</span>
+          <span className="text-slate-500 dark:text-slate-400">Plan:</span>
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-cyan-300">{ticket.service_name}</span>
+            <span className="font-semibold text-cyan-700 dark:text-cyan-300">{ticket.service_name}</span>
             {onEditPlan && (
               <button
                 type="button"
                 onClick={onEditPlan}
-                className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
                 title="Modificar plan"
               >
                 <Edit3 className="w-3 h-3" />
@@ -116,9 +116,9 @@ export function TicketCard({
           </div>
         </div>
         {ticket.has_magic_apps && (
-          <div className="flex items-center justify-between text-fuchsia-300">
+          <div className="flex items-center justify-between text-fuchsia-700 dark:text-fuchsia-300">
             <span className="flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-600 dark:text-fuchsia-400" />
               Apps Mágicas:
             </span>
             <span className="font-semibold">
@@ -127,36 +127,36 @@ export function TicketCard({
           </div>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Método de Pago:</span>
-          <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+          <span className="text-slate-500 dark:text-slate-400">Método de Pago:</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
             {paymentInfo.isCrypto ? (
               <>
-                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                <Coins className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                 <span>Binance (USDT TRC20)</span>
               </>
             ) : (
               <>
-                <CreditCard className="w-3.5 h-3.5 text-cyan-400" />
+                <CreditCard className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                 <span>Llave Bre-B (COP)</span>
               </>
             )}
           </span>
         </div>
         <div className="flex items-center justify-between pt-1">
-          <span className="text-slate-400 font-medium">Total a pagar:</span>
-          <span className="text-base font-black text-cyan-400">
+          <span className="text-slate-500 dark:text-slate-400 font-medium">Total a pagar:</span>
+          <span className="text-base font-black text-cyan-700 dark:text-cyan-400">
             {paymentInfo.formattedPrice}
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-          <span className="text-slate-400 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800/80">
+          <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
             <span>Horario de Atención:</span>
           </span>
           <div className="text-right">
-            <span className="font-semibold text-white">6:00 AM - 9:00 PM COL</span>
+            <span className="font-semibold text-slate-900 dark:text-white">6:00 AM - 9:00 PM COL</span>
             {!hoursInfo.isSameAsColombia && (
-              <span className="block text-[11px] text-fuchsia-300 font-medium">
+              <span className="block text-[11px] text-fuchsia-600 dark:text-fuchsia-300 font-medium">
                 {hoursInfo.localHours} ({hoursInfo.userCity})
               </span>
             )}
@@ -164,19 +164,19 @@ export function TicketCard({
         </div>
 
         {/* 5 min response tolerance policy */}
-        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-200/95 space-y-1">
-          <div className="flex items-center gap-1.5 font-bold text-amber-300">
-            <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-200/95 space-y-1">
+          <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
             <span>Tolerancia de atención: 5 minutos</span>
           </div>
-          <p className="text-[10.5px] leading-relaxed text-slate-300">
-            Al llegar tu turno (o al reanudarse la atención a las 6:00 AM COL), tienes <strong className="text-white">5 minutos</strong> para responder por WhatsApp y enviar los documentos/fotos de tu TV. Si no hay respuesta en ese lapso, el ticket se cancelará automáticamente para atender al siguiente turno.
+          <p className="text-[10.5px] leading-relaxed text-slate-700 dark:text-slate-300">
+            Al llegar tu turno (o al reanudarse la atención a las 6:00 AM COL), tienes <strong className="text-slate-900 dark:text-white">5 minutos</strong> para responder por WhatsApp y enviar los documentos/fotos de tu TV. Si no hay respuesta en ese lapso, el ticket se cancelará automáticamente para atender al siguiente turno.
           </p>
         </div>
 
         {!hoursInfo.isOpen && (
-          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-amber-300 flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+          <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
             <span>Fuera de horario. {hoursInfo.nextOpeningText}. Tu turno está reservado.</span>
           </div>
         )}

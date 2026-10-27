@@ -84,33 +84,33 @@ export function TestimonialsSection() {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   return (
-    <section id="testimonios" className="py-16 md:py-24 relative z-10 bg-slate-950/60">
+    <section id="testimonios" className="py-16 md:py-24 relative z-10 bg-slate-50 dark:bg-slate-950/60 transition-colors duration-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <Badge variant="cyan" className="mb-3">
             Casos de Éxito Reales
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
             Clientes Satisfechos a Nivel Global
           </h2>
-          <p className="text-slate-400 mt-3 text-sm md:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 mt-3 text-sm md:text-base leading-relaxed">
             Fotografías reales enviadas por nuestros clientes tras la optimización y personalización en sus hogares.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-300">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-700 dark:text-slate-300">
             <span className="flex items-center gap-1.5 font-semibold">
-              <span className="text-amber-400 flex">
+              <span className="text-amber-500 flex">
                 {'★'.repeat(5)}
               </span>
-              <strong className="text-white">5.0 / 5.0</strong> en satisfacción
+              <strong className="text-slate-900 dark:text-white">5.0 / 5.0</strong> en satisfacción
             </span>
             <span className="flex items-center gap-1.5 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
               Más de 500 TVs optimizados
             </span>
             <span className="flex items-center gap-1.5 font-semibold">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               100% Remoto & Seguro
             </span>
           </div>
@@ -121,11 +121,11 @@ export function TestimonialsSection() {
           {FEATURED_CLIENT_PHOTOS.map((client) => (
             <div
               key={client.id}
-              className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 flex flex-col justify-between hover:border-cyan-500/50 transition-all duration-300 shadow-xl group"
+              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 flex flex-col justify-between hover:border-cyan-500/50 transition-all duration-300 shadow-md hover:shadow-lg dark:shadow-xl group"
             >
               <div>
                 {/* Photo container */}
-                <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-700/80 mb-4 bg-slate-950">
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700/80 mb-4 bg-slate-950">
                   <Image
                     src={client.image!}
                     alt={`Instalación real cliente ${client.name}`}
@@ -149,37 +149,37 @@ export function TestimonialsSection() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center text-amber-400 text-xs">
+                  <div className="flex items-center text-amber-500 text-xs">
                     {'★'.repeat(client.rating)}
                   </div>
-                  <span className="text-[10px] font-semibold text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                  <span className="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-200 dark:border-cyan-500/30">
                     {client.plan}
                   </span>
                 </div>
 
-                <h3 className="text-base font-black text-white mt-1">
+                <h3 className="text-base font-black text-slate-900 dark:text-white mt-1">
                   &ldquo;{client.highlight}&rdquo;
                 </h3>
 
-                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                   {client.comment}
                 </p>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+              <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 text-slate-950 font-bold flex items-center justify-center text-xs">
                     {client.name.charAt(0)}
                   </div>
                   <div>
-                    <span className="font-bold text-white block text-xs">{client.name}</span>
-                    <span className="text-slate-400 text-[10px] flex items-center gap-1">
-                      <MapPin className="w-2.5 h-2.5 text-cyan-400" />
+                    <span className="font-bold text-slate-900 dark:text-white block text-xs">{client.name}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[10px] flex items-center gap-1">
+                      <MapPin className="w-2.5 h-2.5 text-cyan-500 dark:text-cyan-400" />
                       {client.location}
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] text-slate-400 font-medium text-right max-w-[110px] truncate">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium text-right max-w-[110px] truncate">
                   {client.tvInfo}
                 </span>
               </div>
@@ -192,24 +192,24 @@ export function TestimonialsSection() {
           {OTHER_REVIEWS.map((t) => (
             <div
               key={t.id}
-              className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 hover:border-slate-700 transition-colors"
+              className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center text-amber-400 text-xs">
+                <div className="flex items-center text-amber-500 text-xs">
                   {'★'.repeat(t.rating)}
                 </div>
-                <span className="text-[11px] font-semibold text-slate-400 bg-slate-800/80 px-2.5 py-0.5 rounded-md">
+                <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-md">
                   {t.plan}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed italic">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic">
                 &ldquo;{t.comment}&rdquo;
               </p>
 
-              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span className="font-bold text-white">{t.name} ({t.location})</span>
-                <span className="text-[11px] text-cyan-400">{t.tvInfo}</span>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span className="font-bold text-slate-900 dark:text-white">{t.name} ({t.location})</span>
+                <span className="text-[11px] text-cyan-600 dark:text-cyan-400">{t.tvInfo}</span>
               </div>
             </div>
           ))}

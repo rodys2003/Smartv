@@ -30,7 +30,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060913] text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-200">
       {/* Navigation */}
       <Navbar
         isAuthenticated={isAuthenticated}

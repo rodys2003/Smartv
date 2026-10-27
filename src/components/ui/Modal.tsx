@@ -90,27 +90,27 @@ export function Modal({
       aria-labelledby={title ? titleId : undefined}
       aria-describedby={description ? descId : undefined}
       className={cn(
-        'fixed inset-0 m-auto p-0 bg-transparent text-slate-100 rounded-3xl overflow-visible border-0 backdrop:bg-slate-950/80 backdrop:backdrop-blur-md',
+        'fixed inset-0 m-auto p-0 bg-transparent text-slate-900 dark:text-slate-100 rounded-3xl overflow-visible border-0 backdrop:bg-slate-950/60 dark:backdrop:bg-slate-950/80 backdrop:backdrop-blur-md',
         'w-[calc(100%-2rem)]',
         maxWidths[maxWidth],
         className
       )}
     >
-      <div className="relative bg-slate-900/95 border border-slate-700/80 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_30px_rgba(6,182,212,0.15)] p-6 md:p-8 overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700/80 rounded-3xl shadow-2xl dark:shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_30px_rgba(6,182,212,0.15)] p-6 md:p-8 overflow-hidden transition-colors duration-200">
         {/* Glow decorative corner lights */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 dark:bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-fuchsia-500/10 dark:bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-5 relative z-10">
           <div>
             {title && (
-              <h2 id={titleId} className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+              <h2 id={titleId} className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 {title}
               </h2>
             )}
             {description && (
-              <p id={descId} className="text-sm text-slate-400 mt-1">
+              <p id={descId} className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                 {description}
               </p>
             )}
@@ -118,7 +118,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer border border-slate-700/50"
+            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-200 dark:border-slate-700/50"
             aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />

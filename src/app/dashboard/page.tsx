@@ -13,6 +13,7 @@ import { PaymentSection } from '@/features/payment/components/PaymentSection';
 import { TicketModal } from '@/features/tickets/components/TicketModal';
 import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Ticket, ServicePlan } from '@/types';
 import { getR2Url } from '@/lib/r2';
@@ -80,9 +81,9 @@ export default function DashboardPage() {
   // If still checking auth
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#060913] flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-400 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 animate-spin text-cyan-400" />
+          <RefreshCw className="w-8 h-8 animate-spin text-cyan-500 dark:text-cyan-400" />
           <p className="text-sm">Verificando sesión segura...</p>
         </div>
       </div>
@@ -92,26 +93,29 @@ export default function DashboardPage() {
   // If not authenticated, prompt login
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-[#060913] text-slate-100 flex flex-col justify-between">
-        <header className="p-4 sm:p-6 border-b border-slate-800/80">
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 flex flex-col justify-between transition-colors duration-200">
+        <header className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/40">
                 <Image src={getR2Url('/images/logo.jpg')} alt="Logo" fill className="object-cover" />
               </div>
-              <span className="font-black text-white text-base">Smart TV Like a Pro</span>
+              <span className="font-black text-slate-900 dark:text-white text-base">Smart TV Like a Pro</span>
             </Link>
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="text-xs">
-                <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-                <span>Volver al Inicio</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="text-xs">
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                  <span>Volver al Inicio</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </header>
 
         <main className="max-w-lg mx-auto px-4 py-16 text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+          <div className="w-16 h-16 rounded-3xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/30 text-cyan-600 dark:text-cyan-400 mx-auto flex items-center justify-center shadow-sm dark:shadow-[0_0_30px_rgba(6,182,212,0.3)]">
             <Lock className="w-8 h-8" />
           </div>
 
@@ -119,10 +123,10 @@ export default function DashboardPage() {
             <Badge variant="cyan" className="mb-2">
               Módulo de Clientes Verificados
             </Badge>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Ingresa para Acceder a tu Panel de Turno
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
               El seguimiento en vivo de turnos, la asignación de tickets y la guía técnica de preparación son exclusivos para usuarios registrados con Google.
             </p>
           </div>
@@ -132,7 +136,7 @@ export default function DashboardPage() {
               variant="secondary"
               size="lg"
               onClick={() => signInWithGoogle()}
-              className="w-full py-4 bg-white text-slate-950 hover:bg-slate-100 font-black text-sm shadow-[0_0_25px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3 cursor-pointer"
+              className="w-full py-4 bg-white text-slate-950 hover:bg-slate-100 font-black text-sm shadow-md flex items-center justify-center gap-3 cursor-pointer border border-slate-200"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -145,7 +149,7 @@ export default function DashboardPage() {
           </div>
         </main>
 
-        <footer className="p-6 text-center text-xs text-slate-600 border-t border-slate-900">
+        <footer className="p-6 text-center text-xs text-slate-500 dark:text-slate-600 border-t border-slate-200 dark:border-slate-900">
           Smart TV Like a Pro · Servicio Remoto para Android TV y Google TV
         </footer>
       </div>
@@ -153,14 +157,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#060913] text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-200">
       {/* Top Bar Navigation */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80">
+      <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-colors"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
               title="Volver a la landing pública"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -172,19 +176,19 @@ export default function DashboardPage() {
               </div>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-black text-white">Smart TV</span>
+                  <span className="text-sm font-black text-slate-900 dark:text-white">Smart TV</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-slate-950">
                     PANEL DE USUARIO
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-400 block">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
                   Gestión de Turnos & Tutoriales
                 </span>
               </div>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Quick action button */}
             {!userTicket && canIssueTicket && (
               <Button
@@ -198,6 +202,7 @@ export default function DashboardPage() {
               </Button>
             )}
 
+            <ThemeToggle />
             <UserMenu onOpenAuth={() => setIsAuthModalOpen(true)} />
           </div>
         </div>
@@ -206,16 +211,16 @@ export default function DashboardPage() {
       {/* Main Content Area */}
       <main className="pb-24">
         {/* Banner Welcome & Fast Navigation Tabs */}
-        <div className="border-b border-slate-800/80 bg-slate-950/40 py-6">
+        <div className="border-b border-slate-200 dark:border-slate-800/80 bg-white/60 dark:bg-slate-950/40 py-6">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-white">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                   Hola, {user.user_metadata?.full_name || user.email?.split('@')[0]}
                 </h1>
                 <Badge variant="cyan">Sesión Activa</Badge>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                 Bienvenido a tu panel personal. Aquí puedes ver tu turno en tiempo real y completar los tutoriales obligatorios antes de que te toque.
               </p>
             </div>
@@ -223,23 +228,23 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <a
                 href="#cola"
-                className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 shadow-sm transition-colors flex items-center gap-1.5"
               >
-                <TicketIcon className="w-3.5 h-3.5 text-cyan-400" />
+                <TicketIcon className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
                 <span>1. Estado de Turno</span>
               </a>
               <a
                 href="#guia"
-                className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-cyan-400 hover:border-slate-700 transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-fuchsia-600 dark:hover:text-fuchsia-400 shadow-sm transition-colors flex items-center gap-1.5"
               >
-                <Video className="w-3.5 h-3.5 text-fuchsia-400" />
+                <Video className="w-3.5 h-3.5 text-fuchsia-600 dark:text-fuchsia-400" />
                 <span>2. Tutoriales TV</span>
               </a>
               <a
                 href="#pago"
-                className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-emerald-400 hover:border-slate-700 transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 shadow-sm transition-colors flex items-center gap-1.5"
               >
-                <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>3. Pago Bre-B</span>
               </a>
             </div>

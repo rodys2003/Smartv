@@ -6,6 +6,7 @@ import { getR2Url } from '@/lib/r2';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ArrowRight, Sparkles, LayoutDashboard } from 'lucide-react';
 
 interface NavbarProps {
@@ -16,7 +17,7 @@ interface NavbarProps {
 
 export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/75 border-b border-slate-800/80">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 group">
@@ -31,34 +32,34 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-black text-white tracking-tight group-hover:text-cyan-300 transition-colors">
+              <span className="text-base font-black text-slate-900 dark:text-white tracking-tight group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
                 Smart TV
               </span>
               <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-slate-950 tracking-wider">
                 PRO
               </span>
             </div>
-            <span className="text-[10px] text-slate-400 tracking-wide block">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 tracking-wide block">
               Optimización & Personalización Global
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
-          <a href="#planes" className="hover:text-cyan-400 transition-colors">
+        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <a href="#planes" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Planes & Precios
           </a>
-          <a href="#galeria" className="hover:text-cyan-400 transition-colors">
+          <a href="#galeria" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Galería PRO
           </a>
-          <a href="#testimonios" className="hover:text-cyan-400 transition-colors">
+          <a href="#testimonios" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Clientes Satisfechos
           </a>
           {isAuthenticated && (
             <Link
               href="/dashboard"
-              className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 font-bold"
+              className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 transition-colors flex items-center gap-1.5 font-bold"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span>Mi Panel de Turnos</span>
@@ -67,7 +68,8 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
         </nav>
 
         {/* Actions & User */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle />
           <UserMenu onOpenAuth={onOpenAuthModal} />
 
           {isAuthenticated ? (

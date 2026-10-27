@@ -219,26 +219,26 @@ export function TicketModal({
           </div>
 
           {/* Operating hours info banner & 5 min response rule */}
-          <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2.5">
-            <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
+            <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
             <div className="space-y-1.5 w-full">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-white">Horario de atención:</span>
-                <span className="text-cyan-300 font-semibold">{hoursInfo.colombiaHours} (Hora Colombia)</span>
+                <span className="font-bold text-slate-900 dark:text-white">Horario de atención:</span>
+                <span className="text-cyan-700 dark:text-cyan-300 font-semibold">{hoursInfo.colombiaHours} (Hora Colombia)</span>
                 {!hoursInfo.isSameAsColombia && (
-                  <span className="text-fuchsia-300 font-medium flex items-center gap-1">
-                    <Globe className="w-3 h-3 inline text-fuchsia-400" />
+                  <span className="text-fuchsia-700 dark:text-fuchsia-300 font-medium flex items-center gap-1">
+                    <Globe className="w-3 h-3 inline text-fuchsia-600 dark:text-fuchsia-400" />
                     <span>En tu país ({hoursInfo.userCity}):</span>
                     <strong>{hoursInfo.localHours}</strong>
                   </span>
                 )}
               </div>
               {!hoursInfo.isOpen && (
-                <p className="text-amber-300 font-medium leading-relaxed">
+                <p className="text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
                   🌙 <strong>Reserva anticipada activa:</strong> Puedes apartar tu turno ahora mismo y serás atendido a primera hora al abrir ({hoursInfo.localOpenTime} en tu hora local).
                 </p>
               )}
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-200 text-[10.5px] leading-relaxed">
+              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-800 dark:text-amber-200 text-[10.5px] leading-relaxed">
                 ⏱️ <strong>Tolerancia de 5 minutos:</strong> Una vez reanudada la jornada o cuando llegue tu turno, tienes un tiempo de espera de <strong>5 minutos</strong> para responder y enviar tus documentos/fotos por WhatsApp. Si no se recibe respuesta en 5 minutos, el ticket se cancelará automáticamente para dar paso al siguiente en la fila.
               </div>
             </div>
@@ -246,7 +246,7 @@ export function TicketModal({
 
           {/* Brand selection (Only Android TV & Samsung) */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
               Dispositivo a Optimizar:
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -257,8 +257,8 @@ export function TicketModal({
                   onClick={() => setSelectedBrand(brand)}
                   className={`p-3 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer ${
                     selectedBrand === brand
-                      ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                      : 'bg-slate-800/40 border-slate-700/60 text-slate-400 hover:text-white hover:border-slate-600'
+                      ? 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
                   {brand}
@@ -270,7 +270,7 @@ export function TicketModal({
           {/* Model info & Client info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
                 Tu Nombre:
               </label>
               <input
@@ -279,27 +279,27 @@ export function TicketModal({
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder="Ej. Carlos Mendoza"
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
                 Modelo / Pulgadas:
               </label>
               <input
                 type="text"
                 value={tvModel}
                 onChange={(e) => setTvModel(e.target.value)}
-                placeholder="Ej. TCL 55 / Samsung Crystal UHD"
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                placeholder="Ej. TCL 55 / Xiaomi P1"
+                className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
               />
             </div>
           </div>
 
           {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
               Método de Pago:
             </label>
             <div className="grid grid-cols-2 gap-2.5">
@@ -308,14 +308,14 @@ export function TicketModal({
                 onClick={() => setSelectedPaymentMethod('bre_b')}
                 className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                   selectedPaymentMethod === 'bre_b'
-                    ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                    : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                    ? 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
               >
-                <CreditCard className="w-4 h-4 text-cyan-400 shrink-0" />
+                <CreditCard className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
                 <div>
-                  <span className="text-xs font-bold block text-white">🇨🇴 Llave Bre-B</span>
-                  <span className="text-[10px] text-slate-400 block">En Pesos (COP)</span>
+                  <span className="text-xs font-bold block text-slate-900 dark:text-white">🇨🇴 Llave Bre-B</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block">En Pesos (COP)</span>
                 </div>
               </button>
 
@@ -324,14 +324,14 @@ export function TicketModal({
                 onClick={() => setSelectedPaymentMethod('binance')}
                 className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                   selectedPaymentMethod === 'binance'
-                    ? 'bg-amber-400/20 border-amber-400 text-white shadow-[0_0_12px_rgba(251,191,36,0.25)]'
-                    : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                    ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
               >
-                <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+                <Coins className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
                 <div>
-                  <span className="text-xs font-bold block text-white">🌐 Binance (USDT)</span>
-                  <span className="text-[10px] text-slate-400 block">Red Tron (TRC20)</span>
+                  <span className="text-xs font-bold block text-slate-900 dark:text-white">🌐 Binance (USDT)</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Red Tron (TRC20)</span>
                 </div>
               </button>
             </div>
@@ -339,7 +339,7 @@ export function TicketModal({
 
           {/* Plan selection */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
               Selecciona tu Plan:
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -357,17 +357,17 @@ export function TicketModal({
                     className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
                       selectedPlan.id === plan.id
                         ? isBinance
-                          ? 'bg-amber-400/20 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.25)]'
-                          : 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
-                        : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                          ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 shadow-sm dark:shadow-[0_0_15px_rgba(251,191,36,0.25)]'
+                          : 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 shadow-sm dark:shadow-[0_0_15px_rgba(6,182,212,0.25)]'
+                        : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                     }`}
                   >
-                    <span className="text-xs font-bold text-white block">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
                       {plan.name}
                     </span>
                     <span
                       className={`text-sm font-black mt-2 block ${
-                        isBinance ? 'text-amber-300 font-mono' : 'text-cyan-300'
+                        isBinance ? 'text-amber-700 dark:text-amber-300 font-mono' : 'text-cyan-700 dark:text-cyan-300'
                       }`}
                     >
                       {priceFormatted}
@@ -379,14 +379,14 @@ export function TicketModal({
           </div>
 
           {/* Magic apps add-on checkbox */}
-          <div className="bg-fuchsia-950/20 border border-fuchsia-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+          <div className="bg-fuchsia-50 dark:bg-fuchsia-950/20 border border-fuchsia-200 dark:border-fuchsia-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-fuchsia-400 shrink-0" />
+              <Sparkles className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400 shrink-0" />
               <div className="text-xs">
-                <span className="font-bold text-white block">
+                <span className="font-bold text-slate-900 dark:text-white block">
                   Add-on Apps Mágicas ({selectedPaymentMethod === 'binance' ? '+7 USDT' : '+20.000 COP'})
                 </span>
-                <span className="text-slate-400 text-[11px]">
+                <span className="text-slate-500 dark:text-slate-400 text-[11px]">
                   Instalación de apps de streaming libres de anuncios.
                 </span>
               </div>
@@ -400,16 +400,16 @@ export function TicketModal({
           </div>
 
           {/* Price & Submit Button */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-4">
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] uppercase text-slate-400 block font-bold">
+              <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
                 Total a pagar ({selectedPaymentMethod === 'binance' ? 'Binance USDT' : 'Bre-B COP'}):
               </span>
               <span
                 className={`text-2xl font-black ${
                   selectedPaymentMethod === 'binance'
-                    ? 'text-amber-400 font-mono'
-                    : 'text-cyan-400'
+                    ? 'text-amber-600 dark:text-amber-400 font-mono'
+                    : 'text-cyan-600 dark:text-cyan-400'
                 }`}
               >
                 {selectedPaymentMethod === 'binance'
