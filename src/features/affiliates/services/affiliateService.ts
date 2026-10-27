@@ -350,18 +350,22 @@ export async function createOrActivateAffiliateAdmin(params: {
  * Obtiene el listado de comisiones para auditoría en administración.
  */
 export async function getAllCommissions(): Promise<AffiliateCommission[]> {
+  const now = new Date().toISOString();
+  // Auto-promover comisiones validadas cuyo plazo de retención ya venció a 'available'
+  await supabase
+    .from('affiliate_commissions')
+    .update({ status: 'available', updated_at: now })
+    .eq('status', 'validating')
+    .lte('available_at', now);
+
   const { data, error } = await supabase
-    .from('affiliates_commissions' as any)
+    .from('affiliate_commissions')
     .select('*')
     .order('created_at', { ascending: false });
 
-  // Try the correct table name 'affiliate_commissions'
   if (error) {
-    const retry = await supabase
-      .from('affiliate_commissions')
-      .select('*')
-      .order('created_at', { ascending: false });
-    return (retry.data || []) as AffiliateCommission[];
+    console.warn('Could not list commissions:', error.message);
+    return [];
   }
   return (data || []) as AffiliateCommission[];
 }
@@ -384,19 +388,59 @@ export async function markCommissionPaymentConfirmed(ticketNumber: number): Prom
 
 /**
  * Registra la finalización del servicio y calcula la fecha de liberación (+7 días de garantía).
+ * Si retentionDays es 0, pasa directamente a 'available'.
  */
-export async function markCommissionServiceCompleted(ticketNumber: number): Promise<void> {
+export async function markCommissionServiceCompleted(
+  ticketNumber: number,
+  retentionDays = 7
+): Promise<void> {
   const now = new Date();
-  const availableAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 días de retención
+  const availableAt = new Date(now.getTime() + retentionDays * 24 * 60 * 60 * 1000);
+  const nextStatus = retentionDays <= 0 ? 'available' : 'validating';
 
   await supabase
     .from('affiliate_commissions')
     .update({
+      status: nextStatus,
       service_completed_at: now.toISOString(),
       available_at: availableAt.toISOString(),
       updated_at: now.toISOString(),
     })
-    .eq('ticket_number', ticketNumber);
+    .eq('ticket_number', ticketNumber)
+    .in('status', ['estimated', 'validating']);
+}
+
+/**
+ * Libera de inmediato una comisión a estado 'available' desde administración.
+ */
+export async function releaseCommissionImmediately(commissionId: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from('affiliate_commissions')
+    .update({
+      status: 'available',
+      available_at: now,
+      updated_at: now,
+    })
+    .eq('id', commissionId)
+    .in('status', ['validating', 'estimated']);
+
+  return !error;
+}
+
+/**
+ * Cancela una comisión cuando el ticket asociado es cancelado o descartado.
+ */
+export async function markCommissionCancelled(ticketNumber: number): Promise<void> {
+  const now = new Date().toISOString();
+  await supabase
+    .from('affiliate_commissions')
+    .update({
+      status: 'cancelled',
+      updated_at: now,
+    })
+    .eq('ticket_number', ticketNumber)
+    .in('status', ['estimated', 'validating']);
 }
 
 /**
@@ -610,6 +654,15 @@ export async function updateAffiliateBinanceUid(affiliateId: string, binanceUid:
  * Obtiene las comisiones generadas por un afiliado específico (Aislamiento de datos).
  */
 export async function getMyCommissions(affiliateId: string): Promise<AffiliateCommission[]> {
+  const now = new Date().toISOString();
+  // Auto-promover comisiones que ya cumplieron el plazo de retención a 'available'
+  await supabase
+    .from('affiliate_commissions')
+    .update({ status: 'available', updated_at: now })
+    .eq('affiliate_id', affiliateId)
+    .eq('status', 'validating')
+    .lte('available_at', now);
+
   const { data, error } = await supabase
     .from('affiliate_commissions')
     .select('*')

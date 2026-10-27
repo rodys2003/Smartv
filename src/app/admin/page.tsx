@@ -31,6 +31,7 @@ import {
   updateAffiliateStatus,
   markCommissionPaymentConfirmed,
   markCommissionServiceCompleted,
+  markCommissionCancelled,
   getAllPayouts,
   completePayoutAdmin,
   rejectPayoutAdmin,
@@ -160,6 +161,10 @@ export default function AdminPage() {
         } else if (newStatus === 'completed') {
           markCommissionServiceCompleted(targetTicket.ticket_number).catch((err) =>
             console.warn('Failed to complete affiliate commission:', err)
+          );
+        } else if (newStatus === 'cancelled') {
+          markCommissionCancelled(targetTicket.ticket_number).catch((err) =>
+            console.warn('Failed to cancel affiliate commission:', err)
           );
         }
       }
