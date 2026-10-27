@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   Sparkles,
   Ticket as TicketIcon,
-  ShieldCheck,
   Video,
   CreditCard,
   AlertTriangle,
@@ -201,9 +200,6 @@ export default function DashboardPage() {
                     PANEL DE USUARIO
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
-                  Gestión de Turnos & Tutoriales
-                </span>
               </div>
             </Link>
           </div>
@@ -215,7 +211,7 @@ export default function DashboardPage() {
                 variant="primary"
                 size="sm"
                 onClick={() => setIsTicketModalOpen(true)}
-                className="text-xs font-bold hidden sm:inline-flex"
+                className="text-xs font-bold max-md:!hidden md:inline-flex"
               >
                 <TicketIcon className="w-3.5 h-3.5 mr-1.5" />
                 <span>Tomar Turno</span>
@@ -238,11 +234,7 @@ export default function DashboardPage() {
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                   Hola, {user.user_metadata?.full_name || user.email?.split('@')[0]}
                 </h1>
-                <Badge variant="cyan">Sesión Activa</Badge>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Bienvenido a tu panel personal. Aquí puedes ver tu turno en tiempo real y completar los tutoriales obligatorios antes de que te toque.
-              </p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
@@ -306,79 +298,25 @@ export default function DashboardPage() {
         {/* SECTION 3: MEDIO DE PAGO BRE-B (Pagas tras conectar tu TV) */}
         <PaymentSection userTicket={userTicket} />
 
-        {/* SECTION 4: ASESORÍA PERSONALIZADA & CONSULTA TÉCNICA */}
-        <section id="asesoria" className="max-w-6xl mx-auto px-4 sm:px-6 pt-10">
-          <div className="bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-slate-100 dark:from-emerald-950/30 dark:via-cyan-950/20 dark:to-slate-900 border border-emerald-500/30 dark:border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-emerald-200/60 dark:border-emerald-500/20">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-sm">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                      ¿Necesitas Asesoría o Tienes Dudas?
-                    </h2>
-                    <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
-                      Atención Prioritaria
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Consulta directa con nuestro equipo técnico sobre compatibilidad, launchers o apps recomendadas.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-emerald-200 dark:border-emerald-500/30 text-xs shrink-0 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <div>
-                  <span className="text-[10px] text-slate-500 block">Usuario Verificado:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[180px] block">
-                    {user?.email}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="font-bold text-slate-900 dark:text-white block">1. Sin Spam ni Esperas</span>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
-                  Al escribir con tu cuenta verificada, el asesor técnico te atiende de inmediato con prioridad.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="font-bold text-slate-900 dark:text-white block">2. Soporte Multidispositivo</span>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
-                  Asistencia para Android TV, Google TV, Fire TV Stick, Xiaomi Box y proyectores compatibles.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="font-bold text-slate-900 dark:text-white block">3. Sin Compromiso</span>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
-                  Pregunta antes o durante tu turno. Te ayudamos a elegir el mejor plan para tu televisor.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-left">
-                Horario de soporte activo: lunes a domingo · Respuesta promedio en menos de 5 minutos.
+        {/* Technical consultation is separate from ticket and payment actions. */}
+        <section id="asesoria" aria-labelledby="dashboard-support-title" className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 scroll-mt-24">
+          <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="max-w-xl">
+              <h2 id="dashboard-support-title" className="text-lg font-bold text-slate-900 dark:text-white">Asesoría técnica</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Consulta dudas de compatibilidad o sobre qué plan elegir. Para enviar tu ticket o comprobante, usa las opciones de turno y pago.
               </p>
-
-              <Button
-                type="button"
-                variant="whatsapp"
-                size="lg"
-                onClick={handleOpenWhatsAppConsult}
-                className="w-full sm:w-auto font-bold text-xs py-3.5 px-6 shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Abrir Asesoría por WhatsApp</span>
-              </Button>
             </div>
+            <Button
+              type="button"
+              variant="whatsapp"
+              size="lg"
+              onClick={handleOpenWhatsAppConsult}
+              className="min-h-11 w-full shrink-0 gap-2 text-sm sm:w-auto"
+            >
+              <MessageCircle aria-hidden="true" className="h-4 w-4" />
+              <span>Consultar por WhatsApp</span>
+            </Button>
           </div>
         </section>
       </main>

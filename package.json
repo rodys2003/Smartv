@@ -12,7 +12,7 @@
     "r2:sync": "node scripts/upload-to-r2.js",
     "test:affiliates": "node --test scripts/test-affiliate-e2e.mjs",
     "test:seo": "node --test scripts/check-seo.mjs",
-    "test": "node --test scripts/test-affiliate-e2e.mjs scripts/check-seo.mjs scripts/check-affiliate-ux.mjs scripts/check-auth-flow.mjs scripts/check-navbar.mjs scripts/check-ticket-form.mjs"
+    "test": "node --test scripts/test-affiliate-e2e.mjs scripts/check-seo.mjs scripts/check-affiliate-ux.mjs scripts/check-auth-flow.mjs scripts/check-navbar.mjs scripts/check-ticket-form.mjs scripts/check-dashboard-header.mjs scripts/check-dashboard-content.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1157.0",
