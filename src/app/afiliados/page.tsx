@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useApplicantName } from '@/features/affiliates/hooks/useApplicantName';
+import { AffiliateHeader } from '@/features/affiliates/components/AffiliateHeader';
 import {
   getAffiliateProfile,
   getMyCommissions,
@@ -24,20 +25,15 @@ import {
   Copy,
   Check,
   Coins,
-  CreditCard,
   Clock,
   CheckCircle,
   AlertCircle,
   TrendingUp,
-  ShieldCheck,
   RefreshCw,
   LogOut,
   ArrowLeft,
-  ExternalLink,
   Wallet,
   Pencil,
-  Info,
-  Phone,
 } from 'lucide-react';
 
 export default function AffiliatePortalPage() {
@@ -49,7 +45,7 @@ export default function AffiliatePortalPage() {
   const [loading, setLoading] = useState(true);
 
   // Registration Form State (for users not yet affiliates)
-  const [applicantName, setApplicantName] = useState('');
+  const [applicantName, setApplicantName] = useApplicantName(user);
   const [applicantPhone, setApplicantPhone] = useState('');
   const [applicantTiktok, setApplicantTiktok] = useState('');
   const [registering, setRegistering] = useState(false);
@@ -68,12 +64,6 @@ export default function AffiliatePortalPage() {
 
   // Copy referral link feedback
   const [copiedLink, setCopiedLink] = useState(false);
-
-  useEffect(() => {
-    if (user?.user_metadata?.full_name && !applicantName) {
-      setApplicantName(user.user_metadata.full_name);
-    }
-  }, [user, applicantName]);
 
   const loadAffiliateData = useCallback(async () => {
     if (!user) return;
@@ -244,153 +234,108 @@ export default function AffiliatePortalPage() {
   // Unauthenticated State
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 flex flex-col justify-between p-6">
-        <div className="max-w-md mx-auto my-auto w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 mx-auto flex items-center justify-center">
-            <Sparkles className="w-8 h-8" />
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100">
+        <AffiliateHeader showPortalLink={false} />
+        <main className="mx-auto w-full max-w-lg px-4 py-8 sm:px-6 sm:py-12">
+          <nav aria-label="Volver al sitio" className="mb-4">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg px-1 text-sm font-semibold text-slate-600 transition-colors hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+            >
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              <span>Volver al inicio</span>
+            </Link>
+          </nav>
+          <div className="w-full space-y-6 rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xl sm:p-8 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400">
+              <Sparkles aria-hidden="true" className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">Portal de Afiliados</h1>
+              <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">
+                Inicia sesión con Google para acceder a tus enlaces de referido, ver tus comisiones acumuladas y solicitar retiros por Binance.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={signInWithGoogle}
+              className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 py-4 text-sm font-bold shadow-lg shadow-cyan-500/20"
+            >
+              <span>Continuar con Google</span>
+            </Button>
+            <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
+              <Link
+                href="/programa-afiliados"
+                className="flex min-h-11 w-full items-center justify-center rounded-lg px-2 py-2 text-sm font-semibold leading-6 text-cyan-700 underline decoration-cyan-300 underline-offset-4 hover:text-cyan-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-200"
+              >
+                Conocer el programa y sus condiciones
+              </Link>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">Portal de Afiliados</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-              Inicia sesión con Google para acceder a tus enlaces de referido, ver tus comisiones acumuladas y solicitar retiros por Binance.
-            </p>
-          </div>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={signInWithGoogle}
-            className="w-full font-bold text-sm py-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/20"
-          >
-            <span>Iniciar Sesión con Google</span>
-          </Button>
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al inicio</span>
-          </Link>
-        </div>
+        </main>
       </div>
     );
   }
 
-  // Not an Affiliate Yet -> Registration Request Form
+  // Registration keeps account identity separate from the editable application name.
   if (!affiliate) {
+    const inputClass = 'min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/25 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500';
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 p-6 flex flex-col justify-between">
-        <div className="max-w-lg mx-auto my-auto w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-8 shadow-xl space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-white">Programa de Afiliados SmartvPro</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Gana el <strong>30% de comisión</strong> por cada servicio vendido y cobra en USDT vía Binance.
-              </p>
-            </div>
-          </div>
-
-          {registerSuccess ? (
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs space-y-2">
-              <p className="font-bold text-sm flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                ¡Solicitud Enviada con Éxito!
-              </p>
-              <p>
-                Tu postulación fue registrada. El administrador revisará tu información para activar tu cuenta y permitirte configurar tu Binance UID.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleRegisterAffiliate} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
-                <p>
-                  Conectado como: <strong>{user.email}</strong>
-                </p>
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100">
+        <AffiliateHeader showPortalLink={false} />
+        <main className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
+          <aside className="space-y-6 lg:pt-5">
+            <Link href="/programa-afiliados" className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-cyan-300"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Conocer el programa</Link>
+            <div><p className="text-sm font-bold text-cyan-700 dark:text-cyan-300">Tu comunidad, tu recomendación</p><h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl">Da el primer paso como afiliado de SmartvPro.</h1><p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">Cuéntanos cómo te conocen y dónde compartirías el servicio. Revisaremos tu perfil antes de activar tu cuenta.</p></div>
+            <ul className="space-y-4 text-base leading-7 text-slate-700 dark:text-slate-300">
+              <li className="flex gap-3"><CheckCircle aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-300" />30% de comisión sobre el importe neto del plan vendido.</li>
+              <li className="flex gap-3"><CheckCircle aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-300" />Tu enlace y el registro de Binance UID se habilitan después de la aprobación.</li>
+              <li className="flex gap-3"><CheckCircle aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-cyan-600 dark:text-cyan-300" />Pagos en USDT por Binance. Retiro mínimo de 5 USDT y tarifa del programa de 2 USDT.</li>
+            </ul>
+            <p className="border-l-2 border-cyan-400 pl-4 text-sm leading-6 text-slate-600 dark:text-slate-400">Enviar la solicitud no activa automáticamente tu cuenta. No necesitas compartir contraseñas ni datos de acceso de Binance.</p>
+          </aside>
+          <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
+            <h2 className="text-2xl font-bold tracking-tight">Tu solicitud de afiliación</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Los campos marcados con * son obligatorios. El nombre es una sugerencia que puedes cambiar.</p>
+            {registerSuccess ? (
+              <div role="status" className="mt-6 space-y-2 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-base leading-7 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-100">
+                <p className="flex items-center gap-2 font-bold"><CheckCircle aria-hidden="true" className="h-5 w-5" />Solicitud enviada</p>
+                <p>Revisaremos tu información antes de activar tu cuenta. Después podrás configurar tu Binance UID en el panel.</p>
               </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  value={applicantName}
-                  onChange={(e) => setApplicantName(e.target.value)}
-                  placeholder="Ej. Ana Gómez"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Número de teléfono (WhatsApp) *
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={applicantPhone}
-                  onChange={(e) => setApplicantPhone(e.target.value)}
-                  placeholder="Ej. +57 300 123 4567"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Necesario para coordinar y verificar tu cuenta con el administrador.
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Cuenta de TikTok *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={applicantTiktok}
-                  onChange={(e) => setApplicantTiktok(e.target.value)}
-                  placeholder="Ej. @tu_usuario o tiktok.com/@tu_usuario"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Canal donde compartirás el contenido de SmartvPro.
-                </span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/40 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
-                <p className="font-semibold text-cyan-800 dark:text-cyan-300">
-                  ⚡ Asignación automática y pagos en Binance:
-                </p>
-                <p>
-                  Tu código de referido se genera automáticamente para garantizar que no existan repetidos. Una vez aceptada tu solicitud, podrás configurar tu <strong>Binance UID</strong> en tu panel para recibir tus retiros en USDT.
-                </p>
-              </div>
-
-              {registerError && (
-                <div className="p-3 rounded-xl bg-rose-50 text-rose-800 dark:bg-rose-500/20 dark:text-rose-200 text-xs flex items-center gap-2 border border-rose-300">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{registerError}</span>
+            ) : (
+              <form onSubmit={handleRegisterAffiliate} aria-busy={registering} className="mt-6 space-y-5">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Cuenta de Google conectada</p><p className="mt-1 break-all text-sm font-semibold">{user.email}</p>
                 </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                disabled={registering || !applicantPhone.trim() || !applicantTiktok.trim()}
-                className="w-full font-bold text-xs py-3.5 cursor-pointer"
-              >
-                {registering ? 'Enviando solicitud...' : 'Solicitar Activación de Afiliado'}
-              </Button>
-            </form>
-          )}
-
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-            <Link href="/" className="text-slate-400 hover:text-slate-600">
-              ← Volver a SmartvPro
-            </Link>
-            <button onClick={() => signOut()} className="text-rose-500 hover:underline cursor-pointer">
-              Cerrar sesión
-            </button>
+                <div>
+                  <label htmlFor="affiliate-name" className="mb-2 block text-sm font-semibold">Nombre para tu perfil <span className="font-normal text-slate-500 dark:text-slate-400">(opcional)</span></label>
+                  <input id="affiliate-name" name="name" type="text" autoComplete="name" aria-describedby="affiliate-name-help" value={applicantName} onChange={(e) => setApplicantName(e.target.value)} placeholder="Ej. Ana Gómez" className={inputClass} />
+                  <p id="affiliate-name-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Puedes borrar el nombre sugerido y usar el que prefieras. Esto no cambia tu cuenta de Google.</p>
+                </div>
+                <div>
+                  <label htmlFor="affiliate-phone" className="mb-2 block text-sm font-semibold">WhatsApp de contacto *</label>
+                  <input id="affiliate-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required aria-describedby="affiliate-phone-help" value={applicantPhone} onChange={(e) => setApplicantPhone(e.target.value)} placeholder="Ej. +57 300 123 4567" className={inputClass} />
+                  <p id="affiliate-phone-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Incluye el código de tu país. Lo usamos para coordinar la revisión de tu solicitud.</p>
+                </div>
+                <div>
+                  <label htmlFor="affiliate-tiktok" className="mb-2 block text-sm font-semibold">Cuenta de TikTok *</label>
+                  <input id="affiliate-tiktok" name="tiktok" type="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} required aria-describedby="affiliate-tiktok-help" value={applicantTiktok} onChange={(e) => setApplicantTiktok(e.target.value)} placeholder="Ej. @tu_usuario o tiktok.com/@tu_usuario" className={inputClass} />
+                  <p id="affiliate-tiktok-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Comparte el usuario o enlace del perfil donde publicarías tus recomendaciones.</p>
+                </div>
+                {registerError && <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm leading-6 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-100"><AlertCircle aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" /><span>{registerError}</span></div>}
+                <Button type="submit" variant="primary" size="lg" disabled={registering} className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 py-3 text-base font-bold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500">
+                  {registering && <RefreshCw aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" />}<span>{registering ? 'Enviando solicitud...' : 'Enviar solicitud de afiliación'}</span>
+                </Button>
+                <p className="text-center text-sm leading-6 text-slate-500 dark:text-slate-400">La activación es manual. Podrás consultar el estado desde este panel.</p>
+              </form>
+            )}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
+              <Link href="/" className="inline-flex min-h-11 items-center rounded-lg text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300">Volver a SmartvPro</Link>
+              <button type="button" onClick={() => signOut()} className="min-h-11 cursor-pointer rounded-lg px-2 font-semibold text-rose-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:text-rose-300">Cerrar sesión</button>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }

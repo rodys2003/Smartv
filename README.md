@@ -108,3 +108,18 @@ Run the isolated rendering checks without starting a server:
 ```bash
 node --test --test-isolation=none scripts/check-user-menu.mjs
 ```
+
+## Affiliate experience checks
+
+The public program page uses the landing brand, responsive commission examples,
+and visible existing payout conditions. The application name is a suggested
+Google name, not a locked identity: clearing or editing it survives auth refreshes.
+
+```bash
+node --test --test-isolation=none scripts/check-affiliate-ux.mjs
+npm run test:affiliates
+```
+
+The UX suite renders the actual application component with isolated auth/service
+mocks. It covers clearing, replacement, account changes, labels, and submitted
+profile values without creating real affiliate applications or financial records.

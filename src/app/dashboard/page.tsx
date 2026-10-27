@@ -15,7 +15,6 @@ import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/features/auth/components/AuthModal';
-import { Modal } from '@/components/ui/Modal';
 import { Ticket, ServicePlan } from '@/types';
 import { parseTicketPaymentInfo } from '@/lib/utils';
 import { getR2Url } from '@/lib/r2';
@@ -33,6 +32,7 @@ import {
   Lock,
   RefreshCw,
   LogOut,
+  MessageCircle,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -45,7 +45,6 @@ export default function DashboardPage() {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [showWhatsAppConsultModal, setShowWhatsAppConsultModal] = useState(false);
   const [preselectedPlan, setPreselectedPlan] = useState<ServicePlan | null>(null);
   const [preselectedMagicApps, setPreselectedMagicApps] = useState(false);
 
@@ -53,7 +52,13 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined' && isAuthenticated) {
       if (sessionStorage.getItem('pending_whatsapp_consult') === 'true') {
         sessionStorage.removeItem('pending_whatsapp_consult');
-        setShowWhatsAppConsultModal(true);
+        // Desplazamiento suave directo a la sección de asesoría en el panel
+        setTimeout(() => {
+          const el = document.getElementById('asesoria');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 300);
       }
     }
   }, [isAuthenticated]);
@@ -88,6 +93,15 @@ export default function DashboardPage() {
     setUserTicket(ticket);
     setIsTicketModalOpen(false);
     refreshQueue();
+  };
+
+  const handleOpenWhatsAppConsult = () => {
+    const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '');
+    const clientName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+    const clientEmail = user?.email || '';
+    const userIdentifier = clientName ? `${clientName} (${clientEmail})` : clientEmail;
+    const message = `¡Hola Smart TV Like a Pro! Soy cliente registrado (${userIdentifier}). Me gustaría recibir asesoría técnica / consultar sobre mi Smart TV.`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   // If still checking auth
@@ -261,6 +275,13 @@ export default function DashboardPage() {
                   3. Pago {userTicket && parseTicketPaymentInfo(userTicket).isCrypto ? 'Binance' : 'Bre-B'}
                 </span>
               </a>
+              <a
+                href="#asesoria"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>4. Asesoría Directa</span>
+              </a>
             </div>
           </div>
         </div>
@@ -290,6 +311,82 @@ export default function DashboardPage() {
 
         {/* SECTION 3: MEDIO DE PAGO BRE-B (Pagas tras conectar tu TV) */}
         <PaymentSection userTicket={userTicket} />
+
+        {/* SECTION 4: ASESORÍA PERSONALIZADA & CONSULTA TÉCNICA */}
+        <section id="asesoria" className="max-w-6xl mx-auto px-4 sm:px-6 pt-10">
+          <div className="bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-slate-100 dark:from-emerald-950/30 dark:via-cyan-950/20 dark:to-slate-900 border border-emerald-500/30 dark:border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-emerald-200/60 dark:border-emerald-500/20">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-sm">
+                  <MessageCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                      ¿Necesitas Asesoría o Tienes Dudas?
+                    </h2>
+                    <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+                      Atención Prioritaria
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                    Consulta directa con nuestro equipo técnico sobre compatibilidad, launchers o apps recomendadas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-emerald-200 dark:border-emerald-500/30 text-xs shrink-0 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <div>
+                  <span className="text-[10px] text-slate-500 block">Usuario Verificado:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[180px] block">
+                    {user?.email}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">1. Sin Spam ni Esperas</span>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Al escribir con tu cuenta verificada, el asesor técnico te atiende de inmediato con prioridad.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">2. Soporte Multidispositivo</span>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Asistencia para Android TV, Google TV, Fire TV Stick, Xiaomi Box y proyectores compatibles.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">3. Sin Compromiso</span>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                  Pregunta antes o durante tu turno. Te ayudamos a elegir el mejor plan para tu televisor.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                Horario de soporte activo: lunes a domingo · Respuesta promedio en menos de 5 minutos.
+              </p>
+
+              <Button
+                type="button"
+                variant="whatsapp"
+                size="lg"
+                onClick={handleOpenWhatsAppConsult}
+                className="w-full sm:w-auto font-bold text-xs py-3.5 px-6 shadow-lg shadow-emerald-500/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Abrir Asesoría por WhatsApp</span>
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Ticket Modal */}
@@ -313,54 +410,6 @@ export default function DashboardPage() {
           }}
         />
       )}
-
-      {/* Pending WhatsApp Consultation Modal (after anti-spam login) */}
-      <Modal
-        isOpen={showWhatsAppConsultModal}
-        onClose={() => setShowWhatsAppConsultModal(false)}
-        title="¡Cuenta Verificada!"
-        description="Tu cuenta de Google fue validada con éxito. Ya puedes abrir tu chat directo de WhatsApp con nuestro equipo técnico."
-        maxWidth="md"
-      >
-        <div className="space-y-4 pt-2">
-          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-3">
-            <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <div>
-              <p className="font-bold text-sm">Sesión activa como {user?.email}</p>
-              <p className="text-emerald-700/80 dark:text-emerald-300/80 mt-0.5">
-                Tu mensaje llevará tus datos registrados para que el asesor técnico te reconozca inmediatamente y evitemos el spam.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setShowWhatsAppConsultModal(false)}
-              className="w-full text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-            >
-              Cerrar
-            </Button>
-            <Button
-              type="button"
-              variant="whatsapp"
-              onClick={() => {
-                setShowWhatsAppConsultModal(false);
-                const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '');
-                const clientName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
-                const clientEmail = user?.email || '';
-                const userIdentifier = clientName ? `${clientName} (${clientEmail})` : clientEmail;
-                const message = `¡Hola Smart TV Like a Pro! Soy cliente registrado (${userIdentifier}). Me gustaría consultar sobre el servicio / compatibilidad de mi Smart TV.`;
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-              }}
-              className="w-full text-xs font-bold"
-            >
-              <span>Abrir WhatsApp Ahora</span>
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
