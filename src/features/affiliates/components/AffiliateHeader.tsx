@@ -6,7 +6,7 @@ export function AffiliateHeader({ showPortalLink = true }: { showPortalLink?: bo
   return <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95">
     <nav aria-label="Navegación de afiliados" className="mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
       <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500">
-        <Image src="/images/logo-optimized.webp" alt="" width={36} height={36} className="shrink-0 rounded-xl" />
+        <Image src="/images/logo-optimized.webp" alt="" width={36} height={36} className="hidden sm:block shrink-0 rounded-xl" />
         <span><span className="block whitespace-nowrap text-sm font-black tracking-tight">Smart TV <span className="rounded bg-gradient-to-r from-cyan-400 to-fuchsia-500 px-1 text-slate-950">PRO</span></span>
           <span className="block text-xs text-slate-600 dark:text-slate-400">Afiliados SmartvPro</span></span>
       </Link>

@@ -20,7 +20,7 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative w-10 h-10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:scale-105 transition-transform">
+          <div className="hidden sm:block relative w-10 h-10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:scale-105 transition-transform">
             <Image
               src="/images/logo-optimized.webp"
               alt="Smart TV Like a Pro"
