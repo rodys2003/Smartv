@@ -26,6 +26,14 @@ import {
   DiscountCoupon,
 } from '@/features/discounts/services/discountService';
 import {
+  getAllAffiliates,
+  createOrActivateAffiliateAdmin,
+  updateAffiliateStatus,
+  markCommissionPaymentConfirmed,
+  markCommissionServiceCompleted,
+} from '@/features/affiliates/services/affiliateService';
+import { Affiliate } from '@/types/affiliate';
+import {
   Tv,
   MessageCircle,
   RefreshCw,
@@ -48,6 +56,10 @@ import {
   Tag,
   Plus,
   Trash2,
+  Copy,
+  Check,
+  UserCheck,
+  Share2,
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -73,17 +85,29 @@ export default function AdminPage() {
   const [creatingCoupon, setCreatingCoupon] = useState(false);
   const [couponFeedback, setCouponFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Affiliates state
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+  const [newAffEmail, setNewAffEmail] = useState('');
+  const [newAffName, setNewAffName] = useState('');
+  const [newAffCode, setNewAffCode] = useState('');
+  const [newAffBinanceUid, setNewAffBinanceUid] = useState('');
+  const [creatingAffiliate, setCreatingAffiliate] = useState(false);
+  const [affiliateFeedback, setAffiliateFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [ticketsData, settingsData, couponsData] = await Promise.all([
+      const [ticketsData, settingsData, couponsData, affiliatesData] = await Promise.all([
         getTickets(200),
         getQueueSettings(),
         getDiscountCoupons(),
+        getAllAffiliates(),
       ]);
       setTickets(ticketsData);
       setSettings(settingsData);
       setCoupons(couponsData);
+      setAffiliates(affiliatesData);
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
     } finally {
@@ -100,11 +124,23 @@ export default function AdminPage() {
   }, [isAdmin, fetchData]);
 
   const handleStatusChange = async (id: string, newStatus: TicketStatus) => {
+    const targetTicket = tickets.find((t) => t.id === id);
     const ok = await updateTicketStatus(id, newStatus);
     if (ok) {
       setTickets((prev) =>
         prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t))
       );
+      if (targetTicket?.ticket_number) {
+        if (newStatus === 'in_progress') {
+          markCommissionPaymentConfirmed(targetTicket.ticket_number).catch((err) =>
+            console.warn('Failed to confirm affiliate commission:', err)
+          );
+        } else if (newStatus === 'completed') {
+          markCommissionServiceCompleted(targetTicket.ticket_number).catch((err) =>
+            console.warn('Failed to complete affiliate commission:', err)
+          );
+        }
+      }
     }
   };
 
@@ -198,6 +234,55 @@ export default function AdminPage() {
       });
       setTimeout(() => setCouponFeedback(null), 3000);
     }
+  };
+
+  const handleCreateAffiliate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAffiliateFeedback(null);
+    if (!newAffEmail.trim() || !newAffCode.trim()) {
+      setAffiliateFeedback({ type: 'error', text: 'Email y Código de Referido son obligatorios.' });
+      return;
+    }
+    setCreatingAffiliate(true);
+    try {
+      const created = await createOrActivateAffiliateAdmin({
+        email: newAffEmail,
+        name: newAffName || undefined,
+        referralCode: newAffCode,
+        binanceUid: newAffBinanceUid || undefined,
+        status: 'active',
+      });
+      setAffiliates((prev) => [created, ...prev.filter((a) => a.id !== created.id)]);
+      setNewAffEmail('');
+      setNewAffName('');
+      setNewAffCode('');
+      setNewAffBinanceUid('');
+      setAffiliateFeedback({ type: 'success', text: `¡Afiliado ${created.referral_code} activado con éxito!` });
+      setTimeout(() => setAffiliateFeedback(null), 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al crear o activar afiliado';
+      setAffiliateFeedback({ type: 'error', text: msg });
+    } finally {
+      setCreatingAffiliate(false);
+    }
+  };
+
+  const handleToggleAffiliateStatus = async (affiliateId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    const ok = await updateAffiliateStatus(affiliateId, nextStatus as any);
+    if (ok) {
+      setAffiliates((prev) =>
+        prev.map((a) => (a.id === affiliateId ? { ...a, status: nextStatus as any } : a))
+      );
+    }
+  };
+
+  const handleCopyReferralLink = (code: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smartvpro.ordely.online';
+    const url = `${origin}/r/${code}`;
+    navigator.clipboard.writeText(url);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2500);
   };
 
   const filteredTickets = tickets.filter((t) => {
@@ -723,6 +808,230 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* GESTIÓN DEL PROGRAMA DE AFILIADOS */}
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-md dark:shadow-[0_0_30px_rgba(6,182,212,0.12)] space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                  Programa de Afiliados (30% Comisión · Liquidación Binance USDT)
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/30">
+                  {affiliates.filter((a) => a.status === 'active').length} Activos
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
+                Activa o suspende afiliados, valida su Binance UID para transferir comisiones y comparte su enlace oficial de referido.
+              </p>
+            </div>
+
+            {affiliateFeedback && (
+              <div
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
+                  affiliateFeedback.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
+                    : 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                }`}
+              >
+                {affiliateFeedback.type === 'success' ? (
+                  <CheckCircle className="w-3.5 h-3.5" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                )}
+                <span>{affiliateFeedback.text}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Formulario de Activación de Afiliado */}
+          <form
+            onSubmit={handleCreateAffiliate}
+            className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-4"
+          >
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <Plus className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <span>Activar Nuevo Afiliado Manualmente</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                  Correo electrónico *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={newAffEmail}
+                  onChange={(e) => setNewAffEmail(e.target.value)}
+                  placeholder="ej. ana@gmail.com"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                  Nombre completo
+                </label>
+                <input
+                  type="text"
+                  value={newAffName}
+                  onChange={(e) => setNewAffName(e.target.value)}
+                  placeholder="ej. Ana Gómez"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                  Código de referido *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newAffCode}
+                  onChange={(e) => setNewAffCode(e.target.value.toUpperCase())}
+                  placeholder="ej. ANA8X2"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
+                  Binance UID (Receptor)
+                </label>
+                <input
+                  type="text"
+                  value={newAffBinanceUid}
+                  onChange={(e) => setNewAffBinanceUid(e.target.value)}
+                  placeholder="ej. 85419203"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Comisión: <strong>30%</strong> sobre el valor neto cobrado del plan · Tarifa de retiro fija: <strong>2 USDT</strong>
+              </span>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={creatingAffiliate || !newAffEmail.trim() || !newAffCode.trim()}
+                className="text-xs font-bold px-4 py-2 shrink-0 cursor-pointer"
+              >
+                {creatingAffiliate ? 'Activando...' : 'Activar Afiliado'}
+              </Button>
+            </div>
+          </form>
+
+          {/* Listado de Afiliados */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Afiliados Registrados ({affiliates.length})
+            </h4>
+
+            {affiliates.length === 0 ? (
+              <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                No hay afiliados registrados todavía. Usa el formulario superior para activar el primero.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {affiliates.map((aff) => {
+                  const isActive = aff.status === 'active';
+                  const isCopied = copiedCode === aff.referral_code;
+
+                  return (
+                    <div
+                      key={aff.id}
+                      className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                        isActive
+                          ? 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-sm'
+                          : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800/60 opacity-75'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-black text-sm text-cyan-700 dark:text-cyan-300">
+                              {aff.referral_code}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                isActive
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                              }`}
+                            >
+                              {isActive ? 'Activo' : 'Suspendido'}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-slate-900 dark:text-white mt-0.5">
+                            {aff.user_name || 'Afiliado'}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                            {aff.user_email}
+                          </p>
+                        </div>
+
+                        <span className="text-xs font-mono font-extrabold text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 px-2 py-1 rounded-lg">
+                          {Math.round((aff.commission_rate ?? 0.3) * 100)}%
+                        </span>
+                      </div>
+
+                      {/* Binance UID */}
+                      <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] flex items-center justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Binance UID:</span>
+                        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                          {aff.binance_uid || 'No registrado'}
+                        </span>
+                      </div>
+
+                      {/* Enlace de referido y botones */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyReferralLink(aff.referral_code)}
+                          className="flex items-center gap-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 cursor-pointer"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
+                              <span className="text-emerald-600 dark:text-emerald-400">¡Enlace copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copiar /r/{aff.referral_code}</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAffiliateStatus(aff.id, aff.status)}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 border-slate-200 dark:border-slate-700'
+                              : 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30'
+                          }`}
+                        >
+                          {isActive ? 'Suspender' : 'Activar'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Metric Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
           <button
@@ -865,14 +1174,24 @@ export default function AdminPage() {
                           if (t.notes?.startsWith('{')) {
                             try {
                               const p = JSON.parse(t.notes);
+                              const badges: React.ReactNode[] = [];
                               if (p.discount_code && p.discount_percentage) {
-                                return (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20 ml-2">
+                                badges.push(
+                                  <span key="disc" className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-500/20 ml-2">
                                     <Tag className="w-2.5 h-2.5" />
                                     {p.discount_code} (-{p.discount_percentage}%)
                                   </span>
                                 );
                               }
+                              if (p.referral_code) {
+                                badges.push(
+                                  <span key="ref" className="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-800 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-200 dark:border-cyan-500/20 ml-2">
+                                    <Sparkles className="w-2.5 h-2.5" />
+                                    Ref: {p.referral_code}
+                                  </span>
+                                );
+                              }
+                              return badges.length > 0 ? <>{badges}</> : null;
                             } catch {
                               // ignore
                             }

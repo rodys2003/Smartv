@@ -50,8 +50,9 @@ export function EditPlanModal({
     }
   }, [ticket, isOpen]);
 
-  // Extract discount if ticket already had one applied
+  // Extract discount and referral if ticket already had them applied
   let appliedDiscount: { code: string; percentage: number } | null = null;
+  let existingReferral: { referral_code?: string; affiliate_id?: string; affiliate_name?: string } = {};
   if (ticket.notes?.startsWith('{')) {
     try {
       const parsed = JSON.parse(ticket.notes);
@@ -59,6 +60,13 @@ export function EditPlanModal({
         appliedDiscount = {
           code: parsed.discount_code,
           percentage: parsed.discount_percentage,
+        };
+      }
+      if (parsed.referral_code) {
+        existingReferral = {
+          referral_code: parsed.referral_code,
+          affiliate_id: parsed.affiliate_id,
+          affiliate_name: parsed.affiliate_name,
         };
       }
     } catch {
@@ -94,6 +102,7 @@ export function EditPlanModal({
           original_cop_price: baseCOP,
           original_usdt_price: baseUSDT,
         }),
+        ...existingReferral,
       });
 
       const updated = await updateTicketPlan(ticket.id, {

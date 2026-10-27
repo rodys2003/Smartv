@@ -271,3 +271,131 @@ export async function createPayoutRequest(params: {
 
   return payout as AffiliatePayout;
 }
+
+/**
+ * Obtiene todos los afiliados registrados (Uso exclusivo de Administración).
+ */
+export async function getAllAffiliates(): Promise<Affiliate[]> {
+  const { data, error } = await supabase
+    .from('affiliates')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Could not list affiliates:', error.message);
+    return [];
+  }
+  return (data || []) as Affiliate[];
+}
+
+/**
+ * Actualiza el estado de un afiliado ('pending' | 'active' | 'suspended').
+ */
+export async function updateAffiliateStatus(affiliateId: string, status: AffiliateStatus): Promise<boolean> {
+  const { error } = await supabase
+    .from('affiliates')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', affiliateId);
+
+  if (error) {
+    console.error('Error updating affiliate status:', error);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Crea o activa manualmente un afiliado desde el panel de administración.
+ */
+export async function createOrActivateAffiliateAdmin(params: {
+  userId?: string;
+  email: string;
+  name?: string;
+  referralCode: string;
+  binanceUid?: string;
+  commissionRate?: number;
+  status?: AffiliateStatus;
+}): Promise<Affiliate> {
+  const cleanCode = params.referralCode.trim().toUpperCase();
+  if (!isValidReferralCode(cleanCode)) {
+    throw new Error('El código debe tener entre 3 y 15 caracteres alfanuméricos.');
+  }
+
+  // Si no se suministra un UUID de auth, generamos uno aleatorio válido
+  const id = params.userId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `aff_${Date.now()}`);
+
+  const payload = {
+    id,
+    user_email: params.email.trim().toLowerCase(),
+    user_name: params.name?.trim() || null,
+    referral_code: cleanCode,
+    status: params.status || 'active',
+    commission_rate: params.commissionRate ?? DEFAULT_COMMISSION_RATE,
+    binance_uid: params.binanceUid?.trim() || null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from('affiliates')
+    .upsert([payload], { onConflict: 'referral_code' })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Affiliate;
+}
+
+/**
+ * Obtiene el listado de comisiones para auditoría en administración.
+ */
+export async function getAllCommissions(): Promise<AffiliateCommission[]> {
+  const { data, error } = await supabase
+    .from('affiliates_commissions' as any)
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // Try the correct table name 'affiliate_commissions'
+  if (error) {
+    const retry = await supabase
+      .from('affiliate_commissions')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return (retry.data || []) as AffiliateCommission[];
+  }
+  return (data || []) as AffiliateCommission[];
+}
+
+/**
+ * Pasa una comisión a 'validating' cuando el administrador confirma el pago del ticket.
+ */
+export async function markCommissionPaymentConfirmed(ticketNumber: number): Promise<void> {
+  const now = new Date().toISOString();
+  await supabase
+    .from('affiliate_commissions')
+    .update({
+      status: 'validating',
+      ticket_paid_at: now,
+      updated_at: now,
+    })
+    .eq('ticket_number', ticketNumber)
+    .eq('status', 'estimated');
+}
+
+/**
+ * Registra la finalización del servicio y calcula la fecha de liberación (+7 días de garantía).
+ */
+export async function markCommissionServiceCompleted(ticketNumber: number): Promise<void> {
+  const now = new Date();
+  const availableAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 días de retención
+
+  await supabase
+    .from('affiliate_commissions')
+    .update({
+      service_completed_at: now.toISOString(),
+      available_at: availableAt.toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq('ticket_number', ticketNumber);
+}
+

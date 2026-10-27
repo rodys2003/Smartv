@@ -21,6 +21,13 @@ import {
   validateDiscountCoupon,
   incrementCouponUsage,
 } from '@/features/discounts/services/discountService';
+import {
+  getAffiliateByCode,
+  getActiveReferralCode,
+  storeReferralCode,
+  recordEstimatedCommission,
+} from '@/features/affiliates/services/affiliateService';
+import { Affiliate } from '@/types/affiliate';
 import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock, CreditCard, Coins, Clock, Globe, Tag, CheckCircle } from 'lucide-react';
 
 interface TicketModalProps {
@@ -91,6 +98,69 @@ export function TicketModal({
     setCouponError(null);
   };
 
+  // Affiliate Referral state
+  const [referralCodeInput, setReferralCodeInput] = useState('');
+  const [activeAffiliate, setActiveAffiliate] = useState<Affiliate | null>(null);
+  const [validatingReferral, setValidatingReferral] = useState(false);
+  const [referralError, setReferralError] = useState<string | null>(null);
+  const [showManualReferralInput, setShowManualReferralInput] = useState(false);
+
+  useEffect(() => {
+    const stored = getActiveReferralCode();
+    if (stored && !activeAffiliate) {
+      getAffiliateByCode(stored).then((aff) => {
+        if (aff && aff.status === 'active') {
+          if (user?.id && aff.id === user.id) return;
+          if (user?.email && aff.user_email?.toLowerCase() === user.email.toLowerCase()) return;
+          setActiveAffiliate(aff);
+          setReferralCodeInput(aff.referral_code);
+        }
+      });
+    }
+  }, [user, activeAffiliate]);
+
+  const handleApplyReferral = async () => {
+    if (!referralCodeInput.trim()) return;
+    setReferralError(null);
+    setValidatingReferral(true);
+    try {
+      const clean = referralCodeInput.trim().toUpperCase();
+      const aff = await getAffiliateByCode(clean);
+      if (!aff || aff.status !== 'active') {
+        setReferralError('Código de referido inexistente o inactivo.');
+        setActiveAffiliate(null);
+        return;
+      }
+      if (user?.id && aff.id === user.id) {
+        setReferralError('No puedes usar tu propio código de referido.');
+        setActiveAffiliate(null);
+        return;
+      }
+      if (user?.email && aff.user_email?.toLowerCase() === user.email.toLowerCase()) {
+        setReferralError('No puedes usar tu propio código de referido.');
+        setActiveAffiliate(null);
+        return;
+      }
+      setActiveAffiliate(aff);
+      storeReferralCode(aff.referral_code);
+      setReferralError(null);
+      setShowManualReferralInput(false);
+    } catch {
+      setReferralError('Error al validar código de referido.');
+    } finally {
+      setValidatingReferral(false);
+    }
+  };
+
+  const handleRemoveReferral = () => {
+    setActiveAffiliate(null);
+    setReferralCodeInput('');
+    setReferralError(null);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('smartv_referral');
+    }
+  };
+
   useEffect(() => {
     setHoursInfo(getOperatingHoursInfo());
   }, []);
@@ -145,6 +215,11 @@ export function TicketModal({
           original_cop_price: baseCOP,
           original_usdt_price: baseUSDT,
         }),
+        ...(activeAffiliate && {
+          referral_code: activeAffiliate.referral_code,
+          affiliate_id: activeAffiliate.id,
+          affiliate_name: activeAffiliate.user_name || activeAffiliate.referral_code,
+        }),
       });
 
       const ticket = await createTicket({
@@ -165,6 +240,20 @@ export function TicketModal({
       if (appliedCoupon) {
         incrementCouponUsage(appliedCoupon.code).catch((err) =>
           console.error('Failed to increment coupon usage:', err)
+        );
+      }
+
+      if (activeAffiliate && ticket) {
+        recordEstimatedCommission({
+          referralCode: activeAffiliate.referral_code,
+          ticketId: ticket.id,
+          ticketNumber: ticket.ticket_number,
+          serviceName: selectedPlan.name,
+          currency: selectedPaymentMethod === 'binance' ? 'USDT' : 'COP',
+          grossSalePrice: isBinance ? baseUSDT : baseCOP,
+          discountAmount: isBinance ? savingsUSDT : savingsCOP,
+        }).catch((err) =>
+          console.error('Failed to record estimated commission:', err)
         );
       }
 
@@ -450,6 +539,82 @@ export function TicketModal({
               onChange={(e) => setHasMagicApps(e.target.checked)}
               className="w-4 h-4 accent-fuchsia-500 cursor-pointer"
             />
+          </div>
+
+          {/* SECCIÓN DISCRETA DE REFERIDO / ASESOR */}
+          <div className="space-y-2">
+            {activeAffiliate ? (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/50 text-xs">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    Recomendado por: <strong className="text-cyan-800 dark:text-cyan-300">{activeAffiliate.user_name || activeAffiliate.referral_code}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveReferral}
+                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer underline"
+                >
+                  Cambiar
+                </button>
+              </div>
+            ) : (
+              <div>
+                {!showManualReferralInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowManualReferralInput(true)}
+                    className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 cursor-pointer inline-flex items-center gap-1 transition-colors"
+                  >
+                    <span>¿Llegas por recomendación de un asesor o amigo?</span>
+                  </button>
+                ) : (
+                  <div className="space-y-1.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                        Código de Referido / Recomendador:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowManualReferralInput(false)}
+                        className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={referralCodeInput}
+                        onChange={(e) => {
+                          setReferralCodeInput(e.target.value.toUpperCase());
+                          setReferralError(null);
+                        }}
+                        placeholder="Ej. ANA8X2"
+                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={validatingReferral || !referralCodeInput.trim()}
+                        onClick={handleApplyReferral}
+                        className="text-xs font-bold px-3 py-1.5 shrink-0"
+                      >
+                        {validatingReferral ? 'Validando...' : 'Asociar'}
+                      </Button>
+                    </div>
+                    {referralError && (
+                      <p className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{referralError}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Discount Coupon Section */}

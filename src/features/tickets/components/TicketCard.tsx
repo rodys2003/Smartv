@@ -26,6 +26,7 @@ export function TicketCard({
   const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
 
   let discountInfo: { code: string; percentage: number } | null = null;
+  let referralInfo: { code: string; name?: string } | null = null;
   if (ticket.notes?.startsWith('{')) {
     try {
       const parsed = JSON.parse(ticket.notes);
@@ -33,6 +34,12 @@ export function TicketCard({
         discountInfo = {
           code: parsed.discount_code,
           percentage: parsed.discount_percentage,
+        };
+      }
+      if (parsed.referral_code) {
+        referralInfo = {
+          code: parsed.referral_code,
+          name: parsed.affiliate_name,
         };
       }
     } catch {
@@ -165,6 +172,17 @@ export function TicketCard({
             </span>
             <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
               {discountInfo.code} (-{discountInfo.percentage}%)
+            </span>
+          </div>
+        )}
+        {referralInfo && (
+          <div className="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/25">
+            <span className="text-cyan-700 dark:text-cyan-300 font-semibold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+              <span>Recomendado por:</span>
+            </span>
+            <span className="font-semibold text-cyan-800 dark:text-cyan-200">
+              {referralInfo.name || referralInfo.code}
             </span>
           </div>
         )}
