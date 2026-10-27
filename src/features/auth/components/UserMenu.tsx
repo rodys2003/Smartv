@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
+import { isUserAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, Shield } from 'lucide-react';
 import Image from 'next/image';
 
 interface UserMenuProps {
@@ -33,6 +35,7 @@ export function UserMenu({ onOpenAuth }: UserMenuProps) {
 
   const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
   const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+  const isAdmin = isUserAdmin(user.email);
 
   return (
     <div className="flex items-center gap-2.5 bg-slate-900/80 border border-slate-800 rounded-full py-1 pl-1.5 pr-2">
@@ -53,6 +56,16 @@ export function UserMenu({ onOpenAuth }: UserMenuProps) {
       <span className="text-xs font-semibold text-slate-200 max-w-[100px] truncate">
         {name}
       </span>
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-[10px] font-extrabold text-cyan-300 hover:bg-cyan-500/30 transition-colors flex items-center gap-1"
+          title="Panel de Administración"
+        >
+          <Shield className="w-3 h-3 text-cyan-400" />
+          <span>ADMIN</span>
+        </Link>
+      )}
       <button
         onClick={() => signOut()}
         title="Cerrar sesión"

@@ -6,13 +6,17 @@ export function formatCOP(amount: number): string {
   }).format(amount);
 }
 
+export const BASE_TICKET_OFFSET = 72; // Start ticket numbering at # A073
+
 /**
  * Nomenclatura oficial de turnos:
- * # A001 hasta # A999, luego pasa a # B001 hasta # B999, etc.
+ * Inicia de manera fija en # A073 y va aumentando con los turnos reales.
+ * Al llegar a # A999 pasa a # B001 en adelante.
  */
 export function formatTicketNumber(num: number): string {
-  if (!num || num < 1) return '# A001';
-  const zeroIndexed = num - 1;
+  if (!num || num < 1) return '# A073';
+  const effectiveNum = num < 73 ? num + BASE_TICKET_OFFSET : num;
+  const zeroIndexed = effectiveNum - 1;
   const letterIndex = Math.floor(zeroIndexed / 999);
   const numberPart = (zeroIndexed % 999) + 1;
   const letterCode = String.fromCharCode(65 + (letterIndex % 26));

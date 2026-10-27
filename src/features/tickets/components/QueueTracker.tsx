@@ -63,7 +63,7 @@ export function QueueTracker({
               Cola de Turnos Digitales
             </h2>
             <p className="text-slate-400 text-xs md:text-sm mt-1">
-              Atendemos en estricto orden de turno. Nomenclatura oficial # A001 en adelante.
+              Atendemos en estricto orden de turno. Nomenclatura oficial # A073 en adelante.
             </p>
           </div>
 
@@ -189,6 +189,43 @@ export function QueueTracker({
           </div>
         </div>
 
+        {/* EMPTY QUEUE MOTIVATION BANNER */}
+        {!servingTicket && waitingCount === 0 && (
+          <div className="mb-8 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-cyan-500/10 to-slate-900 border border-emerald-500/40 shadow-[0_0_35px_rgba(16,185,129,0.15)] flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                <Zap className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="space-y-1 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                    ¡Cola Totalmente Despejada!
+                  </span>
+                  <span className="text-xs text-slate-300 font-medium">Técnicos disponibles ahora</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white">
+                  ¿Querés optimizar tu Smart TV hoy? ¡Cero tiempo de espera!
+                </h3>
+                <p className="text-xs text-slate-300 max-w-xl">
+                  No hay nadie en fila en este momento. Tomá tu turno ahora mismo y nuestro equipo técnico iniciará la optimización de tu televisor de inmediato.
+                </p>
+              </div>
+            </div>
+
+            {canIssueTicket && !userTicket && (
+              <Button
+                variant="whatsapp"
+                size="lg"
+                onClick={onOpenTicketModal}
+                className="shrink-0 font-black text-xs shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center gap-2 cursor-pointer w-full md:w-auto justify-center"
+              >
+                <Zap className="w-4 h-4 fill-white" />
+                <span>Tomar Turno Inmediato ({formatTicketNumber(1)})</span>
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Dashboard 3 Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
           {/* Card 1: Currently Serving */}
@@ -287,7 +324,7 @@ export function QueueTracker({
                   onClick={onOpenTicketModal}
                   className="mt-3 text-xs"
                 >
-                  Tomar Turno # A001
+                  Tomar Turno # A073
                 </Button>
               )}
             </div>
