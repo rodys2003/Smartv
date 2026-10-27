@@ -260,9 +260,6 @@ export function QueueTracker({
                 <Users className="w-4 h-4" />
                 En Espera
               </span>
-              <span className="text-[11px] text-slate-500 font-mono">
-                Tope: {totalCount}/{maxTickets}
-              </span>
             </div>
 
             <div className="flex items-baseline gap-2">
