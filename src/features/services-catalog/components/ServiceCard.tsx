@@ -73,9 +73,10 @@ export function ServiceCard({ plan, isSelected, currency = 'COP', onSelect }: Se
         {plan.previewImage && (
           <div className="my-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700/60 relative aspect-video group">
             <Image
-              src={plan.previewImage}
+              src={isCustomPro ? "/images/itachi-theme-optimized.webp" : isUltraLight ? "/images/minimal-theme-optimized.webp" : plan.previewImage}
               alt={plan.name}
               fill
+              sizes="(max-width: 768px) 100vw, 360px"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2.5">

@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
-import { getR2Url } from '@/lib/r2';
-import { Sparkles, Gauge, Layers, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Gauge, CheckCircle2 } from 'lucide-react';
 
 export function ShowcaseGallery() {
   const [activeTab, setActiveTab] = useState<'custom' | 'minimal'>('custom');
@@ -54,11 +53,11 @@ export function ShowcaseGallery() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               <div className="lg:col-span-8 relative aspect-[16/9] rounded-2xl overflow-hidden border border-fuchsia-400/50 dark:border-fuchsia-500/40 shadow-md dark:shadow-[0_0_30px_rgba(217,70,239,0.2)]">
                 <Image
-                  src={getR2Url('/images/itachi-theme.jpg')}
+                  src="/images/itachi-theme-optimized.webp"
                   alt="Personalización Itachi Akatsuki Smart TV"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 720px"
                   className="object-cover"
-                  priority
                 />
               </div>
 
@@ -94,11 +93,11 @@ export function ShowcaseGallery() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               <div className="lg:col-span-8 relative aspect-[16/9] rounded-2xl overflow-hidden border border-cyan-400/50 dark:border-cyan-500/40 shadow-md dark:shadow-[0_0_30px_rgba(6,182,212,0.2)]">
                 <Image
-                  src={getR2Url('/images/minimal-theme.png')}
+                  src="/images/minimal-theme-optimized.webp"
                   alt="Interfaz Minimalista Bajo Consumo"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 720px"
                   className="object-cover"
-                  priority
                 />
               </div>
 
@@ -137,25 +136,25 @@ export function ShowcaseGallery() {
             <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-transparent">
               <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Tiempo de encendido</span>
               <span className="text-lg md:text-xl font-extrabold text-cyan-600 dark:text-cyan-400 mt-0.5 block">
-                2.4 seg vs 14 seg
+                Depende del equipo
               </span>
             </div>
             <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-transparent">
               <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Uso de memoria RAM</span>
               <span className="text-lg md:text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                ~58 MB vs 420 MB
+                Según configuración
               </span>
             </div>
             <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-transparent">
               <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Anuncios en pantalla</span>
               <span className="text-lg md:text-xl font-extrabold text-fuchsia-600 dark:text-fuchsia-400 mt-0.5 block">
-                0% Bloatware
+                Interfaz configurable
               </span>
             </div>
             <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-transparent">
               <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Compatibilidad</span>
               <span className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">
-                Global / Todas marcas
+                Android TV / Google TV
               </span>
             </div>
           </div>

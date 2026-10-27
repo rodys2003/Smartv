@@ -104,7 +104,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <div className="pt-2 border-t border-slate-800 text-center">
           <span className="inline-flex items-center gap-1.5 text-xs text-cyan-400/90 font-medium">
             <Sparkles className="w-3.5 h-3.5" />
-            Servicio global · Más de 500 TVs optimizados
+            Servicio remoto · Android TV y Google TV compatibles
           </span>
         </div>
       </div>

@@ -3,12 +3,14 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getR2Url } from '@/lib/r2';
-import { getWhatsAppNumber } from '@/lib/whatsapp/generateLink';
 import { Shield } from 'lucide-react';
 
 export function Footer() {
-  const currentYear = 2026;
+  const currentYear = new Date().getFullYear();
+  const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '');
+  const contactUrl = /^\d{8,15}$/.test(phone) && phone !== '573105555555'
+    ? `https://wa.me/${phone}?text=${encodeURIComponent('Hola, quiero consultar la compatibilidad de mi Android TV o Google TV.')}`
+    : null;
 
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 py-12 relative z-10 transition-colors duration-200">
@@ -17,9 +19,10 @@ export function Footer() {
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/30">
               <Image
-                src={getR2Url('/images/logo.jpg')}
+                src="/images/logo-optimized.webp"
                 alt="Smart TV Like a Pro"
                 fill
+                sizes="36px"
                 className="object-cover"
               />
             </div>
@@ -34,28 +37,22 @@ export function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-600 dark:text-slate-400 font-medium">
-            <a href="#planes" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+            <Link href="/#planes" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
               Planes
-            </a>
-            <a href="#galeria" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-              Galería
-            </a>
-            <a href="#guia" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-              Guía Paso a Paso
-            </a>
-            <a href="#cola" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-              Cola de Turnos
-            </a>
-            <Link href="/admin" className="text-slate-400 hover:text-cyan-600 dark:text-slate-600 dark:hover:text-cyan-400 transition-colors">
-              Panel Admin
             </Link>
+            <Link href="/#galeria" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+              Galería
+            </Link>
+            <Link href="/compatibilidad" className="hover:text-cyan-600 dark:hover:text-cyan-400">Compatibilidad y proceso</Link>
+            <Link href="/guias/smart-tv-lento" className="hover:text-cyan-600 dark:hover:text-cyan-400">Guía de rendimiento</Link>
+            {contactUrl && <a href={contactUrl} target="_blank" rel="noopener noreferrer" className="hover:text-cyan-600 dark:hover:text-cyan-400">Consultar por WhatsApp</a>}
           </div>
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-            <span>Servicio seguro sin alteración de hardware. Garantía de fluidez.</span>
+            <span>Servicio remoto para Android TV y Google TV compatibles.</span>
           </div>
 
           <p className="text-center sm:text-right">

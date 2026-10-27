@@ -69,7 +69,7 @@ export function PricingSection({
             Elige el nivel de poder para tu Smart TV
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mt-4 text-sm md:text-base leading-relaxed">
-            Desde la optimización básica para eliminar el lag hasta personalización temática completa estilo consola gamer.
+            Desde ajustes de rendimiento según tu equipo hasta personalización temática de la interfaz.
           </p>
         </div>
 
@@ -137,14 +137,14 @@ export function PricingSection({
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white">
-                  Add-on: Instalación de Apps Mágicas
+                  Add-on: Instalación de aplicaciones compatibles
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full bg-fuchsia-50 dark:bg-fuchsia-500/20 text-fuchsia-800 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-500/30 text-xs font-bold">
                   + {isUSDT ? `${MAGIC_APPS_PRICE_USDT} USDT` : formatCOP(MAGIC_APPS_PRICE_COP)}
                 </span>
               </div>
               <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                Instalamos y configuramos reproductores premium de streaming, utilidades sin anuncios publicitarios, reproductores IPTV optimizados y exploradores de archivos desbloqueados.
+                Asistencia para instalar y configurar aplicaciones de fuentes confiables. No incluye licencias, suscripciones ni acceso no autorizado a contenido de pago. La publicidad dentro de cada aplicación depende de su proveedor.
               </p>
             </div>
           </div>

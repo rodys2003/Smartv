@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/Badge';
-import { getR2Url } from '@/lib/r2';
-import { ShieldCheck, MapPin, Sparkles, ZoomIn, X } from 'lucide-react';
+import { MapPin, ZoomIn, X } from 'lucide-react';
 
 interface Testimonial {
   id: string;
@@ -29,7 +28,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Tema Deadpool Chimenea 4K',
     comment:
       'Quedó de locos el fondo de Deadpool junto a la chimenea. Mi TV Haier se demoraba una eternidad en prender y ahora con el dock limpio entra a Netflix, TizenTube y Magis TV de un solo toque sin trabarse.',
-    image: getR2Url('/images/client-deadpool.png'),
+    image: '/images/client-deadpool-optimized.webp',
   },
   {
     id: 'client-tcl-gojo',
@@ -41,7 +40,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Tema Gojo Satoru Morado',
     comment:
       'Mi televisor TCL de fábrica se quedaba pegado abriendo cualquier app. Me hicieron la optimización remota por WhatsApp en 20 minutos, me pusieron el tema de Gojo con TizenTube sin anuncios y el cambio en fluidez fue brutal.',
-    image: getR2Url('/images/client-gojo-purple.png'),
+    image: '/images/client-gojo-purple-optimized.webp',
   },
   {
     id: 'client-ambient-gojo',
@@ -53,7 +52,7 @@ const FEATURED_CLIENT_PHOTOS: Testimonial[] = [
     highlight: 'Integración con Tira LED',
     comment:
       'Miren cómo luce con las luces LED de la habitación. No solo se ve cinematográfico con el arte de Gojo en alta resolución, sino que el consumo de memoria bajó una barbaridad. La navegación entre apps es instantánea.',
-    image: getR2Url('/images/client-gojo-ambient.png'),
+    image: '/images/client-gojo-ambient-optimized.webp',
   },
 ];
 
@@ -89,31 +88,16 @@ export function TestimonialsSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <Badge variant="cyan" className="mb-3">
-            Casos de Éxito Reales
+            Experiencias compartidas
           </Badge>
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-            Clientes Satisfechos a Nivel Global
+            Personalizaciones en distintos hogares
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mt-3 text-sm md:text-base leading-relaxed">
-            Fotografías reales enviadas por nuestros clientes tras la optimización y personalización en sus hogares.
+            Fotografías de instalaciones compartidas en esta web. Los resultados dependen del equipo; los testimonios no cuentan con verificación independiente.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-700 dark:text-slate-300">
-            <span className="flex items-center gap-1.5 font-semibold">
-              <span className="text-amber-500 flex">
-                {'★'.repeat(5)}
-              </span>
-              <strong className="text-slate-900 dark:text-white">5.0 / 5.0</strong> en satisfacción
-            </span>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-              Más de 500 TVs optimizados
-            </span>
-            <span className="flex items-center gap-1.5 font-semibold">
-              <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-              100% Remoto & Seguro
-            </span>
-          </div>
+
         </div>
 
         {/* Featured 3-Column Real Photo Cards Grid */}
@@ -128,13 +112,14 @@ export function TestimonialsSection() {
                 <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700/80 mb-4 bg-slate-950">
                   <Image
                     src={client.image!}
-                    alt={`Instalación real cliente ${client.name}`}
+                    alt={`Android TV personalizado: ${client.highlight}`}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 360px"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-2.5 left-2.5">
                     <span className="px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-cyan-400/40 text-[10px] font-bold text-cyan-300 backdrop-blur-md">
-                      Foto Real · {client.location}
+                      Instalación · {client.location}
                     </span>
                   </div>
                   <button
@@ -149,9 +134,6 @@ export function TestimonialsSection() {
                 </div>
 
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center text-amber-500 text-xs">
-                    {'★'.repeat(client.rating)}
-                  </div>
                   <span className="text-[10px] font-semibold text-cyan-700 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 px-2 py-0.5 rounded-full border border-cyan-200 dark:border-cyan-500/30">
                     {client.plan}
                   </span>
@@ -195,9 +177,6 @@ export function TestimonialsSection() {
               className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center text-amber-500 text-xs">
-                  {'★'.repeat(t.rating)}
-                </div>
                 <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-md">
                   {t.plan}
                 </span>
@@ -234,6 +213,7 @@ export function TestimonialsSection() {
               <Image
                 src={selectedPhoto}
                 alt="Foto ampliada instalación de cliente"
+                sizes="(max-width: 896px) 100vw, 896px"
                 fill
                 className="object-contain"
               />

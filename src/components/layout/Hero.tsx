@@ -3,10 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getR2Url } from '@/lib/r2';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Lock, CheckCircle2 } from 'lucide-react';
+import { Zap, Tv, Sparkles, ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 
 interface HeroProps {
   onOpenTicketModal: () => void;
@@ -16,7 +14,6 @@ interface HeroProps {
 }
 
 export function Hero({
-  onOpenTicketModal,
   onOpenAuthModal,
   isAuthenticated,
   waitingCount,
@@ -40,15 +37,15 @@ export function Hero({
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.08]">
-            Convierte tu Smart TV en una máquina{' '}
+            Optimización y personalización de{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-sky-500 to-fuchsia-500 dark:from-cyan-400 dark:via-sky-300 dark:to-fuchsia-400">
-              Ultra Rápida & PRO
+              Android TV y Google TV
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
-            Eliminamos el lag, instalamos launchers ultra-livianos de bajo consumo de recursos y personalizamos la pantalla con temas exclusivos (Anime, Cine, Gamer).
+            ¿Tu Smart TV está lento, lleno de anuncios o quieres darle un estilo único? Mejoramos su rendimiento, organizamos tus aplicaciones y personalizamos su interfaz sin necesidad de cambiar de televisor. El resultado depende del modelo.
           </p>
 
           {/* Key Value Badges */}
@@ -59,7 +56,7 @@ export function Hero({
             </span>
             <span className="px-3 py-1 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-fuchsia-500 dark:text-fuchsia-400" />
-              Apps Mágicas disponibles (+20k)
+              Aplicaciones compatibles (+20k)
             </span>
             <span className="px-3 py-1 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
@@ -129,9 +126,10 @@ export function Hero({
 
             <div className="relative aspect-[16/9] w-full">
               <Image
-                src={getR2Url('/images/itachi-theme.jpg')}
+                src="/images/itachi-theme-optimized.webp"
                 alt="Smart TV Personalizado Tema Itachi Akatsuki"
                 fill
+                sizes="(max-width: 768px) 100vw, 896px"
                 className="object-cover"
                 priority
               />
@@ -142,7 +140,7 @@ export function Hero({
                       Resultado Nivel PRO (70k)
                     </span>
                     <p className="text-xs text-slate-300 hidden sm:block">
-                      Fondo HD temático + Dock flotante de apps directas sin publicidad
+                      Fondo HD temático + Dock flotante de accesos a tus apps
                     </p>
                   </div>
                   <a

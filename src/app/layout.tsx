@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { getR2Url } from "@/lib/r2";
+import { SITE_URL, HOME_TITLE, HOME_DESCRIPTION } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-  title: "Smart TV Like a Pro | Optimización y Personalización Global",
-  description: "Servicio global de optimización de Smart TVs, launchers ultra-livianos de bajo consumo y personalización temática (Anime, Gamer, Cine). Toma tu turno y te atendemos 1 a 1 por WhatsApp.",
+  metadataBase: new URL(SITE_URL),
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -26,11 +26,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
-  openGraph: {
-    title: "Smart TV Like a Pro | Optimización y Personalización Global",
-    description: "Convierte tu Smart TV en una máquina rápida con launchers de bajo consumo y temas premium.",
-    images: [{ url: getR2Url('/images/logo.jpg') }],
-  },
+
 };
 
 export const viewport: Viewport = {

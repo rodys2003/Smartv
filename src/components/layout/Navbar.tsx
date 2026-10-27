@@ -2,12 +2,11 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { getR2Url } from '@/lib/r2';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { ArrowRight, Sparkles, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, LayoutDashboard } from 'lucide-react';
 
 interface NavbarProps {
   isAuthenticated: boolean;
@@ -23,7 +22,7 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:scale-105 transition-transform">
             <Image
-              src={getR2Url('/images/logo.jpg')}
+              src="/images/logo-optimized.webp"
               alt="Smart TV Like a Pro"
               fill
               className="object-cover"
