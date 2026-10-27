@@ -37,6 +37,7 @@ import {
   Wallet,
   Pencil,
   Info,
+  Phone,
 } from 'lucide-react';
 
 export default function AffiliatePortalPage() {
@@ -48,8 +49,9 @@ export default function AffiliatePortalPage() {
   const [loading, setLoading] = useState(true);
 
   // Registration Form State (for users not yet affiliates)
-  const [requestedCode, setRequestedCode] = useState('');
-  const [requestedBinanceUid, setRequestedBinanceUid] = useState('');
+  const [applicantName, setApplicantName] = useState('');
+  const [applicantPhone, setApplicantPhone] = useState('');
+  const [applicantTiktok, setApplicantTiktok] = useState('');
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registerSuccess, setRegisterSuccess] = useState(false);
@@ -66,6 +68,12 @@ export default function AffiliatePortalPage() {
 
   // Copy referral link feedback
   const [copiedLink, setCopiedLink] = useState(false);
+
+  useEffect(() => {
+    if (user?.user_metadata?.full_name && !applicantName) {
+      setApplicantName(user.user_metadata.full_name);
+    }
+  }, [user, applicantName]);
 
   const loadAffiliateData = useCallback(async () => {
     if (!user) return;
@@ -102,15 +110,23 @@ export default function AffiliatePortalPage() {
   const handleRegisterAffiliate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!applicantPhone.trim()) {
+      setRegisterError('Por favor ingresa tu número de WhatsApp para contacto.');
+      return;
+    }
+    if (!applicantTiktok.trim()) {
+      setRegisterError('Por favor ingresa tu cuenta o enlace de TikTok.');
+      return;
+    }
     setRegisterError(null);
     setRegistering(true);
     try {
       const created = await registerAffiliateRequest({
         userId: user.id,
         email: user.email || '',
-        name: user.user_metadata?.full_name || undefined,
-        requestedCode,
-        binanceUid: requestedBinanceUid || undefined,
+        name: applicantName.trim() || undefined,
+        phone: applicantPhone.trim(),
+        tiktokAccount: applicantTiktok.trim(),
       });
       setAffiliate(created);
       setRegisterSuccess(true);
@@ -277,10 +293,10 @@ export default function AffiliatePortalPage() {
             <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs space-y-2">
               <p className="font-bold text-sm flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
-                ¡Solicitud Registrada con Éxito!
+                ¡Solicitud Enviada con Éxito!
               </p>
               <p>
-                Tu cuenta ha quedado registrada con el código <strong>{requestedCode}</strong>. Nuestro equipo administrativo activará tu enlace a la brevedad.
+                Tu postulación fue registrada. El administrador revisará tu información para activar tu cuenta y permitirte configurar tu Binance UID.
               </p>
             </div>
           ) : (
@@ -293,35 +309,58 @@ export default function AffiliatePortalPage() {
 
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Código de Referido Deseado *
+                  Nombre completo
                 </label>
                 <input
                   type="text"
+                  value={applicantName}
+                  onChange={(e) => setApplicantName(e.target.value)}
+                  placeholder="Ej. Ana Gómez"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Número de teléfono (WhatsApp) *
+                </label>
+                <input
+                  type="tel"
                   required
-                  value={requestedCode}
-                  onChange={(e) => setRequestedCode(e.target.value.toUpperCase())}
-                  placeholder="Ej. ANA8X2"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold uppercase text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  value={applicantPhone}
+                  onChange={(e) => setApplicantPhone(e.target.value)}
+                  placeholder="Ej. +57 300 123 4567"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                 />
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  Tu enlace será: <code>smartvpro.ordely.online/r/{requestedCode || 'CODIGO'}</code>
+                  Necesario para coordinar y verificar tu cuenta con el administrador.
                 </span>
               </div>
 
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Tu Binance UID (Para recibir tus pagos)
+                  Cuenta de TikTok *
                 </label>
                 <input
                   type="text"
-                  value={requestedBinanceUid}
-                  onChange={(e) => setRequestedBinanceUid(e.target.value)}
-                  placeholder="Ej. 85419203"
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  required
+                  value={applicantTiktok}
+                  onChange={(e) => setApplicantTiktok(e.target.value)}
+                  placeholder="Ej. @tu_usuario o tiktok.com/@tu_usuario"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                 />
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  Lo encuentras en tu perfil de Binance. Puedes agregarlo o editarlo después.
+                  Canal donde compartirás el contenido de SmartvPro.
                 </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/40 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+                <p className="font-semibold text-cyan-800 dark:text-cyan-300">
+                  ⚡ Asignación automática y pagos en Binance:
+                </p>
+                <p>
+                  Tu código de referido se genera automáticamente para garantizar que no existan repetidos. Una vez aceptada tu solicitud, podrás configurar tu <strong>Binance UID</strong> en tu panel para recibir tus retiros en USDT.
+                </p>
               </div>
 
               {registerError && (
@@ -335,10 +374,10 @@ export default function AffiliatePortalPage() {
                 type="submit"
                 variant="primary"
                 size="lg"
-                disabled={registering || !requestedCode.trim()}
+                disabled={registering || !applicantPhone.trim() || !applicantTiktok.trim()}
                 className="w-full font-bold text-xs py-3.5 cursor-pointer"
               >
-                {registering ? 'Registrando...' : 'Solicitar Activación de Afiliado'}
+                {registering ? 'Enviando solicitud...' : 'Solicitar Activación de Afiliado'}
               </Button>
             </form>
           )}
@@ -347,7 +386,7 @@ export default function AffiliatePortalPage() {
             <Link href="/" className="text-slate-400 hover:text-slate-600">
               ← Volver a SmartvPro
             </Link>
-            <button onClick={() => signOut()} className="text-rose-500 hover:underline">
+            <button onClick={() => signOut()} className="text-rose-500 hover:underline cursor-pointer">
               Cerrar sesión
             </button>
           </div>
@@ -360,19 +399,58 @@ export default function AffiliatePortalPage() {
   if (affiliate.status === 'pending') {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 p-6 flex flex-col justify-between">
-        <div className="max-w-md mx-auto my-auto w-full bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/30 rounded-3xl p-8 shadow-xl text-center space-y-4">
+        <div className="max-w-md mx-auto my-auto w-full bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/30 rounded-3xl p-8 shadow-xl text-center space-y-5">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
             <Clock className="w-7 h-7" />
           </div>
-          <h1 className="text-xl font-black text-slate-900 dark:text-white">Cuenta en Proceso de Activación</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Tu solicitud con el código <strong className="text-amber-600 font-mono">{affiliate.referral_code}</strong> fue recibida. Un administrador revisará tu cuenta y la activará en breve.
-          </p>
-          <div className="pt-4 flex justify-center gap-3 text-xs">
-            <Link href="/" className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+          <div>
+            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30">
+              Solicitud en Revisión
+            </span>
+            <h1 className="text-xl font-black text-slate-900 dark:text-white mt-2">
+              Postulación en Proceso de Aprobación
+            </h1>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+              Tu solicitud fue recibida correctamente. El administrador revisará tus datos para activar tu cuenta de afiliado.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left text-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Código asignado:</span>
+              <span className="font-mono font-black text-cyan-700 dark:text-cyan-300">
+                {affiliate.referral_code}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">WhatsApp:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200">
+                {affiliate.phone || 'No registrado'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">TikTok:</span>
+              <span className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[180px]">
+                {affiliate.tiktok_account || 'No registrado'}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-200 text-left">
+            <strong>Importante:</strong> La configuración de tu cuenta <strong>Binance UID</strong> para recibir tus pagos en USDT y tu enlace oficial se activarán inmediatamente después de que el administrador apruebe tu postulación.
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3 text-xs">
+            <Link
+              href="/"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 text-center"
+            >
               Ir al inicio
             </Link>
-            <button onClick={() => signOut()} className="px-4 py-2 rounded-xl text-rose-500 hover:bg-rose-50 font-bold">
+            <button
+              onClick={() => signOut()}
+              className="px-4 py-2.5 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold cursor-pointer"
+            >
               Cerrar sesión
             </button>
           </div>

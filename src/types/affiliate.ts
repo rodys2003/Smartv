@@ -17,6 +17,8 @@ export interface Affiliate {
   status: AffiliateStatus;
   commission_rate: number; // default 0.30 (30%)
   binance_uid?: string | null; // Binance User ID for USDT transfers
+  phone?: string | null; // Contact phone / WhatsApp
+  tiktok_account?: string | null; // TikTok handle or URL
   notes?: string | null;
   created_at: string;
   updated_at: string;

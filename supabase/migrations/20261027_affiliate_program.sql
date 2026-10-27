@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS public.affiliates (
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended')),
     commission_rate NUMERIC(4, 2) NOT NULL DEFAULT 0.30 CHECK (commission_rate > 0 AND commission_rate <= 1.00),
     binance_uid VARCHAR(50),
+    phone TEXT,
+    tiktok_account TEXT,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL

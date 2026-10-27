@@ -94,6 +94,21 @@ export function getActiveReferralCode(): string | null {
 }
 
 /**
+ * Normaliza campos adicionales (phone, tiktok_account) si fueron guardados en el campo notes.
+ */
+function hydrateAffiliateExtraFields(aff: Affiliate | null): Affiliate | null {
+  if (!aff) return null;
+  if ((!aff.phone || !aff.tiktok_account) && aff.notes) {
+    try {
+      const parsed = JSON.parse(aff.notes);
+      if (parsed.phone && !aff.phone) aff.phone = parsed.phone;
+      if (parsed.tiktok && !aff.tiktok_account) aff.tiktok_account = parsed.tiktok;
+    } catch {}
+  }
+  return aff;
+}
+
+/**
  * Obtiene el perfil de un afiliado por su User ID de Supabase.
  */
 export async function getAffiliateByUserId(userId: string): Promise<Affiliate | null> {
@@ -107,7 +122,7 @@ export async function getAffiliateByUserId(userId: string): Promise<Affiliate | 
     console.warn('Could not query affiliates table (may not exist yet):', error.message);
     return null;
   }
-  return data as Affiliate | null;
+  return hydrateAffiliateExtraFields(data as Affiliate | null);
 }
 
 /**
@@ -125,37 +140,96 @@ export async function getAffiliateByCode(code: string): Promise<Affiliate | null
     console.warn('Could not find affiliate by code:', error.message);
     return null;
   }
-  return data as Affiliate | null;
+  return hydrateAffiliateExtraFields(data as Affiliate | null);
+}
+
+/**
+ * Genera un código de referido automático y único validando que no existan duplicados en la base de datos.
+ * Ej: "ANA8X2", "CARLOS9K", "SMART7P"
+ */
+export async function generateUniqueReferralCode(seedNameOrEmail?: string): Promise<string> {
+  let prefix = (seedNameOrEmail || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 5);
+
+  if (prefix.length < 3) {
+    prefix = 'SMART';
+  }
+
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+  for (let attempt = 0; attempt < 15; attempt++) {
+    let suffix = '';
+    for (let i = 0; i < 3; i++) {
+      suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const candidateCode = `${prefix}${suffix}`;
+    const existing = await getAffiliateByCode(candidateCode);
+    if (!existing) {
+      return candidateCode;
+    }
+  }
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    let randomCode = 'REF';
+    for (let i = 0; i < 4; i++) {
+      randomCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const existing = await getAffiliateByCode(randomCode);
+    if (!existing) {
+      return randomCode;
+    }
+  }
+
+  return `AFF${Date.now().toString(36).toUpperCase().slice(-5)}`;
 }
 
 /**
  * Registra una solicitud para convertirse en afiliado.
+ * El código de referido se genera automáticamente validando que no existan duplicados.
+ * La configuración de Binance UID se realiza una vez que el usuario es aceptado.
+ * Requiere teléfono de WhatsApp y cuenta de TikTok.
  */
 export async function registerAffiliateRequest(params: {
   userId: string;
   email: string;
   name?: string;
-  requestedCode: string;
-  binanceUid?: string;
+  phone: string;
+  tiktokAccount: string;
 }): Promise<Affiliate> {
-  const cleanCode = params.requestedCode.trim().toUpperCase();
-  if (!isValidReferralCode(cleanCode)) {
-    throw new Error('El código de referido debe tener entre 3 y 15 caracteres alfanuméricos en mayúsculas.');
+  const cleanPhone = params.phone.trim();
+  const cleanTiktok = params.tiktokAccount.trim();
+
+  if (!cleanPhone) {
+    throw new Error('El número de teléfono / WhatsApp es obligatorio para contactarte.');
+  }
+  if (!cleanTiktok) {
+    throw new Error('La cuenta de TikTok es obligatoria para verificar tu perfil.');
   }
 
-  const existing = await getAffiliateByCode(cleanCode);
-  if (existing) {
-    throw new Error(`El código "${cleanCode}" ya está en uso. Por favor elige otro.`);
-  }
+  // Generación automática y única del código de referido
+  const cleanCode = await generateUniqueReferralCode(params.name || params.email);
 
-  const payload = {
+  const notesJson = JSON.stringify({
+    phone: cleanPhone,
+    tiktok: cleanTiktok,
+    applied_at: new Date().toISOString(),
+  });
+
+  const payload: Record<string, unknown> = {
     id: params.userId,
-    user_email: params.email,
-    user_name: params.name || null,
+    user_email: params.email.trim().toLowerCase(),
+    user_name: params.name?.trim() || null,
     referral_code: cleanCode,
     status: 'pending' as AffiliateStatus,
     commission_rate: DEFAULT_COMMISSION_RATE,
-    binance_uid: params.binanceUid?.trim() || null,
+    binance_uid: null, // Se configura únicamente tras ser aceptado
+    phone: cleanPhone,
+    tiktok_account: cleanTiktok,
+    notes: notesJson,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -166,8 +240,21 @@ export async function registerAffiliateRequest(params: {
     .select()
     .single();
 
-  if (error) throw error;
-  return data as Affiliate;
+  if (error) {
+    if (error.message?.includes('column "phone"') || error.message?.includes('column "tiktok_account"')) {
+      delete payload.phone;
+      delete payload.tiktok_account;
+      const retry = await supabase
+        .from('affiliates')
+        .insert([payload])
+        .select()
+        .single();
+      if (retry.error) throw retry.error;
+      return hydrateAffiliateExtraFields(retry.data as Affiliate)!;
+    }
+    throw error;
+  }
+  return hydrateAffiliateExtraFields(data as Affiliate)!;
 }
 
 /**
@@ -285,7 +372,7 @@ export async function getAllAffiliates(): Promise<Affiliate[]> {
     console.warn('Could not list affiliates:', error.message);
     return [];
   }
-  return (data || []) as Affiliate[];
+  return ((data || []) as Affiliate[]).map((a) => hydrateAffiliateExtraFields(a)!);
 }
 
 /**
@@ -625,7 +712,7 @@ export async function getAffiliateProfile(userId: string, email?: string): Promi
       .ilike('user_email', email.trim())
       .maybeSingle();
 
-    if (!error && data) return data as Affiliate;
+    if (!error && data) return hydrateAffiliateExtraFields(data as Affiliate);
   }
 
   return null;

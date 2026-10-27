@@ -15,7 +15,20 @@ runInNewContext(outputText, {
   exports: serviceExports,
   require: (name) => {
     if (name.includes('supabase/client')) {
-      return { supabase: {} };
+      return {
+        supabase: {
+          from: () => ({
+            select: () => ({
+              ilike: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+              eq: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          }),
+        },
+      };
     }
     if (name.includes('types/affiliate')) {
       return {};
@@ -39,6 +52,7 @@ const {
   calculateCommission,
   calculatePayoutBreakdown,
   isValidReferralCode,
+  generateUniqueReferralCode,
 } = serviceExports;
 
 test('1. Financial Rules: 30% commission calculated only on net plan price', () => {
@@ -282,4 +296,17 @@ test('4. End-to-End Simulation: Complete Affiliate Lifecycle with Ledger & Binan
     (c) => c.affiliate_id === affiliateAna.id && c.status === 'available' && !c.payout_id
   );
   assert.equal(availableAfterCancel.length, 0, 'Comisión cancelada no entra en disponible');
+});
+
+test('5. Automatic Unique Referral Code Generation & Social Application Fields', async () => {
+  const code1 = await generateUniqueReferralCode('Ana Gómez');
+  assert.ok(code1.startsWith('ANA'), `Expected code to start with ANA, got ${code1}`);
+  assert.ok(isValidReferralCode(code1), `Code ${code1} should be valid`);
+
+  const code2 = await generateUniqueReferralCode('carlos@gmail.com');
+  assert.ok(code2.startsWith('CARLO'), `Expected code to start with CARLO, got ${code2}`);
+  assert.ok(isValidReferralCode(code2), `Code ${code2} should be valid`);
+
+  const codeEmpty = await generateUniqueReferralCode('');
+  assert.ok(isValidReferralCode(codeEmpty), `Code ${codeEmpty} should be valid`);
 });
