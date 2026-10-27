@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Ticket } from '@/types';
 import {
   formatCOP,
   formatTicketNumber,
   parseTicketPaymentInfo,
+  getTicketCopPrice,
+  getTicketUsdtPrice,
 } from '@/lib/utils';
 import {
   PLAN_USDT_PRICES,
@@ -41,18 +43,18 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedCryptoAddress, setCopiedCryptoAddress] = useState(false);
 
+  // Sync active payment method whenever the user ticket loads or updates
+  useEffect(() => {
+    if (userTicket) {
+      const info = parseTicketPaymentInfo(userTicket);
+      setActiveMethod(info.method);
+    }
+  }, [userTicket]);
+
   const breBKey = '@DAVIRRS582';
   const binanceAddress = 'TUXZ3iN4XaT6t5NjpWLbvA3GpcdpaWCgYT';
   const binanceNetwork = 'TRX Tron (TRC20)';
   const binanceAsset = 'USDT';
-
-  // Fixed USDT pricing calculation:
-  // 7 USDT optimizacion, 17 USDT interfaz ligera, 23 USDT custom pro, 7 USDT magic apps
-  const getTicketUsdtPrice = (ticket?: Ticket | null) => {
-    if (!ticket) return 17;
-    const base = PLAN_USDT_PRICES[ticket.service_tier] ?? 17;
-    return base + (ticket.has_magic_apps ? MAGIC_APPS_PRICE_USDT : 0);
-  };
 
   const handleCopyBreBKey = async () => {
     try {
@@ -83,7 +85,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
 
     let text = '';
     if (activeMethod === 'bre_b') {
-      const amountStr = userTicket ? formatCOP(userTicket.total_price) : '';
+      const amountStr = userTicket ? formatCOP(getTicketCopPrice(userTicket)) : '';
       text = encodeURIComponent(
         `¡Hola! Ya realicé el pago de ${ticketStr}${amountStr ? ` por valor de ${amountStr}` : ''}${planStr} mediante llave Bre-B (${breBKey}). Adjunto el comprobante de pago para continuar con la optimización de mi Smart TV.`
       );
@@ -184,7 +186,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-black text-cyan-600 dark:text-cyan-400 block">
-                        {formatCOP(userTicket.total_price)}
+                        {formatCOP(getTicketCopPrice(userTicket))}
                       </span>
                     </div>
                   </div>

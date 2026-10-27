@@ -41,14 +41,14 @@ export function EditPlanModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (ticket) {
+    if (ticket && isOpen) {
       const found = SERVICE_PLANS.find((p) => p.id === ticket.service_tier);
       if (found) setSelectedPlan(found);
       setHasMagicApps(ticket.has_magic_apps);
       const parsed = parseTicketPaymentInfo(ticket);
       setSelectedPaymentMethod(parsed.method);
     }
-  }, [ticket]);
+  }, [ticket, isOpen]);
 
   const calculateTotalCOP = () => {
     return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);

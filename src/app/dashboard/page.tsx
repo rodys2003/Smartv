@@ -16,6 +16,7 @@ import { UserMenu } from '@/features/auth/components/UserMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Ticket, ServicePlan } from '@/types';
+import { parseTicketPaymentInfo } from '@/lib/utils';
 import { getR2Url } from '@/lib/r2';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -245,7 +246,9 @@ export default function DashboardPage() {
                 className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 shadow-sm transition-colors flex items-center gap-1.5"
               >
                 <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>3. Pago Bre-B</span>
+                <span>
+                  3. Pago {userTicket && parseTicketPaymentInfo(userTicket).isCrypto ? 'Binance' : 'Bre-B'}
+                </span>
               </a>
             </div>
           </div>
