@@ -122,7 +122,12 @@ export default function AffiliatePortalPage() {
       setAffiliate(created);
       setRegisterSuccess(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al solicitar afiliación';
+      const msg =
+        err instanceof Error
+          ? err.message
+          : err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Error al solicitar afiliación';
       setRegisterError(msg);
     } finally {
       setRegistering(false);
