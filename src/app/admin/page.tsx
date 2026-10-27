@@ -1,5 +1,6 @@
 'use client';
 
+import { RequiredIndicator } from '@/components/ui/RequiredIndicator';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -724,7 +725,7 @@ export default function AdminPage() {
           >
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                Código Promocional:
+                Código Promocional<RequiredIndicator />
               </label>
               <input
                 type="text"
@@ -738,7 +739,7 @@ export default function AdminPage() {
 
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                % Descuento (1 - 100):
+                % Descuento (1 - 100)<RequiredIndicator />
               </label>
               <div className="relative">
                 <input
@@ -757,7 +758,7 @@ export default function AdminPage() {
 
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                Límite de Usos:
+                Límite de Usos<RequiredIndicator />
               </label>
               <input
                 type="number"
@@ -1004,7 +1005,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-                      Correo electrónico *
+                      Correo electrónico<RequiredIndicator />
                     </label>
                     <input
                       type="email"
@@ -1031,7 +1032,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-                      Código de referido *
+                      Código de referido<RequiredIndicator />
                     </label>
                     <input
                       type="text"
@@ -1704,7 +1705,7 @@ export default function AdminPage() {
 
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Referencia / ID de Transacción Binance *
+                    Referencia / ID de Transacción Binance<RequiredIndicator />
                   </label>
                   <input
                     type="text"

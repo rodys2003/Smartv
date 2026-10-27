@@ -1,5 +1,6 @@
 'use client';
 
+import { RequiredIndicator } from '@/components/ui/RequiredIndicator';
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -297,7 +298,7 @@ export default function AffiliatePortalPage() {
           </aside>
           <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8 dark:border-slate-700 dark:bg-slate-900">
             <h2 className="text-2xl font-bold tracking-tight">Tu solicitud de afiliación</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Los campos marcados con * son obligatorios. El nombre es una sugerencia que puedes cambiar.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Los campos con asterisco rojo son obligatorios. El nombre es una sugerencia que puedes cambiar.</p>
             {registerSuccess ? (
               <div role="status" className="mt-6 space-y-2 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-base leading-7 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-100">
                 <p className="flex items-center gap-2 font-bold"><CheckCircle aria-hidden="true" className="h-5 w-5" />Solicitud enviada</p>
@@ -314,12 +315,12 @@ export default function AffiliatePortalPage() {
                   <p id="affiliate-name-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Puedes borrar el nombre sugerido y usar el que prefieras. Esto no cambia tu cuenta de Google.</p>
                 </div>
                 <div>
-                  <label htmlFor="affiliate-phone" className="mb-2 block text-sm font-semibold">WhatsApp de contacto *</label>
+                  <label htmlFor="affiliate-phone" className="mb-2 block text-sm font-semibold">WhatsApp de contacto<RequiredIndicator /></label>
                   <input id="affiliate-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required aria-describedby="affiliate-phone-help" value={applicantPhone} onChange={(e) => setApplicantPhone(e.target.value)} placeholder="Ej. +57 300 123 4567" className={inputClass} />
                   <p id="affiliate-phone-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Incluye el código de tu país. Lo usamos para coordinar la revisión de tu solicitud.</p>
                 </div>
                 <div>
-                  <label htmlFor="affiliate-tiktok" className="mb-2 block text-sm font-semibold">Cuenta de TikTok *</label>
+                  <label htmlFor="affiliate-tiktok" className="mb-2 block text-sm font-semibold">Cuenta de TikTok<RequiredIndicator /></label>
                   <input id="affiliate-tiktok" name="tiktok" type="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} required aria-describedby="affiliate-tiktok-help" value={applicantTiktok} onChange={(e) => setApplicantTiktok(e.target.value)} placeholder="Ej. @tu_usuario o tiktok.com/@tu_usuario" className={inputClass} />
                   <p id="affiliate-tiktok-help" className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Comparte el usuario o enlace del perfil donde publicarías tus recomendaciones.</p>
                 </div>

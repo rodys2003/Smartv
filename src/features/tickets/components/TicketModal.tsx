@@ -1,5 +1,6 @@
 'use client';
 
+import { RequiredIndicator } from '@/components/ui/RequiredIndicator';
 import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -332,11 +333,11 @@ export function TicketModal({
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="ticket-client-name" className={labelClass}>Tu nombre <span className="font-normal text-slate-600 dark:text-slate-300">(obligatorio)</span></label>
+                <label htmlFor="ticket-client-name" className={labelClass}>Tu nombre<RequiredIndicator /></label>
                 <input id="ticket-client-name" name="clientName" autoComplete="name" type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Ej. Carlos Mendoza" className={fieldClass} />
               </div>
               <div>
-                <label htmlFor="ticket-client-whatsapp" className={labelClass}>Número de WhatsApp <span className="font-normal text-slate-600 dark:text-slate-300">(obligatorio)</span></label>
+                <label htmlFor="ticket-client-whatsapp" className={labelClass}>Número de WhatsApp<RequiredIndicator /></label>
                 <input id="ticket-client-whatsapp" name="clientWhatsApp" autoComplete="tel" type="tel" required value={clientWhatsApp} onChange={(e) => setClientWhatsApp(e.target.value)} placeholder="Ej. +57 300 123 4567" className={fieldClass} />
               </div>
             </div>
