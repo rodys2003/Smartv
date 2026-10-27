@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQueue } from '@/features/tickets/hooks/useQueue';
@@ -17,7 +16,6 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Ticket, ServicePlan } from '@/types';
 import { parseTicketPaymentInfo } from '@/lib/utils';
-import { getR2Url } from '@/lib/r2';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -122,10 +120,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 flex flex-col justify-between transition-colors duration-200">
         <header className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/40">
-                <Image src={getR2Url('/images/logo.jpg')} alt="Logo" fill className="object-cover" />
-              </div>
+            <Link href="/" className="flex items-center">
               <span className="font-black text-slate-900 dark:text-white text-base">Smart TV Like a Pro</span>
             </Link>
             <div className="flex items-center gap-3">
@@ -196,11 +191,8 @@ export default function DashboardPage() {
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-                <Image src={getR2Url('/images/logo.jpg')} alt="Logo" fill className="object-cover" priority />
-              </div>
-              <div className="hidden sm:block">
+            <Link href="/" className="flex items-center">
+              <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-black text-slate-900 dark:text-white">Smart TV</span>
                   <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-slate-950">

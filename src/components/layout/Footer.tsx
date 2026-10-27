@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Shield } from 'lucide-react';
+import { Shield, LockKeyhole } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 
@@ -49,16 +48,7 @@ export function Footer({ onOpenAuthModal }: FooterProps = {}) {
     <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 py-12 relative z-10 transition-colors duration-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-200 dark:border-slate-800/80">
-          <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-cyan-500/30">
-              <Image
-                src="/images/logo-optimized.webp"
-                alt="Smart TV Like a Pro"
-                fill
-                sizes="36px"
-                className="object-cover"
-              />
-            </div>
+          <div className="flex items-center">
             <div>
               <span className="text-sm font-black text-slate-900 dark:text-white block">
                 Smart TV Like a Pro
@@ -79,6 +69,7 @@ export function Footer({ onOpenAuthModal }: FooterProps = {}) {
             <Link href="/compatibilidad" className="hover:text-cyan-600 dark:hover:text-cyan-400">Compatibilidad y proceso</Link>
             <Link href="/guias/smart-tv-lento" className="hover:text-cyan-600 dark:hover:text-cyan-400">Guía de rendimiento</Link>
             <Link href="/programa-afiliados" className="hover:text-cyan-600 dark:hover:text-cyan-400">Programa de Afiliados</Link>
+            <Link href="/privacidad" className="hover:text-cyan-600 dark:hover:text-cyan-400">Privacidad</Link>
             {isPhoneValid && (
               <button
                 type="button"
@@ -90,6 +81,15 @@ export function Footer({ onOpenAuthModal }: FooterProps = {}) {
             )}
           </div>
         </div>
+
+        <section aria-labelledby="footer-privacy-title" className="mt-6 flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
+          <LockKeyhole aria-hidden="true" className="mt-1 h-5 w-5 shrink-0 text-cyan-700 dark:text-cyan-300" />
+          <div className="space-y-2">
+            <h2 id="footer-privacy-title" className="text-base font-bold text-slate-900 dark:text-white">Privacidad y protección de tus datos</h2>
+            <p className="max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Las conexiones HTTPS cifran la información en tránsito. La base de datos alojada en Supabase utiliza cifrado en reposo, según la documentación del proveedor.</p>
+            <Link href="/privacidad" className="inline-flex min-h-11 items-center rounded-lg text-sm font-semibold text-cyan-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-cyan-300">Conoce cómo usamos y protegemos tus datos</Link>
+          </div>
+        </section>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">

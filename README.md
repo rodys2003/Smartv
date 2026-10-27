@@ -123,3 +123,23 @@ npm run test:affiliates
 The UX suite renders the actual application component with isolated auth/service
 mocks. It covers clearing, replacement, account changes, labels, and submitted
 profile values without creating real affiliate applications or financial records.
+
+## Privacy information
+
+`/privacidad` is a public information page linked from the shared footer and the
+sitemap. The owner supplied `aethelsoft@gmail.com` as the privacy contact; the
+mailto links only prepare an email and never submit a request automatically.
+
+Encryption wording distinguishes HTTPS/TLS in transit from Supabase's documented
+AES-256 storage encryption: https://supabase.com/security. It does not claim
+end-to-end encryption, audited access policies, or absolute security. No encryption,
+authorization, database or retention behavior was changed for this notice.
+
+Before production publication, the owner should validate the legal responsible
+party's full identity/contact details, retention periods, request-handling process,
+and applicable privacy obligations. Only an email and business activity description
+were supplied; no legal entity, registration number, address, response deadlines,
+automatic erasure capability or compliance certification was invented.
+
+The existing SEO suite checks the page, public contact, footer discovery, metadata,
+sitemap membership and the scope of encryption wording.

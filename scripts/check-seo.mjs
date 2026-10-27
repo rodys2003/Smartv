@@ -6,7 +6,7 @@ import ts from 'typescript';
 
 const base = process.env.SEO_TEST_URL || 'http://localhost:5173';
 const origin = 'https://smartvpro.ordely.online';
-const paths = ['/', '/servicios/optimizar-android-tv', '/servicios/personalizar-google-tv', '/servicios/instalar-apps-android-tv', '/compatibilidad', '/guias/smart-tv-lento', '/guias/cambiar-launcher-google-tv'];
+const paths = ['/', '/servicios/optimizar-android-tv', '/servicios/personalizar-google-tv', '/servicios/instalar-apps-android-tv', '/compatibilidad', '/guias/smart-tv-lento', '/guias/cambiar-launcher-google-tv', '/privacidad'];
 
 test('SEO catalog copy preserves booking prices and identifiers', () => {
   const source = readFileSync(new URL('../src/features/services-catalog/constants/plans.ts', import.meta.url), 'utf8');
@@ -120,4 +120,17 @@ test('plan labels have opaque dark backgrounds above card borders', async () => 
     assert.ok(tag[1].includes('whitespace-nowrap'), label);
   }
   assert.match(body, /z-10 -translate-x-1\/2 -translate-y-1\/2/);
+});
+
+test('privacy information and contact are public and distinguish encryption scope', async () => {
+  const home = await html('/');
+  assert.match(home, /href="\/privacidad"/);
+  const privacy = await html('/privacidad');
+  assert.match(privacy, /mailto:aethelsoft@gmail\.com/);
+  assert.match(privacy, /HTTPS/);
+  assert.match(privacy, /AES-256/);
+  assert.match(privacy, /https:\/\/supabase\.com\/security/);
+  for (const id of ['datos', 'proteccion', 'derechos', 'contacto']) assert.ok(privacy.includes(`id="${id}"`));
+  assert.doesNotMatch(privacy, /100% segur|seguridad absoluta garantizada|cumplimos todas las leyes/i);
+  assert.doesNotMatch(privacy, /name="robots" content="[^"]*noindex/);
 });

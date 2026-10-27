@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
@@ -19,16 +18,7 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
         {/* Brand Logo & Name */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="hidden sm:block relative w-10 h-10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.35)] group-hover:scale-105 transition-transform">
-            <Image
-              src="/images/logo-optimized.webp"
-              alt="Smart TV Like a Pro"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+        <Link href="/" className="flex items-center group">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-base font-black text-slate-900 dark:text-white tracking-tight group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
