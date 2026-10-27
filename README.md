@@ -143,3 +143,20 @@ automatic erasure capability or compliance certification was invented.
 
 The existing SEO suite checks the page, public contact, footer discovery, metadata,
 sitemap membership and the scope of encryption wording.
+
+## Local Google sign-in
+
+The shared browser client uses `@supabase/ssr` so Google OAuth uses PKCE and
+stores its verifier in cookies readable by `/auth/callback`. Do not replace it
+with the default implicit-flow `createClient` while retaining a server callback.
+Existing localStorage-only sessions may require a fresh sign-in after this change.
+Start and finish sign-in on the same origin; `localhost` and `127.0.0.1` do not
+share cookies. The callback URL must also be allowed in Supabase's redirect URLs.
+
+```bash
+node --test --test-isolation=none scripts/check-auth-flow.mjs scripts/check-navbar.mjs
+```
+
+These tests exercise the real SDK's OAuth URL/verifier generation without network
+access, plus isolated account-photo failure, navigation and logout behavior.
+A real Google sign-in still requires manual verification in the browser.

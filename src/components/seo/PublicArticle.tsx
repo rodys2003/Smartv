@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { SEO_PAGES } from '@/content/seo-pages';
 import { Footer } from '@/components/layout/Footer';
 
@@ -6,7 +7,13 @@ export function PublicArticle({ path }: { path: string }) {
   const article = SEO_PAGES[path];
   return <>
     <main className="mx-auto w-full max-w-4xl px-6 py-12 space-y-8">
-      <Link href="/" className="text-cyan-700 dark:text-cyan-300">← SmartvPro · Inicio</Link>
+      <Link
+        href="/"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+      >
+        <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+        <span>Volver al inicio</span>
+      </Link>
       <header className="space-y-4">
         <h1 className="text-3xl md:text-5xl font-black tracking-tight">{article.heading}</h1>
         <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-300">{article.intro}</p>

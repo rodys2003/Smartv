@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { ArrowRight, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 
 interface NavbarProps {
   isAuthenticated: boolean;
@@ -18,7 +18,7 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/80 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800/80 transition-colors duration-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
         {/* Brand Logo & Name */}
-        <Link href="/" className="flex items-center group">
+        <Link href="/" className="flex min-w-0 items-center group">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-base font-black text-slate-900 dark:text-white tracking-tight group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
@@ -35,45 +35,34 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
-          <a href="#planes" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+        <nav className="flex shrink-0 items-center gap-4 xl:gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <a href="#planes" className="hidden xl:inline hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Planes & Precios
           </a>
-          <a href="#galeria" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+          <a href="#galeria" className="hidden xl:inline hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Galería PRO
           </a>
-          <a href="#testimonios" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+          <a href="#testimonios" className="hidden xl:inline hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
             Clientes Satisfechos
           </a>
           {isAuthenticated && (
             <Link
               href="/dashboard"
+              aria-label="Mi Panel de Turnos"
               className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 transition-colors flex items-center gap-1.5 font-bold"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>Mi Panel de Turnos</span>
+              <span className="hidden md:inline whitespace-nowrap">Mi Panel de Turnos</span>
             </Link>
           )}
         </nav>
 
         {/* Actions & User */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center gap-2.5">
           <ThemeToggle />
 
           {isAuthenticated ? (
-            <>
-              <UserMenu />
-              <Link href="/dashboard" className="hidden sm:inline-flex">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-                >
-                  <span>Mi Panel de Turnos</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Button>
-              </Link>
-            </>
+            <UserMenu />
           ) : (
             <Button
               variant="primary"

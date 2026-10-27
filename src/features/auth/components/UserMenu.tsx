@@ -1,15 +1,40 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut } from 'lucide-react';
 import Image from 'next/image';
+
+function AccountAvatar({ src, name }: { src?: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <div aria-hidden="true" className="h-6 w-6 shrink-0 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xs font-bold">
+        {name.charAt(0).toUpperCase()}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={24}
+      height={24}
+      unoptimized
+      onError={() => setFailed(true)}
+      className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-cyan-400/40"
+    />
+  );
+}
 
 interface UserMenuProps {
   onOpenAuth?: () => void;
 }
 
-export function UserMenu({ onOpenAuth }: UserMenuProps = {}) {
+export function UserMenu(props: UserMenuProps = {}) {
+  void props;
   const { user, isAuthenticated, signOut, loading } = useAuth();
 
   if (loading) {
@@ -25,22 +50,9 @@ export function UserMenu({ onOpenAuth }: UserMenuProps = {}) {
 
   return (
     <div className="flex shrink-0 items-center gap-2 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-full py-1 pl-1.5 pr-2 shadow-sm">
-      <div className="flex items-center gap-2">
-        {avatar ? (
-          <Image
-            src={avatar}
-            alt={name}
-            width={24}
-            height={24}
-            unoptimized
-            className="rounded-full ring-1 ring-cyan-400/40"
-          />
-        ) : (
-          <div className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-xs font-bold">
-            {name.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className="hidden sm:inline text-xs font-semibold text-slate-800 dark:text-slate-200 max-w-[120px] truncate">
+      <div className="hidden xl:flex [@media(hover:none)]:!hidden min-w-0 items-center gap-2">
+        <AccountAvatar key={`${user.id}:${avatar || ''}`} src={avatar} name={name} />
+        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 max-w-[120px] truncate">
           {name}
         </span>
       </div>

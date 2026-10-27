@@ -331,7 +331,7 @@ export default function AffiliatePortalPage() {
               </form>
             )}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
-              <Link href="/" className="inline-flex min-h-11 items-center rounded-lg text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300">Volver a SmartvPro</Link>
+              <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"><ArrowLeft aria-hidden="true" className="h-4 w-4" /><span>Volver al inicio</span></Link>
               <button type="button" onClick={() => signOut()} className="min-h-11 cursor-pointer rounded-lg px-2 font-semibold text-rose-700 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:text-rose-300">Cerrar sesión</button>
             </div>
           </div>
@@ -388,9 +388,10 @@ export default function AffiliatePortalPage() {
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3 text-xs">
             <Link
               href="/"
-              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 text-center"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
             >
-              Ir al inicio
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              <span>Volver al inicio</span>
             </Link>
             <button
               onClick={() => signOut()}
@@ -466,7 +467,16 @@ export default function AffiliatePortalPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        <div>
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+            <span>Volver al inicio</span>
+          </Link>
+        </div>
         {/* Enlace de Referido Card */}
         <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-500/10 via-white to-white dark:from-cyan-950/40 dark:via-slate-900 dark:to-slate-900 border border-cyan-300 dark:border-cyan-500/30 shadow-md">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

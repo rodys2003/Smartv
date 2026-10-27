@@ -125,11 +125,12 @@ export default function DashboardPage() {
             </Link>
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="text-xs">
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-                  <span>Volver al Inicio</span>
-                </Button>
+              <Link
+                href="/"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+              >
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                <span>Volver al inicio</span>
               </Link>
             </div>
           </div>
@@ -185,10 +186,11 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-              title="Volver a la landing pública"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+              title="Volver al inicio"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Volver al inicio</span>
             </Link>
 
             <Link href="/" className="flex items-center">

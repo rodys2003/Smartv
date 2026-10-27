@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, ShieldCheck, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, Wallet } from 'lucide-react';
 import { AffiliateHeader } from '@/features/affiliates/components/AffiliateHeader';
 import { Footer } from '@/components/layout/Footer';
 import { SERVICE_PLANS, PLAN_USDT_PRICES } from '@/features/services-catalog/constants/plans';
@@ -32,7 +32,16 @@ export default function AffiliateProgramInfoPage() {
   return <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100">
     <AffiliateHeader />
     <main id="contenido">
-      <section className="relative overflow-hidden px-4 py-12 sm:px-6 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
+        >
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+          <span>Volver al inicio</span>
+        </Link>
+      </div>
+      <section className="relative overflow-hidden px-4 py-8 sm:px-6 sm:py-16">
         <div aria-hidden="true" className="pointer-events-none absolute right-0 top-10 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl dark:bg-fuchsia-500/10" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div className="space-y-6">

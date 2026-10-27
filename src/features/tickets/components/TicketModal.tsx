@@ -28,7 +28,7 @@ import {
   recordEstimatedCommission,
 } from '@/features/affiliates/services/affiliateService';
 import { Affiliate } from '@/types/affiliate';
-import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock, CreditCard, Coins, Clock, Globe, Tag, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Check, Lock } from 'lucide-react';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -52,14 +52,20 @@ export function TicketModal({
   const { user, isAuthenticated, signInWithGoogle } = useAuth();
   const { waitingTickets, whatsappThreshold } = useQueue();
 
-  const [selectedBrand, setSelectedBrand] = useState(BRANDS[0]);
+  const [selectedBrand] = useState(BRANDS[0]);
   const [tvModel, setTvModel] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<ServicePlan>(
     initialPlan || SERVICE_PLANS[1]
   );
   const [hasMagicApps, setHasMagicApps] = useState<boolean>(initialMagicApps);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'bre_b' | 'binance'>('bre_b');
-  const [clientName, setClientName] = useState('');
+  const [clientNameDraft, setClientNameDraft] = useState<{ userId: string; value: string } | null>(null);
+  const suggestedName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+  // An intentionally empty draft must not be replaced by the Google suggestion.
+  const clientName = user && clientNameDraft?.userId === user.id ? clientNameDraft.value : suggestedName;
+  const setClientName = (value: string) => {
+    if (user) setClientNameDraft({ userId: user.id, value });
+  };
   const [clientWhatsApp, setClientWhatsApp] = useState('');
   const [loading, setLoading] = useState(false);
   const [createdTicket, setCreatedTicket] = useState<Ticket | null>(null);
@@ -174,13 +180,6 @@ export function TicketModal({
     }
   }, [initialPlan, initialMagicApps]);
 
-  useEffect(() => {
-    if (user) {
-      const name = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
-      if (!clientName) setClientName(name);
-    }
-  }, [user, clientName]);
-
   const baseCOP = selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
   const baseUSDT = (PLAN_USDT_PRICES[selectedPlan.id] ?? 17) + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
 
@@ -275,460 +274,163 @@ export function TicketModal({
     onClose();
   };
 
+  const fieldClass = 'min-h-11 w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 placeholder:text-slate-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400';
+  const labelClass = 'mb-2 block text-sm font-semibold text-slate-900 dark:text-slate-100';
+  const choiceClass = (selected: boolean) => `min-h-14 rounded-xl border p-3 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${selected ? 'border-cyan-700 bg-cyan-50 text-slate-950 ring-1 ring-cyan-700 dark:border-cyan-400 dark:bg-cyan-950 dark:text-white dark:ring-cyan-400' : 'border-slate-300 bg-white text-slate-800 hover:border-slate-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-400'}`;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleReset}
-      title={createdTicket ? '¡Turno Asignado con Éxito!' : 'Tomar Turno de Optimización'}
-      description={
-        createdTicket
-          ? 'Guarda tu ticket digital y envíanoslo por WhatsApp para iniciar la atención.'
-          : 'Completa los datos de tu TV para asignarte un número de turno en la cola de atención global.'
-      }
+      title={createdTicket ? '¡Turno Asignado con Éxito!' : 'Tomar turno de optimización'}
+      description={createdTicket ? 'Guarda tu ticket digital y envíanoslo por WhatsApp para iniciar la atención.' : 'Completa los datos de tu TV y elige cómo pagar. Al confirmar recibirás tu número de turno.'}
       maxWidth="lg"
+      className="[&>div]:flex [&>div]:max-h-[calc(100dvh-3rem)] [&>div]:flex-col [&>div>div:last-child]:min-h-0 [&>div>div:last-child]:max-h-none [&>div>div:last-child]:overscroll-contain"
     >
       {createdTicket ? (
         <div className="pt-2">
-          <TicketCard
-            ticket={createdTicket}
-            whatsappThreshold={whatsappThreshold}
-            queuePosition={
-              waitingTickets.findIndex((t) => t.id === createdTicket.id) !== -1
-                ? waitingTickets.findIndex((t) => t.id === createdTicket.id) + 1
-                : waitingTickets.length + 1
-            }
-          />
+          <TicketCard ticket={createdTicket} whatsappThreshold={whatsappThreshold} queuePosition={waitingTickets.findIndex((t) => t.id === createdTicket.id) !== -1 ? waitingTickets.findIndex((t) => t.id === createdTicket.id) + 1 : waitingTickets.length + 1} />
           <div className="mt-4 text-center">
-            <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs text-slate-400">
-              Cerrar y volver a la web
-            </Button>
+            <Button variant="ghost" size="sm" onClick={handleReset}>Cerrar y volver a la web</Button>
           </div>
         </div>
       ) : !isAuthenticated ? (
-        /* If not logged in, prompt Google Login */
-        <div className="py-6 text-center space-y-5">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mx-auto flex items-center justify-center">
-            <Lock className="w-7 h-7" />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-white">
-              Inicio de Sesión con Google Requerido
-            </h3>
-            <p className="text-xs text-slate-300 mt-1 max-w-md mx-auto">
-              Para garantizar que los turnos se atiendan uno a uno y puedas hacer seguimiento en vivo de tu ticket, debes autenticarte con tu cuenta de Google.
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => signInWithGoogle()}
-            className="w-full py-3.5 bg-white text-slate-900 hover:bg-slate-100 font-bold border border-slate-300 shadow-md flex items-center justify-center gap-3 text-sm cursor-pointer"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-            </svg>
-            <span>Continuar con Google</span>
-          </Button>
+        <div className="space-y-4 py-4 text-center text-sm leading-6 text-slate-700 dark:text-slate-200">
+          <Lock aria-hidden="true" className="mx-auto h-7 w-7 text-slate-500 dark:text-slate-400" />
+          <h3 className="text-lg font-bold text-slate-950 dark:text-white">Inicia sesión con Google</h3>
+          <p>Para registrar tu turno y seguir su estado, inicia sesión con tu cuenta de Google.</p>
+          <Button type="button" variant="secondary" onClick={() => signInWithGoogle()} className="min-h-11 w-full">Continuar con Google</Button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-          {errorMsg && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-              <span>{errorMsg}</span>
+        <form onSubmit={handleSubmit} className="space-y-6 pt-1 text-sm leading-6 text-slate-700 dark:text-slate-200">
+          {errorMsg && <p role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-200">{errorMsg}</p>}
+
+          <div className="flex items-start gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
+            <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />
+            <p className="min-w-0 break-words">Cuenta verificada: <strong className="font-semibold text-slate-950 dark:text-white">{user?.user_metadata?.full_name || user?.email}</strong></p>
+          </div>
+
+          <section aria-labelledby="ticket-device-title" className="space-y-3">
+            <div>
+              <h3 id="ticket-device-title" className={labelClass}>Tu dispositivo</h3>
+              <p className="font-medium text-slate-900 dark:text-slate-100">Android TV o Google TV</p>
+              <p className="mt-1 text-slate-600 dark:text-slate-300">Compatible con TCL, Xiaomi, Sony, Chromecast, Onn y TV Box con estos sistemas.</p>
+              <p role="note" className="mt-3 flex items-start gap-2 rounded-r-lg border-l-4 border-slate-600 bg-slate-100 p-3 text-slate-950 dark:border-slate-300 dark:bg-slate-800 dark:text-white">
+                <AlertTriangle aria-hidden="true" className="mt-1 h-5 w-5 shrink-0" />
+                <strong>No compatible con Samsung Tizen ni LG webOS.</strong>
+              </p>
             </div>
-          )}
-
-          {/* User Auth banner */}
-          <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-300 flex items-center gap-2">
-            <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span>
-              Usuario verificado: <strong>{user?.user_metadata?.full_name || user?.email}</strong>
-            </span>
-          </div>
-
-          {/* Device restriction banner */}
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <span>
-              <strong>Exclusivo para Android TV y Google TV.</strong> Equipos con Samsung (Tizen OS) y LG (webOS) quedan descartados.
-            </span>
-          </div>
-
-          {/* Operating hours info banner & 5 min response rule */}
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
-            <Clock className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
-            <div className="space-y-1.5 w-full">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-slate-900 dark:text-white">Horario de atención:</span>
-                <span className="text-cyan-700 dark:text-cyan-300 font-semibold">{hoursInfo.colombiaHours} (Hora Colombia)</span>
-                {!hoursInfo.isSameAsColombia && (
-                  <span className="text-fuchsia-700 dark:text-fuchsia-300 font-medium flex items-center gap-1">
-                    <Globe className="w-3 h-3 inline text-fuchsia-600 dark:text-fuchsia-400" />
-                    <span>En tu país ({hoursInfo.userCity}):</span>
-                    <strong>{hoursInfo.localHours}</strong>
-                  </span>
-                )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="ticket-client-name" className={labelClass}>Tu nombre <span className="font-normal text-slate-600 dark:text-slate-300">(obligatorio)</span></label>
+                <input id="ticket-client-name" name="clientName" autoComplete="name" type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Ej. Carlos Mendoza" className={fieldClass} aria-describedby="ticket-name-help" />
+                <p id="ticket-name-help" className="mt-1 text-sm text-slate-600 dark:text-slate-300">Puedes cambiar el nombre sugerido por Google por el que quieras usar en tu ticket.</p>
               </div>
-              {!hoursInfo.isOpen && (
-                <p className="text-amber-800 dark:text-amber-300 font-medium leading-relaxed">
-                  🌙 <strong>Reserva anticipada activa:</strong> Puedes apartar tu turno ahora mismo y serás atendido a primera hora al abrir ({hoursInfo.localOpenTime} en tu hora local).
-                </p>
-              )}
-              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-800 dark:text-amber-200 text-[10.5px] leading-relaxed">
-                ⏱️ <strong>Tolerancia de 5 minutos:</strong> Una vez reanudada la jornada o cuando llegue tu turno, tienes un tiempo de espera de <strong>5 minutos</strong> para responder y enviar tus documentos/fotos por WhatsApp. Si no se recibe respuesta en 5 minutos, el ticket se cancelará automáticamente para dar paso al siguiente en la fila.
+              <div>
+                <label htmlFor="ticket-tv-model" className={labelClass}>Modelo / pulgadas <span className="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></label>
+                <input id="ticket-tv-model" name="tvModel" type="text" value={tvModel} onChange={(e) => setTvModel(e.target.value)} placeholder="Ej. TCL 55 / Xiaomi P1" className={fieldClass} />
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Brand selection (Only Android TV & Samsung) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
-              Dispositivo a Optimizar:
-            </label>
-            <div className="grid grid-cols-1 gap-2">
-              {BRANDS.map((brand) => (
-                <button
-                  type="button"
-                  key={brand}
-                  onClick={() => setSelectedBrand(brand)}
-                  className={`p-3 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer ${
-                    selectedBrand === brand
-                      ? 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600'
-                  }`}
-                >
-                  {brand}
+          <fieldset>
+            <legend className={labelClass}>Método de pago</legend>
+            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
+              <button type="button" aria-pressed={selectedPaymentMethod === 'bre_b'} onClick={() => setSelectedPaymentMethod('bre_b')} className={choiceClass(selectedPaymentMethod === 'bre_b')}>
+                <span className="flex items-center justify-between gap-2 font-semibold">Llave Bre-B {selectedPaymentMethod === 'bre_b' && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />}</span>
+                <span className="mt-1 block text-slate-600 dark:text-slate-300">Pesos (COP)</span>
+              </button>
+              <button type="button" aria-pressed={selectedPaymentMethod === 'binance'} onClick={() => setSelectedPaymentMethod('binance')} className={choiceClass(selectedPaymentMethod === 'binance')}>
+                <span className="flex items-center justify-between gap-2 font-semibold">Binance (USDT) {selectedPaymentMethod === 'binance' && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />}</span>
+                <span className="mt-1 block text-slate-600 dark:text-slate-300">Red Tron (TRC20)</span>
+              </button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className={labelClass}>Elige tu plan</legend>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {SERVICE_PLANS.map((plan) => (
+                <button type="button" key={plan.id} aria-pressed={selectedPlan.id === plan.id} onClick={() => setSelectedPlan(plan)} className={`${choiceClass(selectedPlan.id === plan.id)} flex flex-col justify-between gap-3`}>
+                  <span className="flex w-full items-start justify-between gap-2 font-semibold">{plan.name}{selectedPlan.id === plan.id && <Check aria-hidden="true" className="mt-1 h-4 w-4 shrink-0" />}</span>
+                  <span className="text-base font-bold">{selectedPaymentMethod === 'binance' ? `${PLAN_USDT_PRICES[plan.id]} USDT` : formatCOP(plan.price)}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
-          {/* Model info & Client info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                Tu Nombre:
-              </label>
-              <input
-                type="text"
-                required
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="Ej. Carlos Mendoza"
-                className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-              />
+          <label htmlFor="ticket-magic-apps" className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-300 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-950">
+            <input id="ticket-magic-apps" type="checkbox" checked={hasMagicApps} onChange={(e) => setHasMagicApps(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-700 dark:accent-cyan-400" />
+            <span>
+              <span className="block font-semibold text-slate-950 dark:text-white">Añadir Apps Mágicas <span className="font-normal">(opcional)</span></span>
+              <span className="block font-semibold">{selectedPaymentMethod === 'binance' ? '+7 USDT' : '+20.000 COP'}</span>
+              <span className="mt-1 block text-slate-600 dark:text-slate-300">Instalación de apps de streaming libres de anuncios.</span>
+            </span>
+          </label>
+
+          <details className="border-y border-slate-200 py-3 dark:border-slate-700">
+            <summary className="cursor-pointer font-medium text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 dark:text-slate-100">Horario y atención: {hoursInfo.colombiaHours} (Colombia). Tienes 5 minutos para responder cuando llegue tu turno.</summary>
+            <div className="mt-3 space-y-3 text-slate-600 dark:text-slate-300">
+              {!hoursInfo.isSameAsColombia && <p>En tu país ({hoursInfo.userCity}): <strong>{hoursInfo.localHours}</strong>.</p>}
+              {!hoursInfo.isOpen && <p><strong>Reserva anticipada activa:</strong> Puedes apartar tu turno ahora mismo y serás atendido a primera hora al abrir ({hoursInfo.localOpenTime} en tu hora local).</p>}
+              <p><strong>Tolerancia de 5 minutos:</strong> Una vez reanudada la jornada o cuando llegue tu turno, tienes un tiempo de espera de <strong>5 minutos</strong> para responder y enviar tus documentos/fotos por WhatsApp. Si no se recibe respuesta en 5 minutos, el ticket se cancelará automáticamente para dar paso al siguiente en la fila.</p>
             </div>
+          </details>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                Modelo / Pulgadas:
-              </label>
-              <input
-                type="text"
-                value={tvModel}
-                onChange={(e) => setTvModel(e.target.value)}
-                placeholder="Ej. TCL 55 / Xiaomi P1"
-                className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-          </div>
-
-          {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
-              Método de Pago:
-            </label>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => setSelectedPaymentMethod('bre_b')}
-                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                  selectedPaymentMethod === 'bre_b'
-                    ? 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                }`}
-              >
-                <CreditCard className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold block text-slate-900 dark:text-white">🇨🇴 Llave Bre-B</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block">En Pesos (COP)</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPaymentMethod('binance')}
-                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                  selectedPaymentMethod === 'binance'
-                    ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 text-slate-900 dark:text-white shadow-sm dark:shadow-[0_0_12px_rgba(251,191,36,0.25)]'
-                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                }`}
-              >
-                <Coins className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold block text-slate-900 dark:text-white">🌐 Binance (USDT)</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Red Tron (TRC20)</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Plan selection */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
-              Selecciona tu Plan:
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {SERVICE_PLANS.map((plan) => {
-                const isBinance = selectedPaymentMethod === 'binance';
-                const priceFormatted = isBinance
-                  ? `${PLAN_USDT_PRICES[plan.id]} USDT`
-                  : formatCOP(plan.price);
-
-                return (
-                  <button
-                    type="button"
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan)}
-                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-                      selectedPlan.id === plan.id
-                        ? isBinance
-                          ? 'bg-amber-50 dark:bg-amber-400/20 border-amber-500 dark:border-amber-400 shadow-sm dark:shadow-[0_0_15px_rgba(251,191,36,0.25)]'
-                          : 'bg-cyan-50 dark:bg-cyan-500/20 border-cyan-500 dark:border-cyan-400 shadow-sm dark:shadow-[0_0_15px_rgba(6,182,212,0.25)]'
-                        : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                      {plan.name}
-                    </span>
-                    <span
-                      className={`text-sm font-black mt-2 block ${
-                        isBinance ? 'text-amber-700 dark:text-amber-300 font-mono' : 'text-cyan-700 dark:text-cyan-300'
-                      }`}
-                    >
-                      {priceFormatted}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Magic apps add-on checkbox */}
-          <div className="bg-fuchsia-50 dark:bg-fuchsia-950/20 border border-fuchsia-200 dark:border-fuchsia-500/30 rounded-2xl p-3.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400 shrink-0" />
-              <div className="text-xs">
-                <span className="font-bold text-slate-900 dark:text-white block">
-                  Add-on Apps Mágicas ({selectedPaymentMethod === 'binance' ? '+7 USDT' : '+20.000 COP'})
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-[11px]">
-                  Instalación de apps de streaming libres de anuncios.
-                </span>
-              </div>
-            </div>
-            <input
-              type="checkbox"
-              checked={hasMagicApps}
-              onChange={(e) => setHasMagicApps(e.target.checked)}
-              className="w-4 h-4 accent-fuchsia-500 cursor-pointer"
-            />
-          </div>
-
-          {/* SECCIÓN DISCRETA DE REFERIDO / ASESOR */}
-          <div className="space-y-2">
             {activeAffiliate ? (
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-cyan-50/70 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/50 text-xs">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                  <span className="text-slate-700 dark:text-slate-300">
-                    Recomendado por: <strong className="text-cyan-800 dark:text-cyan-300">{activeAffiliate.user_name || activeAffiliate.referral_code}</strong>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveReferral}
-                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer underline"
-                >
-                  Cambiar
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p>Recomendado por: <strong>{activeAffiliate.user_name || activeAffiliate.referral_code}</strong></p>
+                <button type="button" onClick={handleRemoveReferral} className="min-h-11 underline underline-offset-4">Cambiar</button>
               </div>
+            ) : !showManualReferralInput ? (
+              <button type="button" onClick={() => setShowManualReferralInput(true)} className="min-h-11 text-left underline underline-offset-4">¿Llegas por recomendación de un asesor o amigo?</button>
             ) : (
-              <div>
-                {!showManualReferralInput ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowManualReferralInput(true)}
-                    className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 cursor-pointer inline-flex items-center gap-1 transition-colors"
-                  >
-                    <span>¿Llegas por recomendación de un asesor o amigo?</span>
-                  </button>
-                ) : (
-                  <div className="space-y-1.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                        Código de Referido / Recomendador:
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowManualReferralInput(false)}
-                        className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                      >
-                        Cerrar
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={referralCodeInput}
-                        onChange={(e) => {
-                          setReferralCodeInput(e.target.value.toUpperCase());
-                          setReferralError(null);
-                        }}
-                        placeholder="Ej. ANA8X2"
-                        className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={validatingReferral || !referralCodeInput.trim()}
-                        onClick={handleApplyReferral}
-                        className="text-xs font-bold px-3 py-1.5 shrink-0"
-                      >
-                        {validatingReferral ? 'Validando...' : 'Asociar'}
-                      </Button>
-                    </div>
-                    {referralError && (
-                      <p className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span>{referralError}</span>
-                      </p>
-                    )}
-                  </div>
-                )}
+              <div className="space-y-2">
+                <label htmlFor="ticket-referral" className={labelClass}>Código de referido (opcional)</label>
+                <div className="flex items-center gap-2">
+                  <input id="ticket-referral" type="text" value={referralCodeInput} onChange={(e) => { setReferralCodeInput(e.target.value.toUpperCase()); setReferralError(null); }} placeholder="Ej. ANA8X2" className={fieldClass} aria-invalid={!!referralError} aria-describedby={referralError ? 'ticket-referral-error' : undefined} />
+                  <Button type="button" variant="outline" size="sm" disabled={validatingReferral || !referralCodeInput.trim()} onClick={handleApplyReferral} className="min-h-11 shrink-0">{validatingReferral ? 'Validando...' : 'Asociar'}</Button>
+                </div>
+                <button type="button" onClick={() => setShowManualReferralInput(false)} className="min-h-11 underline underline-offset-4">Cerrar</button>
               </div>
             )}
+            {referralError && <p id="ticket-referral-error" role="alert" className="text-rose-800 dark:text-rose-200">{referralError}</p>}
           </div>
 
-          {/* Discount Coupon Section */}
-          <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  ¿Tienes un cupón de descuento?
-                </span>
-              </div>
-              {appliedCoupon && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-300 dark:border-emerald-500/30">
-                  {appliedCoupon.percentage}% OFF
-                </span>
-              )}
-            </div>
-
-            {!appliedCoupon ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase());
-                    setCouponError(null);
-                  }}
-                  placeholder="Ej. SMART20"
-                  className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={validatingCoupon || !couponCode.trim()}
-                  onClick={handleApplyCoupon}
-                  className="text-xs font-bold px-3 py-2 shrink-0"
-                >
-                  {validatingCoupon ? 'Validando...' : 'Aplicar'}
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/25">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <div className="text-xs">
-                    <span className="font-mono font-bold text-emerald-900 dark:text-emerald-300">
-                      {appliedCoupon.code}
-                    </span>
-                    <span className="text-emerald-700 dark:text-emerald-400 ml-1.5 font-medium">
-                      ({appliedCoupon.percentage}% de descuento aplicado)
-                    </span>
+          <details className="border-t border-slate-200 pt-3 dark:border-slate-700">
+            <summary className="cursor-pointer font-medium text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 dark:text-slate-100">{appliedCoupon ? `Cupón aplicado: ${appliedCoupon.code} (${appliedCoupon.percentage}% de descuento)` : '¿Tienes un cupón de descuento? (opcional)'}</summary>
+            <div className="mt-3">
+              {!appliedCoupon ? (
+                <div>
+                  <label htmlFor="ticket-coupon" className={labelClass}>Código de descuento</label>
+                  <div className="flex items-center gap-2">
+                    <input id="ticket-coupon" type="text" value={couponCode} onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null); }} placeholder="Ej. SMART20" className={fieldClass} aria-invalid={!!couponError} aria-describedby={couponError ? 'ticket-coupon-error' : undefined} />
+                    <Button type="button" variant="outline" size="sm" disabled={validatingCoupon || !couponCode.trim()} onClick={handleApplyCoupon} className="min-h-11 shrink-0">{validatingCoupon ? 'Validando...' : 'Aplicar'}</Button>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveCoupon}
-                  className="text-[11px] font-semibold text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer underline transition-colors"
-                >
-                  Quitar
-                </button>
-              </div>
-            )}
-
-            {couponError && (
-              <p className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>{couponError}</span>
-              </p>
-            )}
-          </div>
-
-          {/* Price & Submit Button */}
-          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
-            <div>
-              <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
-                Total a pagar ({selectedPaymentMethod === 'binance' ? 'Binance USDT' : 'Bre-B COP'}):
-              </span>
-              <div className="flex items-baseline gap-2">
-                {appliedCoupon && (
-                  <span className="text-sm line-through text-slate-400 font-semibold font-mono">
-                    {selectedPaymentMethod === 'binance' ? `${baseUSDT} USDT` : formatCOP(baseCOP)}
-                  </span>
-                )}
-                <span
-                  className={`text-2xl font-black ${
-                    appliedCoupon
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : selectedPaymentMethod === 'binance'
-                      ? 'text-amber-600 dark:text-amber-400 font-mono'
-                      : 'text-cyan-600 dark:text-cyan-400'
-                  }`}
-                >
-                  {selectedPaymentMethod === 'binance'
-                    ? `${finalUSDT} USDT`
-                    : formatCOP(finalCOP)}
-                </span>
-              </div>
-              {appliedCoupon && (
-                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
-                  ¡Ahorras {selectedPaymentMethod === 'binance' ? `${savingsUSDT} USDT` : formatCOP(savingsCOP)}!
-                </span>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p><strong>{appliedCoupon.code}</strong>: {appliedCoupon.percentage}% de descuento aplicado.</p>
+                  <button type="button" onClick={handleRemoveCoupon} className="min-h-11 underline underline-offset-4">Quitar</button>
+                </div>
               )}
+              {couponError && <p id="ticket-coupon-error" role="alert" className="mt-2 text-rose-800 dark:text-rose-200">{couponError}</p>}
             </div>
+          </details>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={loading || !clientName.trim()}
-              className="px-6 py-3 font-bold text-sm"
-            >
+          <div className="space-y-4 border-t border-slate-300 pt-5 dark:border-slate-600">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <span className="font-medium">Total a pagar ({selectedPaymentMethod === 'binance' ? 'Binance USDT' : 'Bre-B COP'})</span>
+              <div className="flex flex-wrap items-baseline gap-2">
+                {appliedCoupon && <span className="text-slate-500 line-through dark:text-slate-400">{selectedPaymentMethod === 'binance' ? `${baseUSDT} USDT` : formatCOP(baseCOP)}</span>}
+                <span className="text-2xl font-bold text-slate-950 dark:text-white">{selectedPaymentMethod === 'binance' ? `${finalUSDT} USDT` : formatCOP(finalCOP)}</span>
+              </div>
+            </div>
+            {appliedCoupon && <p>Ahorras {selectedPaymentMethod === 'binance' ? `${savingsUSDT} USDT` : formatCOP(savingsCOP)} con tu cupón.</p>}
+            <button type="submit" disabled={loading || !clientName.trim()} className="min-h-12 w-full rounded-xl bg-cyan-700 px-4 py-3 text-base font-semibold text-white hover:bg-cyan-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-700 dark:hover:bg-cyan-800">
               {loading ? 'Asignando Turno...' : 'Confirmar y Asignar Turno'}
-            </Button>
+            </button>
           </div>
         </form>
       )}

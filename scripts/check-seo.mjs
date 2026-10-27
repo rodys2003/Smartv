@@ -124,7 +124,11 @@ test('plan labels have opaque dark backgrounds above card borders', async () => 
 
 test('privacy information and contact are public and distinguish encryption scope', async () => {
   const home = await html('/');
-  assert.match(home, /href="\/privacidad"/);
+  const footer = home.match(/<footer\b[^]*?<\/footer>/)?.[0];
+  assert.ok(footer, 'Public footer is rendered');
+  assert.equal((footer.match(/href="\/privacidad"/g) || []).length, 1);
+  assert.match(footer, /href="\/privacidad"[^>]*>Privacidad y protección de tus datos<\/a>/);
+  assert.doesNotMatch(footer, /Las conexiones HTTPS|Conoce cómo usamos y protegemos tus datos|footer-privacy-title/);
   const privacy = await html('/privacidad');
   assert.match(privacy, /mailto:aethelsoft@gmail\.com/);
   assert.match(privacy, /HTTPS/);
