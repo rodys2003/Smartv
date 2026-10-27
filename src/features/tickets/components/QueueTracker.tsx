@@ -63,7 +63,7 @@ export function QueueTracker({
               Cola de Turnos Digitales
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-xs md:text-sm mt-1">
-              Atendemos en estricto orden de turno. Nomenclatura oficial # A073 en adelante.
+              Atendemos en estricto orden de turno.
             </p>
           </div>
 
