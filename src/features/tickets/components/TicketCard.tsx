@@ -114,6 +114,14 @@ export function TicketCard({
           <span className="text-slate-500 dark:text-slate-400">Cliente:</span>
           <span className="font-semibold text-slate-900 dark:text-white">{ticket.user_name || 'Cliente'}</span>
         </div>
+        {ticket.client_whatsapp && (
+          <div className="flex items-center justify-between">
+            <span className="text-slate-500 dark:text-slate-400">WhatsApp:</span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
+              {ticket.client_whatsapp}
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-slate-500 dark:text-slate-400">Marca / TV:</span>
           <span className="font-semibold text-slate-900 dark:text-white">

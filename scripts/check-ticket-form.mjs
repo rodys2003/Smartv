@@ -80,7 +80,7 @@ test('ticket form uses neutral information panels with one selection accent', ()
 test('ticket fields have associated labels, readable mobile sizing and accessible add-on', () => {
   const app = harness();
   app.render();
-  for (const placeholder of ['Ej. Carlos Mendoza', 'Ej. TCL 55 / Xiaomi P1']) {
+  for (const placeholder of ['Ej. Carlos Mendoza', 'Ej. +57 300 123 4567', 'Ej. TCL 55 / Xiaomi P1']) {
     const input = app.all(node => node.type === 'input' && node.props.placeholder === placeholder)[0];
     assert.ok(input.props.id);
     assert.ok(app.all(node => node.type === 'label' && node.props.htmlFor === input.props.id).length);
@@ -127,11 +127,14 @@ test('ticket name can be cleared and replaced without Google refresh overwriting
   app.render();
   assert.equal(nameInput().props.value, 'Otra cuenta');
   app.setUser({ id: 'test-user', email: 'prueba@example.test', user_metadata: { full_name: 'Prueba 1' } });
+  const phoneInput = () => app.all(node => node.props.id === 'ticket-client-whatsapp')[0];
+  phoneInput().props.onChange({ target: { value: '+57 300 123 4567' } });
   app.render();
   await app.all(node => node.type === 'form')[0].props.onSubmit({ preventDefault() {} });
   assert.equal(app.requests.length, 1);
   assert.equal(app.requests[0].user_name, 'Nombre elegido');
   assert.equal(app.requests[0].user_id, 'test-user');
+  assert.equal(app.requests[0].client_whatsapp, '+57 300 123 4567');
 });
 
 test('device incompatibility is a separate emphasized notice', () => {

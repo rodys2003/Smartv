@@ -199,6 +199,16 @@ export function TicketModal({
       return;
     }
 
+    if (!clientName.trim()) {
+      setErrorMsg('Por favor indica tu nombre.');
+      return;
+    }
+
+    if (!clientWhatsApp.trim()) {
+      setErrorMsg('Por favor indica tu número de WhatsApp para poder coordinar la atención de tu turno.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -323,13 +333,16 @@ export function TicketModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="ticket-client-name" className={labelClass}>Tu nombre <span className="font-normal text-slate-600 dark:text-slate-300">(obligatorio)</span></label>
-                <input id="ticket-client-name" name="clientName" autoComplete="name" type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Ej. Carlos Mendoza" className={fieldClass} aria-describedby="ticket-name-help" />
-                <p id="ticket-name-help" className="mt-1 text-sm text-slate-600 dark:text-slate-300">Puedes cambiar el nombre sugerido por Google por el que quieras usar en tu ticket.</p>
+                <input id="ticket-client-name" name="clientName" autoComplete="name" type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Ej. Carlos Mendoza" className={fieldClass} />
               </div>
               <div>
-                <label htmlFor="ticket-tv-model" className={labelClass}>Modelo / pulgadas <span className="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></label>
-                <input id="ticket-tv-model" name="tvModel" type="text" value={tvModel} onChange={(e) => setTvModel(e.target.value)} placeholder="Ej. TCL 55 / Xiaomi P1" className={fieldClass} />
+                <label htmlFor="ticket-client-whatsapp" className={labelClass}>Número de WhatsApp <span className="font-normal text-slate-600 dark:text-slate-300">(obligatorio)</span></label>
+                <input id="ticket-client-whatsapp" name="clientWhatsApp" autoComplete="tel" type="tel" required value={clientWhatsApp} onChange={(e) => setClientWhatsApp(e.target.value)} placeholder="Ej. +57 300 123 4567" className={fieldClass} />
               </div>
+            </div>
+            <div>
+              <label htmlFor="ticket-tv-model" className={labelClass}>Modelo / pulgadas <span className="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></label>
+              <input id="ticket-tv-model" name="tvModel" type="text" value={tvModel} onChange={(e) => setTvModel(e.target.value)} placeholder="Ej. TCL 55 / Xiaomi P1" className={fieldClass} />
             </div>
           </section>
 
@@ -428,7 +441,7 @@ export function TicketModal({
               </div>
             </div>
             {appliedCoupon && <p>Ahorras {selectedPaymentMethod === 'binance' ? `${savingsUSDT} USDT` : formatCOP(savingsCOP)} con tu cupón.</p>}
-            <button type="submit" disabled={loading || !clientName.trim()} className="min-h-12 w-full rounded-xl bg-cyan-700 px-4 py-3 text-base font-semibold text-white hover:bg-cyan-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-700 dark:hover:bg-cyan-800">
+            <button type="submit" disabled={loading || !clientName.trim() || !clientWhatsApp.trim()} className="min-h-12 w-full rounded-xl bg-cyan-700 px-4 py-3 text-base font-semibold text-white hover:bg-cyan-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-cyan-700 dark:hover:bg-cyan-800">
               {loading ? 'Asignando Turno...' : 'Confirmar y Asignar Turno'}
             </button>
           </div>
