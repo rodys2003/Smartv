@@ -1,16 +1,49 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Shield } from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { AuthModal } from '@/features/auth/components/AuthModal';
 
-export function Footer() {
+interface FooterProps {
+  onOpenAuthModal?: () => void;
+}
+
+export function Footer({ onOpenAuthModal }: FooterProps = {}) {
   const currentYear = new Date().getFullYear();
+  const { user, isAuthenticated } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
   const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '');
-  const contactUrl = /^\d{8,15}$/.test(phone) && phone !== '573105555555'
-    ? `https://wa.me/${phone}?text=${encodeURIComponent('Hola, quiero consultar la compatibilidad de mi Android TV o Google TV.')}`
-    : null;
+  const isPhoneValid = /^\d{8,15}$/.test(phone) && phone !== '573105555555';
+
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pending_whatsapp_consult', 'true');
+      }
+      if (onOpenAuthModal) {
+        onOpenAuthModal();
+      } else {
+        setIsAuthModalOpen(true);
+      }
+      return;
+    }
+
+    if (!isPhoneValid) return;
+
+    const clientName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+    const clientEmail = user?.email || '';
+    const userIdentifier = clientName ? `${clientName} (${clientEmail})` : clientEmail;
+
+    const message = `¡Hola Smart TV Like a Pro! Soy cliente registrado (${userIdentifier}). Me gustaría consultar sobre el servicio / compatibilidad de mi Smart TV.`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 py-12 relative z-10 transition-colors duration-200">
@@ -45,7 +78,15 @@ export function Footer() {
             </Link>
             <Link href="/compatibilidad" className="hover:text-cyan-600 dark:hover:text-cyan-400">Compatibilidad y proceso</Link>
             <Link href="/guias/smart-tv-lento" className="hover:text-cyan-600 dark:hover:text-cyan-400">Guía de rendimiento</Link>
-            {contactUrl && <a href={contactUrl} target="_blank" rel="noopener noreferrer" className="hover:text-cyan-600 dark:hover:text-cyan-400">Consultar por WhatsApp</a>}
+            {isPhoneValid && (
+              <button
+                type="button"
+                onClick={handleWhatsAppClick}
+                className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors cursor-pointer text-xs font-medium"
+              >
+                Consultar por WhatsApp
+              </button>
+            )}
           </div>
         </div>
 
@@ -60,6 +101,16 @@ export function Footer() {
           </p>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Identifícate para Consultar"
+        description="Para evitar el spam y garantizar una atención personalizada, inicia sesión con Google antes de abrir el chat de WhatsApp."
+        infoTitle="Control Antispam & Soporte Directo"
+        infoDescription="Tu consulta de WhatsApp quedará vinculada a tu cuenta verificada para evitar mensajes no deseados."
+        cancelLabel="Cancelar"
+      />
     </footer>
   );
 }

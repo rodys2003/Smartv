@@ -15,6 +15,7 @@ import { EditPlanModal } from '@/features/tickets/components/EditPlanModal';
 import { UserMenu } from '@/features/auth/components/UserMenu';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthModal } from '@/features/auth/components/AuthModal';
+import { Modal } from '@/components/ui/Modal';
 import { Ticket, ServicePlan } from '@/types';
 import { parseTicketPaymentInfo } from '@/lib/utils';
 import { getR2Url } from '@/lib/r2';
@@ -44,8 +45,18 @@ export default function DashboardPage() {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [showWhatsAppConsultModal, setShowWhatsAppConsultModal] = useState(false);
   const [preselectedPlan, setPreselectedPlan] = useState<ServicePlan | null>(null);
   const [preselectedMagicApps, setPreselectedMagicApps] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isAuthenticated) {
+      if (sessionStorage.getItem('pending_whatsapp_consult') === 'true') {
+        sessionStorage.removeItem('pending_whatsapp_consult');
+        setShowWhatsAppConsultModal(true);
+      }
+    }
+  }, [isAuthenticated]);
 
   // Load user active ticket
   const loadUserTicket = useCallback(async () => {
@@ -302,6 +313,54 @@ export default function DashboardPage() {
           }}
         />
       )}
+
+      {/* Pending WhatsApp Consultation Modal (after anti-spam login) */}
+      <Modal
+        isOpen={showWhatsAppConsultModal}
+        onClose={() => setShowWhatsAppConsultModal(false)}
+        title="¡Cuenta Verificada!"
+        description="Tu cuenta de Google fue validada con éxito. Ya puedes abrir tu chat directo de WhatsApp con nuestro equipo técnico."
+        maxWidth="md"
+      >
+        <div className="space-y-4 pt-2">
+          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <div>
+              <p className="font-bold text-sm">Sesión activa como {user?.email}</p>
+              <p className="text-emerald-700/80 dark:text-emerald-300/80 mt-0.5">
+                Tu mensaje llevará tus datos registrados para que el asesor técnico te reconozca inmediatamente y evitemos el spam.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowWhatsAppConsultModal(false)}
+              className="w-full text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+            >
+              Cerrar
+            </Button>
+            <Button
+              type="button"
+              variant="whatsapp"
+              onClick={() => {
+                setShowWhatsAppConsultModal(false);
+                const phone = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').replace(/\D/g, '');
+                const clientName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+                const clientEmail = user?.email || '';
+                const userIdentifier = clientName ? `${clientName} (${clientEmail})` : clientEmail;
+                const message = `¡Hola Smart TV Like a Pro! Soy cliente registrado (${userIdentifier}). Me gustaría consultar sobre el servicio / compatibilidad de mi Smart TV.`;
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-full text-xs font-bold"
+            >
+              <span>Abrir WhatsApp Ahora</span>
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>

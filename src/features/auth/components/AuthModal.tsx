@@ -10,9 +10,22 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  title?: string;
+  description?: string;
+  infoTitle?: string;
+  infoDescription?: string;
+  cancelLabel?: string;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({
+  isOpen,
+  onClose,
+  title = "Identifícate para tu Turno",
+  description = "Inicia sesión con Google para registrar tu ticket y darle seguimiento a la optimización de tu Smart TV.",
+  infoTitle = "Turno Oficial & Soporte 1 a 1",
+  infoDescription = "Tu ticket quedará asociado a tu cuenta para verificar el estado de atención en tiempo real.",
+  cancelLabel = "Continuar llenando ticket primero",
+}: AuthModalProps) {
   const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -38,8 +51,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Identifícate para tu Turno"
-      description="Inicia sesión con Google para registrar tu ticket y darle seguimiento a la optimización de tu Smart TV."
+      title={title}
+      description={description}
       maxWidth="md"
     >
       <div className="space-y-6 pt-2">
@@ -48,9 +61,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div className="text-xs text-slate-600 dark:text-slate-300">
-            <p className="font-semibold text-slate-900 dark:text-white text-sm">Turno Oficial & Soporte 1 a 1</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-sm">{infoTitle}</p>
             <p className="text-slate-500 dark:text-slate-400 mt-0.5">
-              Tu ticket quedará asociado a tu cuenta para verificar el estado de atención en tiempo real.
+              {infoDescription}
             </p>
           </div>
         </div>
@@ -95,9 +108,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="w-full text-xs text-slate-400 hover:text-white"
+            className="w-full text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
           >
-            Continuar llenando ticket primero
+            {cancelLabel}
           </Button>
         </div>
 
