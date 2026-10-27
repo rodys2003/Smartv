@@ -400,8 +400,176 @@ export async function markCommissionServiceCompleted(ticketNumber: number): Prom
 }
 
 /**
- * Obtiene el perfil de un afiliado buscando por su User ID o por su Email de autenticación.
+ * Obtiene todas las liquidaciones registradas (Uso exclusivo de Administración).
  */
+export async function getAllPayouts(): Promise<AffiliatePayout[]> {
+  const { data, error } = await supabase
+    .from('affiliate_payouts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Could not list affiliate payouts:', error.message);
+    return [];
+  }
+  return (data || []) as AffiliatePayout[];
+}
+
+/**
+ * Completa y registra una liquidación enviada por Binance, marcando las comisiones como 'paid'.
+ */
+export async function completePayoutAdmin(params: {
+  payoutId: string;
+  binanceTxReference: string;
+  copToUsdtRate?: number;
+  notes?: string;
+}): Promise<boolean> {
+  const now = new Date().toISOString();
+  const updateData: Record<string, unknown> = {
+    status: 'completed',
+    binance_tx_reference: params.binanceTxReference.trim(),
+    paid_at: now,
+  };
+  if (params.copToUsdtRate && params.copToUsdtRate > 0) {
+    updateData.cop_to_usdt_rate = params.copToUsdtRate;
+  }
+  if (params.notes) {
+    updateData.notes = params.notes;
+  }
+
+  const { error: payoutErr } = await supabase
+    .from('affiliate_payouts')
+    .update(updateData)
+    .eq('id', params.payoutId);
+
+  if (payoutErr) {
+    console.error('Error completing payout:', payoutErr);
+    return false;
+  }
+
+  // Transicionar comisiones vinculadas a estado 'paid'
+  const { error: commErr } = await supabase
+    .from('affiliate_commissions')
+    .update({
+      status: 'paid',
+      updated_at: now,
+    })
+    .eq('payout_id', params.payoutId);
+
+  if (commErr) {
+    console.error('Error marking commissions as paid:', commErr);
+  }
+  return true;
+}
+
+/**
+ * Rechaza una solicitud de liquidación y libera las comisiones para que vuelvan a estar disponibles.
+ */
+export async function rejectPayoutAdmin(payoutId: string, reason?: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  const { error: payoutErr } = await supabase
+    .from('affiliate_payouts')
+    .update({
+      status: 'rejected',
+      notes: reason || 'Rechazada por administrador',
+    })
+    .eq('id', payoutId);
+
+  if (payoutErr) return false;
+
+  await supabase
+    .from('affiliate_commissions')
+    .update({
+      payout_id: null,
+      status: 'available',
+      updated_at: now,
+    })
+    .eq('payout_id', payoutId);
+
+  return true;
+}
+
+/**
+ * Prepara y registra una liquidación administrativa en lote directamente desde el panel de admin.
+ */
+export async function prepareAdminBatchPayout(params: {
+  affiliateId: string;
+  binanceUid: string;
+  copToUsdtRate: number;
+  binanceTxReference: string;
+  notes?: string;
+}): Promise<AffiliatePayout> {
+  // 1. Obtener todas las comisiones disponibles sin liquidación previa
+  const { data: availableComms, error } = await supabase
+    .from('affiliate_commissions')
+    .select('*')
+    .eq('affiliate_id', params.affiliateId)
+    .eq('status', 'available')
+    .is('payout_id', null);
+
+  if (error || !availableComms || availableComms.length === 0) {
+    throw new Error('El afiliado no tiene comisiones disponibles para liquidar.');
+  }
+
+  // 2. Sumas por divisa
+  const usdtSum = availableComms
+    .filter((c) => c.currency === 'USDT')
+    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
+
+  const copSum = availableComms
+    .filter((c) => c.currency === 'COP')
+    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
+
+  const copConvertedToUsdt = copSum > 0 && params.copToUsdtRate > 0
+    ? Number((copSum / params.copToUsdtRate).toFixed(2))
+    : 0;
+
+  const grossUsdt = Number((usdtSum + copConvertedToUsdt).toFixed(2));
+  if (grossUsdt <= FIXED_WITHDRAWAL_FEE_USDT) {
+    throw new Error(`El monto bruto (${grossUsdt} USDT) no supera la tarifa fija de 2 USDT.`);
+  }
+
+  const netUsdt = Number((grossUsdt - FIXED_WITHDRAWAL_FEE_USDT).toFixed(2));
+  const now = new Date().toISOString();
+
+  // 3. Crear registro de liquidación con referencia de Binance
+  const payoutPayload = {
+    affiliate_id: params.affiliateId,
+    binance_uid: params.binanceUid.trim(),
+    gross_amount_usdt: grossUsdt,
+    withdrawal_fee_usdt: FIXED_WITHDRAWAL_FEE_USDT,
+    net_amount_usdt: netUsdt,
+    cop_total_original: copSum,
+    cop_to_usdt_rate: params.copToUsdtRate,
+    status: 'completed',
+    binance_tx_reference: params.binanceTxReference.trim(),
+    notes: params.notes || 'Liquidación administrativa procesada',
+    created_at: now,
+    paid_at: now,
+  };
+
+  const { data: payout, error: pErr } = await supabase
+    .from('affiliate_payouts')
+    .insert([payoutPayload])
+    .select()
+    .single();
+
+  if (pErr) throw pErr;
+
+  // 4. Bloquear y marcar comisiones como pagadas (Criterio: nunca se duplica en otra liquidación)
+  const commIds = availableComms.map((c) => c.id);
+  await supabase
+    .from('affiliate_commissions')
+    .update({
+      payout_id: payout.id,
+      status: 'paid',
+      updated_at: now,
+    })
+    .in('id', commIds);
+
+  return payout as AffiliatePayout;
+}
+
 export async function getAffiliateProfile(userId: string, email?: string): Promise<Affiliate | null> {
   const byId = await getAffiliateByUserId(userId);
   if (byId) return byId;
