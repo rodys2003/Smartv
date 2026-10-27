@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { isUserAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
-import { LogOut, User as UserIcon, Shield } from 'lucide-react';
+import { LogOut, User as UserIcon, Shield, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 interface UserMenuProps {
@@ -57,6 +57,14 @@ export function UserMenu({ onOpenAuth }: UserMenuProps) {
         <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 max-w-[100px] truncate">
           {name}
         </span>
+        <Link
+          href="/afiliados"
+          className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors flex items-center gap-1"
+          title="Portal de Afiliados"
+        >
+          <Sparkles className="w-3 h-3 text-cyan-600 dark:text-cyan-400" />
+          <span>AFILIADOS</span>
+        </Link>
         {isAdmin && (
           <Link
             href="/admin"

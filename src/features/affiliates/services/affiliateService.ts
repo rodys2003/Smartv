@@ -399,3 +399,77 @@ export async function markCommissionServiceCompleted(ticketNumber: number): Prom
     .eq('ticket_number', ticketNumber);
 }
 
+/**
+ * Obtiene el perfil de un afiliado buscando por su User ID o por su Email de autenticación.
+ */
+export async function getAffiliateProfile(userId: string, email?: string): Promise<Affiliate | null> {
+  const byId = await getAffiliateByUserId(userId);
+  if (byId) return byId;
+
+  if (email) {
+    const { data, error } = await supabase
+      .from('affiliates')
+      .select('*')
+      .ilike('user_email', email.trim())
+      .maybeSingle();
+
+    if (!error && data) return data as Affiliate;
+  }
+
+  return null;
+}
+
+/**
+ * Actualiza el Binance UID del afiliado para recibir pagos.
+ */
+export async function updateAffiliateBinanceUid(affiliateId: string, binanceUid: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('affiliates')
+    .update({
+      binance_uid: binanceUid.trim(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', affiliateId);
+
+  if (error) {
+    console.error('Failed to update Binance UID:', error);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Obtiene las comisiones generadas por un afiliado específico (Aislamiento de datos).
+ */
+export async function getMyCommissions(affiliateId: string): Promise<AffiliateCommission[]> {
+  const { data, error } = await supabase
+    .from('affiliate_commissions')
+    .select('*')
+    .eq('affiliate_id', affiliateId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Failed to load my commissions:', error.message);
+    return [];
+  }
+  return (data || []) as AffiliateCommission[];
+}
+
+/**
+ * Obtiene el historial de liquidaciones de un afiliado específico.
+ */
+export async function getMyPayouts(affiliateId: string): Promise<AffiliatePayout[]> {
+  const { data, error } = await supabase
+    .from('affiliate_payouts')
+    .select('*')
+    .eq('affiliate_id', affiliateId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Failed to load my payouts:', error.message);
+    return [];
+  }
+  return (data || []) as AffiliatePayout[];
+}
+
+

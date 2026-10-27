@@ -78,6 +78,7 @@ export function Footer({ onOpenAuthModal }: FooterProps = {}) {
             </Link>
             <Link href="/compatibilidad" className="hover:text-cyan-600 dark:hover:text-cyan-400">Compatibilidad y proceso</Link>
             <Link href="/guias/smart-tv-lento" className="hover:text-cyan-600 dark:hover:text-cyan-400">Guía de rendimiento</Link>
+            <Link href="/afiliados" className="hover:text-cyan-600 dark:hover:text-cyan-400">Afiliados</Link>
             {isPhoneValid && (
               <button
                 type="button"
