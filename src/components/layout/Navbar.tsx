@@ -69,27 +69,29 @@ export function Navbar({ isAuthenticated, onOpenAuthModal }: NavbarProps) {
         {/* Actions & User */}
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
-          <UserMenu onOpenAuth={onOpenAuthModal} />
 
           {isAuthenticated ? (
-            <Link href="/dashboard" className="hidden sm:inline-flex">
-              <Button
-                variant="primary"
-                size="sm"
-                className="text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-              >
-                <span>Mi Panel de Turnos</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </Link>
+            <>
+              <UserMenu />
+              <Link href="/dashboard" className="hidden sm:inline-flex">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                >
+                  <span>Mi Panel de Turnos</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </>
           ) : (
             <Button
               variant="primary"
               size="sm"
               onClick={onOpenAuthModal}
-              className="text-xs font-bold hidden sm:inline-flex"
+              className="text-xs font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] whitespace-nowrap"
             >
-              Ingresar con Google
+              <span>Ingresar con Google</span>
             </Button>
           )}
         </div>
