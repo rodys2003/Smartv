@@ -50,10 +50,15 @@ export function Footer({ onOpenAuthModal }: FooterProps = {}) {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-200 dark:border-slate-800/80">
           <div className="flex items-center">
             <div>
-              <span className="text-sm font-black text-slate-900 dark:text-white block">
-                Smart TV Like a Pro
-              </span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-black text-slate-900 dark:text-white">
+                  Smart TV Like a
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-slate-950 tracking-wider">
+                  PRO
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
                 Optimización y personalización de televisores a nivel global.
               </span>
             </div>
