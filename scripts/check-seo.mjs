@@ -98,3 +98,26 @@ test('Google Search Console verification is publicly served unchanged', async ()
   assert.equal(response.status, 200);
   assert.equal(await response.text(), 'google-site-verification: google93ae7228805f935a.html');
 });
+
+test('international notice uses an opaque surface and readable text', async () => {
+  const body = await html('/');
+  const notice = body.match(/<div class="max-w-2xl mx-auto mb-8[^]*?<\/p>/)?.[0];
+  assert.ok(notice, 'International payment notice is rendered');
+  assert.match(notice, /bg-amber-50 dark:bg-slate-900/);
+  assert.doesNotMatch(notice, /bg-gradient|from-amber|via-slate|to-amber/);
+  assert.match(notice, /text-sm text-slate-800 dark:text-slate-100 leading-7/);
+  assert.match(notice, /Binance en USDT \(Red Tron TRC20\)/);
+  assert.match(notice, /Llave Bre-B \(COP\)/);
+});
+
+test('plan labels have opaque dark backgrounds above card borders', async () => {
+  const body = await html('/');
+  for (const [label, color] of [['MÁS POPULAR', 'cyan'], ['NIVEL PRO', 'fuchsia']]) {
+    const tag = body.match(new RegExp(`<span class="([^"]*)">${label}</span>`));
+    assert.ok(tag, label);
+    assert.ok(tag[1].includes(`dark:bg-${color}-950`), label);
+    assert.ok(tag[1].includes(`dark:text-${color}-100`), label);
+    assert.ok(tag[1].includes('whitespace-nowrap'), label);
+  }
+  assert.match(body, /z-10 -translate-x-1\/2 -translate-y-1\/2/);
+});

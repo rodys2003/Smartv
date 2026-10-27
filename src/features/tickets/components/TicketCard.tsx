@@ -7,7 +7,7 @@ import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours'
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { generateWhatsAppLink } from '@/lib/whatsapp/generateLink';
-import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil, Globe, Lock } from 'lucide-react';
+import { Tv, MessageCircle, Clock, Sparkles, CreditCard, Coins, Edit3, Pencil, Globe, Lock, Tag } from 'lucide-react';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -24,6 +24,21 @@ export function TicketCard({
 }: TicketCardProps) {
   const paymentInfo = parseTicketPaymentInfo(ticket);
   const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
+
+  let discountInfo: { code: string; percentage: number } | null = null;
+  if (ticket.notes?.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(ticket.notes);
+      if (parsed.discount_code && parsed.discount_percentage) {
+        discountInfo = {
+          code: parsed.discount_code,
+          percentage: parsed.discount_percentage,
+        };
+      }
+    } catch {
+      // ignore JSON parse
+    }
+  }
 
   useEffect(() => {
     setHoursInfo(getOperatingHoursInfo());
@@ -142,6 +157,17 @@ export function TicketCard({
             )}
           </span>
         </div>
+        {discountInfo && (
+          <div className="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/25">
+            <span className="text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Cupón de Descuento:</span>
+            </span>
+            <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
+              {discountInfo.code} (-{discountInfo.percentage}%)
+            </span>
+          </div>
+        )}
         <div className="flex items-center justify-between pt-1">
           <span className="text-slate-500 dark:text-slate-400 font-medium">Total a pagar:</span>
           <span className="text-base font-black text-cyan-700 dark:text-cyan-400">

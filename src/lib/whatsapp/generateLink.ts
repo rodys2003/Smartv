@@ -20,6 +20,18 @@ export function generateWhatsAppLink(ticket: Partial<Ticket>): string {
   const brand = ticket.tv_brand || 'Smart TV';
   const userName = ticket.user_name ? ` (Cliente: ${ticket.user_name})` : '';
 
+  let discountLine = '';
+  if (ticket.notes?.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(ticket.notes);
+      if (parsed.discount_code && parsed.discount_percentage) {
+        discountLine = `\n- *Cupón aplicado:* ${parsed.discount_code} (-${parsed.discount_percentage}%)`;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   const message = `¡Hola *Smart TV Like a Pro*!${userName}
 
 Acabo de separar mi turno en la plataforma:
@@ -28,7 +40,7 @@ Acabo de separar mi turno en la plataforma:
 - *Dispositivo:* ${brand}${ticket.tv_model ? ` (${ticket.tv_model})` : ''}
 - *Servicio:* ${planName}
 - *Apps Mágicas:* ${magicAppsStr}
-- *Medio de pago:* ${methodLabel}
+- *Medio de pago:* ${methodLabel}${discountLine}
 - *Total a pagar:* ${priceStr}
 
 Ya tengo listas las fotos solicitadas en la guía paso a paso para que me atiendas. Entiendo que una vez llegue mi turno dispongo de 5 minutos para responder y enviar los soportes. ¿Me confirmas mi turno, por favor?`;

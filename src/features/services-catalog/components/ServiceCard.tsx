@@ -6,7 +6,6 @@ import { ServicePlan } from '@/types';
 import { formatCOP } from '@/lib/utils';
 import { PLAN_USDT_PRICES } from '../constants/plans';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Check, Sparkles, Zap, Tv } from 'lucide-react';
 
 interface ServiceCardProps {
@@ -37,10 +36,14 @@ export function ServiceCard({ plan, isSelected, currency = 'COP', onSelect }: Se
     >
       {/* Popular or PRO Badge */}
       {plan.badge && (
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-          <Badge variant={isCustomPro ? 'fuchsia' : 'cyan'}>
+        <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+          <span className={`inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-bold tracking-wide shadow-sm ${
+            isCustomPro
+              ? 'bg-fuchsia-100 text-fuchsia-900 border-fuchsia-300 dark:bg-fuchsia-950 dark:text-fuchsia-100 dark:border-fuchsia-400'
+              : 'bg-cyan-100 text-cyan-900 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-100 dark:border-cyan-400'
+          }`}>
             {plan.badge}
-          </Badge>
+          </span>
         </div>
       )}
 
@@ -56,7 +59,7 @@ export function ServiceCard({ plan, isSelected, currency = 'COP', onSelect }: Se
               <Tv className="w-5 h-5 text-slate-600 dark:text-slate-300" />
             )}
           </div>
-          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+          <span className="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-200 font-semibold text-right leading-relaxed">
             {plan.tagline}
           </span>
         </div>

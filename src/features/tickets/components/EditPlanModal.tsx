@@ -50,14 +50,31 @@ export function EditPlanModal({
     }
   }, [ticket, isOpen]);
 
-  const calculateTotalCOP = () => {
-    return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
-  };
+  // Extract discount if ticket already had one applied
+  let appliedDiscount: { code: string; percentage: number } | null = null;
+  if (ticket.notes?.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(ticket.notes);
+      if (parsed.discount_code && parsed.discount_percentage) {
+        appliedDiscount = {
+          code: parsed.discount_code,
+          percentage: parsed.discount_percentage,
+        };
+      }
+    } catch {
+      // ignore
+    }
+  }
 
-  const calculateTotalUSDT = () => {
-    const base = PLAN_USDT_PRICES[selectedPlan.id] ?? 17;
-    return base + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
-  };
+  const baseCOP = selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
+  const baseUSDT = (PLAN_USDT_PRICES[selectedPlan.id] ?? 17) + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
+
+  const discountMultiplier = appliedDiscount ? (100 - appliedDiscount.percentage) / 100 : 1;
+  const finalCOP = appliedDiscount ? Math.round(baseCOP * discountMultiplier) : baseCOP;
+  const finalUSDT = appliedDiscount ? Math.max(1, Math.round(baseUSDT * discountMultiplier)) : baseUSDT;
+
+  const calculateTotalCOP = () => finalCOP;
+  const calculateTotalUSDT = () => finalUSDT;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +83,17 @@ export function EditPlanModal({
 
     try {
       const isBinance = selectedPaymentMethod === 'binance';
-      const totalPrice = isBinance ? calculateTotalUSDT() : calculateTotalCOP();
+      const totalPrice = isBinance ? finalUSDT : finalCOP;
       const notesJson = JSON.stringify({
         payment_method: selectedPaymentMethod,
-        usdt_price: calculateTotalUSDT(),
-        cop_price: calculateTotalCOP(),
+        usdt_price: finalUSDT,
+        cop_price: finalCOP,
+        ...(appliedDiscount && {
+          discount_code: appliedDiscount.code,
+          discount_percentage: appliedDiscount.percentage,
+          original_cop_price: baseCOP,
+          original_usdt_price: baseUSDT,
+        }),
       });
 
       const updated = await updateTicketPlan(ticket.id, {
@@ -231,20 +254,36 @@ export function EditPlanModal({
         {/* Price & Submit Button */}
         <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
-              Nuevo Total a pagar:
-            </span>
-            <span
-              className={`text-2xl font-black ${
-                selectedPaymentMethod === 'binance'
-                  ? 'text-amber-600 dark:text-amber-400 font-mono'
-                  : 'text-cyan-600 dark:text-cyan-400'
-              }`}
-            >
-              {selectedPaymentMethod === 'binance'
-                ? `${calculateTotalUSDT()} USDT`
-                : formatCOP(calculateTotalCOP())}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
+                Nuevo Total a pagar:
+              </span>
+              {appliedDiscount && (
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                  ({appliedDiscount.code} -{appliedDiscount.percentage}%)
+                </span>
+              )}
+            </div>
+            <div className="flex items-baseline gap-2">
+              {appliedDiscount && (
+                <span className="text-sm line-through text-slate-400 font-semibold font-mono">
+                  {selectedPaymentMethod === 'binance' ? `${baseUSDT} USDT` : formatCOP(baseCOP)}
+                </span>
+              )}
+              <span
+                className={`text-2xl font-black ${
+                  appliedDiscount
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : selectedPaymentMethod === 'binance'
+                    ? 'text-amber-600 dark:text-amber-400 font-mono'
+                    : 'text-cyan-600 dark:text-cyan-400'
+                }`}
+              >
+                {selectedPaymentMethod === 'binance'
+                  ? `${calculateTotalUSDT()} USDT`
+                  : formatCOP(calculateTotalCOP())}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

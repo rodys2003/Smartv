@@ -74,12 +74,12 @@ export function PricingSection({
         </div>
 
         {/* Global Customers Notice Banner */}
-        <div className="max-w-2xl mx-auto mb-8 p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 dark:bg-gradient-to-r dark:from-amber-500/10 dark:via-slate-900 dark:to-amber-500/10 border border-amber-300 dark:border-amber-400/30 text-center shadow-sm dark:shadow-[0_0_25px_rgba(251,191,36,0.12)]">
-          <div className="inline-flex items-center gap-2 text-xs font-extrabold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-1">
-            <Globe className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+        <div className="max-w-2xl mx-auto mb-8 p-5 sm:p-6 rounded-2xl bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-400/40 text-center shadow-sm">
+          <div className="inline-flex items-center gap-2 text-sm font-bold text-amber-900 dark:text-amber-300 mb-2">
+            <Globe className="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-300" />
             <span>¿No eres de Colombia? ¡No te preocupes!</span>
           </div>
-          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+          <p className="text-sm text-slate-800 dark:text-slate-100 leading-7">
             Atendemos de forma remota a cualquier país del mundo. Aceptamos pagos internacionales por <strong>Binance en USDT (Red Tron TRC20)</strong> y pagos nacionales por <strong>Llave Bre-B (COP)</strong>.
           </p>
         </div>

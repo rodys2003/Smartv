@@ -16,7 +16,12 @@ import { useQueue } from '../hooks/useQueue';
 import { createTicket } from '../services/ticketService';
 import { TicketCard } from './TicketCard';
 import { getOperatingHoursInfo, OperatingHoursInfo } from '@/lib/operatingHours';
-import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock, CreditCard, Coins, Clock, Globe } from 'lucide-react';
+import {
+  DiscountCoupon,
+  validateDiscountCoupon,
+  incrementCouponUsage,
+} from '@/features/discounts/services/discountService';
+import { Sparkles, Tv, Check, AlertCircle, AlertTriangle, Lock, CreditCard, Coins, Clock, Globe, Tag, CheckCircle } from 'lucide-react';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -54,6 +59,38 @@ export function TicketModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [hoursInfo, setHoursInfo] = useState<OperatingHoursInfo>(() => getOperatingHoursInfo());
 
+  // Discount coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponError(null);
+    setValidatingCoupon(true);
+    try {
+      const res = await validateDiscountCoupon(couponCode);
+      if (res.valid && res.coupon) {
+        setAppliedCoupon(res.coupon);
+        setCouponError(null);
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(res.error || 'Código no válido');
+      }
+    } catch {
+      setCouponError('Error al validar el cupón.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
+  };
+
   useEffect(() => {
     setHoursInfo(getOperatingHoursInfo());
   }, []);
@@ -74,14 +111,15 @@ export function TicketModal({
     }
   }, [user, clientName]);
 
-  const calculateTotalCOP = () => {
-    return selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
-  };
+  const baseCOP = selectedPlan.price + (hasMagicApps ? MAGIC_APPS_PRICE_COP : 0);
+  const baseUSDT = (PLAN_USDT_PRICES[selectedPlan.id] ?? 17) + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
 
-  const calculateTotalUSDT = () => {
-    const base = PLAN_USDT_PRICES[selectedPlan.id] ?? 17;
-    return base + (hasMagicApps ? MAGIC_APPS_PRICE_USDT : 0);
-  };
+  const discountMultiplier = appliedCoupon ? (100 - appliedCoupon.percentage) / 100 : 1;
+  const finalCOP = appliedCoupon ? Math.round(baseCOP * discountMultiplier) : baseCOP;
+  const finalUSDT = appliedCoupon ? Math.max(1, Math.round(baseUSDT * discountMultiplier)) : baseUSDT;
+
+  const savingsCOP = baseCOP - finalCOP;
+  const savingsUSDT = baseUSDT - finalUSDT;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,11 +134,17 @@ export function TicketModal({
 
     try {
       const isBinance = selectedPaymentMethod === 'binance';
-      const totalPrice = isBinance ? calculateTotalUSDT() : calculateTotalCOP();
+      const totalPrice = isBinance ? finalUSDT : finalCOP;
       const notesJson = JSON.stringify({
         payment_method: selectedPaymentMethod,
-        usdt_price: calculateTotalUSDT(),
-        cop_price: calculateTotalCOP(),
+        usdt_price: finalUSDT,
+        cop_price: finalCOP,
+        ...(appliedCoupon && {
+          discount_code: appliedCoupon.code,
+          discount_percentage: appliedCoupon.percentage,
+          original_cop_price: baseCOP,
+          original_usdt_price: baseUSDT,
+        }),
       });
 
       const ticket = await createTicket({
@@ -118,6 +162,12 @@ export function TicketModal({
         notes: notesJson,
       });
 
+      if (appliedCoupon) {
+        incrementCouponUsage(appliedCoupon.code).catch((err) =>
+          console.error('Failed to increment coupon usage:', err)
+        );
+      }
+
       setCreatedTicket(ticket);
       if (onTicketCreated) onTicketCreated(ticket);
     } catch (err: unknown) {
@@ -130,6 +180,9 @@ export function TicketModal({
 
   const handleReset = () => {
     setCreatedTicket(null);
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
     onClose();
   };
 
@@ -399,23 +452,107 @@ export function TicketModal({
             />
           </div>
 
+          {/* Discount Coupon Section */}
+          <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  ¿Tienes un cupón de descuento?
+                </span>
+              </div>
+              {appliedCoupon && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-300 dark:border-emerald-500/30">
+                  {appliedCoupon.percentage}% OFF
+                </span>
+              )}
+            </div>
+
+            {!appliedCoupon ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    setCouponError(null);
+                  }}
+                  placeholder="Ej. SMART20"
+                  className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={validatingCoupon || !couponCode.trim()}
+                  onClick={handleApplyCoupon}
+                  className="text-xs font-bold px-3 py-2 shrink-0"
+                >
+                  {validatingCoupon ? 'Validando...' : 'Aplicar'}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/25">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div className="text-xs">
+                    <span className="font-mono font-bold text-emerald-900 dark:text-emerald-300">
+                      {appliedCoupon.code}
+                    </span>
+                    <span className="text-emerald-700 dark:text-emerald-400 ml-1.5 font-medium">
+                      ({appliedCoupon.percentage}% de descuento aplicado)
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="text-[11px] font-semibold text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer underline transition-colors"
+                >
+                  Quitar
+                </button>
+              </div>
+            )}
+
+            {couponError && (
+              <p className="text-[11px] text-rose-600 dark:text-rose-400 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>{couponError}</span>
+              </p>
+            )}
+          </div>
+
           {/* Price & Submit Button */}
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
             <div>
               <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400 block font-bold">
                 Total a pagar ({selectedPaymentMethod === 'binance' ? 'Binance USDT' : 'Bre-B COP'}):
               </span>
-              <span
-                className={`text-2xl font-black ${
-                  selectedPaymentMethod === 'binance'
-                    ? 'text-amber-600 dark:text-amber-400 font-mono'
-                    : 'text-cyan-600 dark:text-cyan-400'
-                }`}
-              >
-                {selectedPaymentMethod === 'binance'
-                  ? `${calculateTotalUSDT()} USDT`
-                  : formatCOP(calculateTotalCOP())}
-              </span>
+              <div className="flex items-baseline gap-2">
+                {appliedCoupon && (
+                  <span className="text-sm line-through text-slate-400 font-semibold font-mono">
+                    {selectedPaymentMethod === 'binance' ? `${baseUSDT} USDT` : formatCOP(baseCOP)}
+                  </span>
+                )}
+                <span
+                  className={`text-2xl font-black ${
+                    appliedCoupon
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : selectedPaymentMethod === 'binance'
+                      ? 'text-amber-600 dark:text-amber-400 font-mono'
+                      : 'text-cyan-600 dark:text-cyan-400'
+                  }`}
+                >
+                  {selectedPaymentMethod === 'binance'
+                    ? `${finalUSDT} USDT`
+                    : formatCOP(finalCOP)}
+                </span>
+              </div>
+              {appliedCoupon && (
+                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                  ¡Ahorras {selectedPaymentMethod === 'binance' ? `${savingsUSDT} USDT` : formatCOP(savingsCOP)}!
+                </span>
+              )}
             </div>
 
             <Button

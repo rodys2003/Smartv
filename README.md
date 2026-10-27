@@ -95,3 +95,16 @@ served at `https://smartvpro.ordely.online/google93ae7228805f935a.html`, then se
 6. Monitor real index coverage, queries and Core Web Vitals after rollout. No
    Search Console configuration, production deployment, analytics tracking,
    external account operations or live performance score is claimed here.
+
+## Responsive account menu
+
+On mobile and tablet layouts (below 1280 CSS pixels), the signed-in account menu
+shows only the accessible sign-out button. Devices without hover retain this
+compact menu even at wider landscape sizes. Desktop users retain the avatar,
+name and administrator link; authentication and sign-out behavior are unchanged.
+
+Run the isolated rendering checks without starting a server:
+
+```bash
+node --test --test-isolation=none scripts/check-user-menu.mjs
+```
