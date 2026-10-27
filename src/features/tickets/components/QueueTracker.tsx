@@ -279,12 +279,12 @@ export function QueueTracker({
             </p>
           </div>
 
-          {/* Card 3: Estimated Cumulative Wait Time */}
+          {/* Card 3: Estimated Wait Time */}
           <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 relative shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs uppercase font-bold tracking-wider text-fuchsia-600 dark:text-fuchsia-400 flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Tiempo de Espera Acumulado
+                Tiempo de Espera
               </span>
             </div>
 
@@ -295,7 +295,9 @@ export function QueueTracker({
             </div>
 
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-              Calculado a razón de 15 min por turno pendiente.
+              {waitingCount === 0
+                ? '¡Sin espera! Tu turno será atendido al instante.'
+                : 'Calculado a razón de 15 min por turno pendiente.'}
             </p>
           </div>
         </div>
