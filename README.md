@@ -160,3 +160,28 @@ node --test --test-isolation=none scripts/check-auth-flow.mjs scripts/check-navb
 These tests exercise the real SDK's OAuth URL/verifier generation without network
 access, plus isolated account-photo failure, navigation and logout behavior.
 A real Google sign-in still requires manual verification in the browser.
+
+## Affiliate finance operations
+
+Affiliate sales, reserved withdrawal funds and completed payouts are separate
+balances. A withdrawal uses a server-issued quote, a fixed 2 USDT program fee,
+and an administrator-configured COP-per-USDT rate. The rate, destination and
+amounts are frozen when the request is accepted; changing the rate never reprices
+an existing withdrawal. Commissions mature seven days after confirmed customer
+payment, not when a ticket is created or service starts.
+
+The affiliate portal separates summary, sales, withdrawals and collection account.
+Administration separates ticket operations from affiliate accounts, commissions,
+withdrawal requests, rate configuration and audit history. Binance transfers stay
+manual; the application does not hold Binance credentials or initiate transfers.
+
+See [the deployment and reconciliation guide](docs/affiliate-finance.md) before
+using the new financial workflow. Local implementation does not apply migrations
+to a hosted database. Existing historical balances require reconciliation where
+trusted payment evidence or immutable payout snapshots are missing.
+
+```bash
+npm run test:affiliate-finance
+# With an isolated PGlite module configured as described in the guide:
+npm run test:affiliate-finance:db
+```
