@@ -13,7 +13,7 @@ export interface Affiliate {
   id: string; // references auth.users(id)
   user_email: string;
   user_name?: string | null;
-  referral_code: string; // e.g. "ANA8X2" (alphanumeric uppercase, 4-10 chars)
+  referral_code?: string | null; // e.g. "ANA8X2" (alphanumeric uppercase, null while pending)
   status: AffiliateStatus;
   commission_rate: number; // default 0.30 (30%)
   binance_uid?: string | null; // Binance User ID for USDT transfers

@@ -116,7 +116,7 @@ export function TicketModal({
     const stored = getActiveReferralCode();
     if (stored && !activeAffiliate) {
       getAffiliateByCode(stored).then((aff) => {
-        if (aff && aff.status === 'active') {
+        if (aff && aff.status === 'active' && aff.referral_code) {
           if (user?.id && aff.id === user.id) return;
           if (user?.email && aff.user_email?.toLowerCase() === user.email.toLowerCase()) return;
           setActiveAffiliate(aff);
@@ -133,7 +133,7 @@ export function TicketModal({
     try {
       const clean = referralCodeInput.trim().toUpperCase();
       const aff = await getAffiliateByCode(clean);
-      if (!aff || aff.status !== 'active') {
+      if (!aff || aff.status !== 'active' || !aff.referral_code) {
         setReferralError('Código de referido inexistente o inactivo.');
         setActiveAffiliate(null);
         return;
@@ -253,7 +253,7 @@ export function TicketModal({
         );
       }
 
-      if (activeAffiliate && ticket) {
+      if (activeAffiliate && activeAffiliate.referral_code && ticket) {
         recordEstimatedCommission({
           referralCode: activeAffiliate.referral_code,
           ticketId: ticket.id,

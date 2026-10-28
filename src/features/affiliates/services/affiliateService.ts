@@ -210,9 +210,6 @@ export async function registerAffiliateRequest(params: {
     throw new Error('La cuenta de TikTok es obligatoria para verificar tu perfil.');
   }
 
-  // Generación automática y única del código de referido
-  const cleanCode = await generateUniqueReferralCode(params.name || params.email);
-
   const notesJson = JSON.stringify({
     phone: cleanPhone,
     tiktok: cleanTiktok,
@@ -223,7 +220,7 @@ export async function registerAffiliateRequest(params: {
     id: params.userId,
     user_email: params.email.trim().toLowerCase(),
     user_name: params.name?.trim() || null,
-    referral_code: cleanCode,
+    referral_code: null, // El código de referido se genera exclusivamente una vez aprobada la postulación
     status: 'pending' as AffiliateStatus,
     commission_rate: DEFAULT_COMMISSION_RATE,
     binance_uid: null, // Se configura únicamente tras ser aceptado
@@ -377,18 +374,45 @@ export async function getAllAffiliates(): Promise<Affiliate[]> {
 
 /**
  * Actualiza el estado de un afiliado ('pending' | 'active' | 'suspended').
+ * Si pasa a 'active' y aún no tiene código de referido, genera automáticamente uno único.
  */
-export async function updateAffiliateStatus(affiliateId: string, status: AffiliateStatus): Promise<boolean> {
+export async function updateAffiliateStatus(
+  affiliateId: string,
+  status: AffiliateStatus
+): Promise<{ success: boolean; referralCode?: string | null }> {
+  const updatePayload: Record<string, unknown> = {
+    status,
+    updated_at: new Date().toISOString(),
+  };
+
+  let generatedCode: string | null = null;
+
+  if (status === 'active') {
+    // Si aún no cuenta con código, lo generamos al activarlo
+    const { data: current } = await supabase
+      .from('affiliates')
+      .select('referral_code, user_name, user_email')
+      .eq('id', affiliateId)
+      .maybeSingle();
+
+    if (!current?.referral_code) {
+      generatedCode = await generateUniqueReferralCode(current?.user_name || current?.user_email || 'SMART');
+      updatePayload.referral_code = generatedCode;
+    } else {
+      generatedCode = current.referral_code;
+    }
+  }
+
   const { error } = await supabase
     .from('affiliates')
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', affiliateId);
 
   if (error) {
     console.error('Error updating affiliate status:', error);
-    return false;
+    return { success: false };
   }
-  return true;
+  return { success: true, referralCode: generatedCode };
 }
 
 /**

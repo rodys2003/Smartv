@@ -368,12 +368,6 @@ export default function AffiliatePortalPage() {
 
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-left text-xs space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-slate-500">Código asignado:</span>
-              <span className="font-mono font-black text-cyan-700 dark:text-cyan-300">
-                {affiliate.referral_code}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
               <span className="text-slate-500">WhatsApp:</span>
               <span className="font-medium text-slate-800 dark:text-slate-200">
                 {affiliate.phone || 'No registrado'}
@@ -388,7 +382,7 @@ export default function AffiliatePortalPage() {
           </div>
 
           <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-200 text-left">
-            <strong>Importante:</strong> La configuración de tu cuenta <strong>Binance UID</strong> para recibir tus pagos en USDT y tu enlace oficial se activarán inmediatamente después de que el administrador apruebe tu postulación.
+            <strong>Importante:</strong> Tu código oficial de referido y la configuración de tu cuenta <strong>Binance UID</strong> para recibir tus pagos en USDT se generarán y activarán automáticamente una vez que el administrador apruebe tu postulación.
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3 text-xs">
