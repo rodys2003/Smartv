@@ -12,11 +12,11 @@ function loadSource(path, require) {
     module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React, esModuleInterop: true,
   } });
   const exports = {};
-  runInNewContext(outputText, { exports, require, console, Date, Math, Number, React });
+  runInNewContext(outputText, { exports, require, console, Date, Math, Number, React, crypto: { randomUUID: () => 'request-uuid' } });
   return exports;
 }
 
-function portalHarness() {
+export function portalHarness(options = {}) {
   let user = { id: 'account-a', email: 'example@example.test', user_metadata: { full_name: 'Nombre de Google' } };
   const hooks = [];
   const effects = [];
@@ -30,6 +30,7 @@ function portalHarness() {
       if (!(i in hooks)) hooks[i] = typeof initial === 'function' ? initial() : initial;
       return [hooks[i], value => { hooks[i] = typeof value === 'function' ? value(hooks[i]) : value; }];
     },
+    useRef(initial) { const i = index++; if (!(i in hooks)) hooks[i] = { current: initial }; return hooks[i]; },
     useEffect(callback, dependencies) {
       const i = index++;
       if (!same(hooks[i], dependencies)) { hooks[i] = dependencies; effects.push(callback); }
@@ -49,11 +50,13 @@ function portalHarness() {
     if (name.endsWith('/useAuth')) return { useAuth: () => ({ user, isAuthenticated: true, loading: false, signInWithGoogle: noop, signOut: noop }) };
     if (name.endsWith('/useApplicantName')) return loadSource('src/features/affiliates/hooks/useApplicantName.ts', require);
     if (name.endsWith('/affiliateService')) return {
-      getAffiliateProfile: async () => null,
-      getMyCommissions: async () => [], getMyPayouts: async () => [],
+      getAffiliateProfile: async () => options.affiliate || null,
+      getMyCommissions: async () => options.commissions || [], getMyPayouts: async () => options.payouts || [],
+      updateAffiliateBinanceUid: options.updateAffiliateBinanceUid || (async () => true),
       FIXED_WITHDRAWAL_FEE_USDT: 2, MIN_WITHDRAWAL_AMOUNT_USDT: 5,
       registerAffiliateRequest: async value => { requests.push(value); return { id: user.id, status: 'pending', commission_rate: 0.3 }; },
     };
+    if (name.endsWith('/affiliateFinanceService')) return options.finance || {};
     if (name === '@/lib/utils') return { formatCOP: String, formatTicketNumber: String };
     return new Proxy({}, { get: () => noop });
   };
@@ -68,7 +71,7 @@ function portalHarness() {
     requests,
     setUser(value) { user = value; },
     async render() {
-      for (let n = 0; n < 6; n++) {
+      for (let n = 0; n < 20; n++) {
         index = 0;
         tree = Page();
         const pending = effects.splice(0);

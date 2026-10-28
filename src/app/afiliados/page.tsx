@@ -1,7 +1,7 @@
 'use client';
 
 import { RequiredIndicator } from '@/components/ui/RequiredIndicator';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useApplicantName } from '@/features/affiliates/hooks/useApplicantName';
@@ -12,10 +12,10 @@ import {
   getMyPayouts,
   updateAffiliateBinanceUid,
   registerAffiliateRequest,
-  createPayoutRequest,
-  FIXED_WITHDRAWAL_FEE_USDT,
-  MIN_WITHDRAWAL_AMOUNT_USDT,
 } from '@/features/affiliates/services/affiliateService';
+import { getWithdrawalQuote, requestQuotedWithdrawal, type WithdrawalQuote } from '@/features/affiliates/services/affiliateFinanceService';
+import { AffiliateFinanceTabs, type AffiliateFinanceTab } from '@/features/affiliates/components/AffiliateFinanceTabs';
+import { WithdrawalQuoteCard } from '@/features/affiliates/components/WithdrawalQuoteCard';
 import { Affiliate, AffiliateCommission, AffiliatePayout } from '@/types/affiliate';
 import { formatCOP, formatTicketNumber } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -25,16 +25,12 @@ import {
   Sparkles,
   Copy,
   Check,
-  Coins,
   Clock,
   CheckCircle,
   AlertCircle,
-  TrendingUp,
   RefreshCw,
   LogOut,
   ArrowLeft,
-  Wallet,
-  Pencil,
 } from 'lucide-react';
 
 export default function AffiliatePortalPage() {
@@ -44,6 +40,15 @@ export default function AffiliatePortalPage() {
   const [commissions, setCommissions] = useState<AffiliateCommission[]>([]);
   const [payouts, setPayouts] = useState<AffiliatePayout[]>([]);
   const [loading, setLoading] = useState(true);
+  const [balanceTime, setBalanceTime] = useState(0);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [tab, setTab] = useState<AffiliateFinanceTab>('summary');
+  const [quote, setQuote] = useState<WithdrawalQuote | null>(null);
+  const [requestId, setRequestId] = useState('');
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [accountSaved, setAccountSaved] = useState(false);
+  const payoutLock = useRef(false);
 
   // Registration Form State (for users not yet affiliates)
   const [applicantName, setApplicantName] = useApplicantName(user);
@@ -69,6 +74,7 @@ export default function AffiliatePortalPage() {
   const loadAffiliateData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    setDataError(null);
     try {
       const aff = await getAffiliateProfile(user.id, user.email);
       setAffiliate(aff);
@@ -80,10 +86,11 @@ export default function AffiliatePortalPage() {
           getMyPayouts(aff.id),
         ]);
         setCommissions(commData);
+        setBalanceTime(Date.now());
         setPayouts(payoutData);
       }
     } catch (err) {
-      console.error('Error loading affiliate profile:', err);
+      setDataError(err instanceof Error ? err.message : 'No se pudo cargar el panel. Intenta actualizar.');
     } finally {
       setLoading(false);
     }
@@ -138,12 +145,19 @@ export default function AffiliatePortalPage() {
   const handleSaveBinanceUid = async () => {
     if (!affiliate || !newBinanceUid.trim()) return;
     setUpdatingBinanceUid(true);
+    setAccountError(null);
+    setAccountSaved(false);
     try {
       const ok = await updateAffiliateBinanceUid(affiliate.id, newBinanceUid.trim());
+      if (!ok) throw new Error('No se pudo guardar el Binance UID. Intenta nuevamente.');
       if (ok) {
         setAffiliate({ ...affiliate, binance_uid: newBinanceUid.trim() });
         setIsEditingBinanceUid(false);
+        setAccountSaved(true);
+        setQuote(null);
       }
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : 'No se pudo guardar el Binance UID.');
     } finally {
       setUpdatingBinanceUid(false);
     }
@@ -159,68 +173,46 @@ export default function AffiliatePortalPage() {
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  // Totals & Calculations
-  const availableCommissions = commissions.filter((c) => c.status === 'available');
-  const availableUSDT = availableCommissions
-    .filter((c) => c.currency === 'USDT')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-  const availableCOP = availableCommissions
-    .filter((c) => c.currency === 'COP')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-
-  // Estimación referencial COP a USDT (tasa comercial aproximada ~4.000 COP/USDT sólo para vista previa)
-  const estimatedCopToUsdt = availableCOP > 0 ? Number((availableCOP / 4000).toFixed(2)) : 0;
-  const totalGrossAvailableUSDT = Number((availableUSDT + estimatedCopToUsdt).toFixed(2));
-
-  const validatingCommissions = commissions.filter((c) => c.status === 'validating');
-  const validatingUSDT = validatingCommissions
-    .filter((c) => c.currency === 'USDT')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-  const validatingCOP = validatingCommissions
-    .filter((c) => c.currency === 'COP')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-
-  const estimatedCommissions = commissions.filter((c) => c.status === 'estimated');
-  const estimatedUSDT = estimatedCommissions
-    .filter((c) => c.currency === 'USDT')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-  const estimatedCOP = estimatedCommissions
-    .filter((c) => c.currency === 'COP')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-
-  const totalPaidUSDT = payouts
-    .filter((p) => p.status === 'completed')
-    .reduce((sum, p) => sum + Number(p.net_amount_usdt || 0), 0);
-
-  // Handle Request Payout
+  // Display original currencies; only server quotes calculate payable USDT.
+  const availableCommissions = commissions.filter((c) => (c.status === 'available' || c.status === 'validating') && !c.payout_id && !c.requires_reconciliation && c.ticket_paid_at && c.available_at && Math.max(new Date(c.available_at).getTime(), new Date(c.ticket_paid_at).getTime() + 7 * 24 * 60 * 60 * 1000) <= balanceTime);
+  const pendingCommissions = commissions.filter(c => !c.payout_id && c.status !== 'cancelled' && c.status !== 'paid' && !availableCommissions.includes(c));
+  const originalBalance = (rows: AffiliateCommission[]) => {
+    const cop = rows.filter(c => c.currency === 'COP').reduce((sum, c) => sum + Number(c.commission_amount), 0);
+    const usdt = rows.filter(c => c.currency === 'USDT').reduce((sum, c) => sum + Number(c.commission_amount), 0);
+    return `${formatCOP(cop)} COP · ${usdt.toFixed(2)} USDT`;
+  };
+  const totalPaidUSDT = payouts.filter(p => p.status === 'completed').reduce((sum, p) => sum + Number(p.net_amount_usdt), 0);
+  const reservedUSDT = payouts.filter(p => p.status === 'pending' || p.status === 'processing').reduce((sum, p) => sum + Number(p.gross_amount_usdt), 0);
+  const refreshQuote = async () => {
+    if (!affiliate || payoutLock.current) return;
+    setQuoteLoading(true);
+    setPayoutError(null);
+    setQuote(null);
+    try {
+      const next = await getWithdrawalQuote(affiliate.id);
+      setQuote(next);
+      setRequestId(crypto.randomUUID());
+    } catch (error) {
+      setPayoutError(error instanceof Error ? error.message : 'No se pudo obtener el desglose. Intenta nuevamente.');
+    } finally { setQuoteLoading(false); }
+  };
   const handleRequestPayout = async () => {
-    if (!affiliate || !affiliate.binance_uid) {
-      setPayoutError('Debes registrar tu Binance UID antes de solicitar la liquidación.');
-      return;
-    }
-    if (totalGrossAvailableUSDT <= FIXED_WITHDRAWAL_FEE_USDT) {
-      setPayoutError(`El saldo disponible debe superar la tarifa fija de ${FIXED_WITHDRAWAL_FEE_USDT} USDT.`);
-      return;
-    }
-
+    if (!quote || !quote.eligible || !requestId || payoutLock.current) return;
+    payoutLock.current = true;
     setSubmittingPayout(true);
     setPayoutError(null);
     try {
-      const availableIds = availableCommissions.map((c) => c.id);
-      await createPayoutRequest({
-        affiliateId: affiliate.id,
-        binanceUid: affiliate.binance_uid,
-        grossAmountUsdt: totalGrossAvailableUSDT,
-        copTotalOriginal: availableCOP,
-        commissionIdsToInclude: availableIds,
-        notes: `Solicitud de retiro portal afiliado`,
-      });
+      await requestQuotedWithdrawal(quote, requestId);
       setIsPayoutModalOpen(false);
+      setQuote(null);
       await loadAffiliateData();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al procesar la liquidación';
-      setPayoutError(msg);
+    } catch (error) {
+      // Never silently substitute amounts or replay a request using a new quote.
+      setPayoutError(`${error instanceof Error ? error.message : 'No se pudo solicitar el retiro.'} Vuelve a revisar el desglose antes de confirmar. Si la respuesta fue incierta, revisa primero el historial.`);
+      setQuote(null);
+      await loadAffiliateData();
     } finally {
+      payoutLock.current = false;
       setSubmittingPayout(false);
     }
   };
@@ -283,6 +275,8 @@ export default function AffiliatePortalPage() {
       </div>
     );
   }
+
+  if (dataError && !affiliate) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-bold">Portal de Afiliados</h1><p role="alert" className="my-4">{dataError}</p><Button onClick={loadAffiliateData}>Volver a intentar</Button></main>;
 
   // Registration keeps account identity separate from the editable application name.
   if (!affiliate) {
@@ -467,420 +461,38 @@ export default function AffiliatePortalPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        <div>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-cyan-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-500 dark:text-slate-300 dark:hover:text-cyan-300"
-          >
-            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-            <span>Volver al inicio</span>
-          </Link>
-        </div>
-        {/* Enlace de Referido Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-500/10 via-white to-white dark:from-cyan-950/40 dark:via-slate-900 dark:to-slate-900 border border-cyan-300 dark:border-cyan-500/30 shadow-md">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 block">
-                Tu Enlace Exclusivo de Referido (Comisión: 30%)
-              </span>
-              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl">
-                Cualquier persona que ingrese mediante este enlace quedará asociada a tu cuenta durante <strong>30 días</strong> (*last click*). Cuando compre cualquier servicio, acumularás el 30% del valor neto.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 p-2 rounded-2xl shrink-0">
-              <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 px-2 truncate max-w-[240px] sm:max-w-xs">
-                {referralUrl}
-              </span>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleCopyLink}
-                className="text-xs font-bold px-3 py-2 shrink-0 flex items-center gap-1.5 cursor-pointer"
-              >
-                {copiedLink ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-300" />
-                    <span>¡Copiado!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copiar Enlace</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Metric Cards (4 columnas) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Saldo Disponible */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-500/30 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                <Wallet className="w-4 h-4" />
-                Disponible para Retiro
-              </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-                {availableUSDT > 0 ? `${availableUSDT.toFixed(2)} USDT` : '$0 COP'}
-              </div>
-              {availableCOP > 0 && (
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block mt-0.5">
-                  + {formatCOP(availableCOP)} (est. ~{estimatedCopToUsdt} USDT)
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
-              Tarifa fija de retiro: <strong>2 USDT</strong>
-            </p>
-          </div>
-
-          {/* Card 2: En Validación */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <Clock className="w-4 h-4" />
-                En Validación (Garantía 7d)
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-                {validatingUSDT > 0 ? `${validatingUSDT.toFixed(2)} USDT` : '$0 COP'}
-              </div>
-              {validatingCOP > 0 && (
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block mt-0.5">
-                  + {formatCOP(validatingCOP)}
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
-              Servicios con pago confirmado en período de espera.
-            </p>
-          </div>
-
-          {/* Card 3: Comisiones Estimadas */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4" />
-                Tickets en Cola (Estimadas)
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-                {estimatedUSDT > 0 ? `${estimatedUSDT.toFixed(2)} USDT` : '$0 COP'}
-              </div>
-              {estimatedCOP > 0 && (
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block mt-0.5">
-                  + {formatCOP(estimatedCOP)}
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
-              Clientes que crearon ticket pero aún no han sido atendidos.
-            </p>
-          </div>
-
-          {/* Card 4: Total Liquidado */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                <CheckCircle className="w-4 h-4" />
-                Total Pagado Histórico
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
-                {totalPaidUSDT.toFixed(2)} USDT
-              </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block mt-0.5">
-                {payouts.filter((p) => p.status === 'completed').length} transferencias completadas
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2">
-              Enviado directamente a tu Binance UID.
-            </p>
-          </div>
-        </div>
-
-        {/* Binance UID Settings & Payout Button Card */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-              <Coins className="w-4 h-4 text-amber-500" />
-              Cuenta Receptora de Liquidaciones (Binance Pay)
-            </span>
-            {isEditingBinanceUid ? (
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="text"
-                  value={newBinanceUid}
-                  onChange={(e) => setNewBinanceUid(e.target.value)}
-                  placeholder="Tu Binance UID (ej. 85419203)"
-                  className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-white"
-                />
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={handleSaveBinanceUid}
-                  disabled={updatingBinanceUid || !newBinanceUid.trim()}
-                  className="text-xs font-bold"
-                >
-                  {updatingBinanceUid ? 'Guardando...' : 'Guardar'}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingBinanceUid(false)}
-                  className="text-xs text-slate-400 hover:text-slate-600"
-                >
-                  Cancelar
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 pt-1">
-                <span className="font-mono text-base font-black text-slate-900 dark:text-white">
-                  {affiliate.binance_uid || 'No configurado'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingBinanceUid(true)}
-                  className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span>{affiliate.binance_uid ? 'Cambiar' : 'Configurar'}</span>
-                </button>
-              </div>
-            )}
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Todas las liquidaciones se envían en <strong>USDT</strong> sin excepción. Se aplica una tarifa fija de <strong>2 USDT</strong> por retiro.
-            </p>
-          </div>
-
-          {totalGrossAvailableUSDT >= MIN_WITHDRAWAL_AMOUNT_USDT && affiliate.binance_uid && (
-            <Button
-              variant="whatsapp"
-              size="md"
-              onClick={() => setIsPayoutModalOpen(true)}
-              className="font-bold text-xs shrink-0 cursor-pointer shadow-md"
-            >
-              <Wallet className="w-4 h-4 mr-1.5" />
-              <span>Solicitar Liquidación ({totalGrossAvailableUSDT.toFixed(2)} USDT)</span>
-            </Button>
-          )}
-        </div>
-
-        {/* Tablas: Mis Ventas & Historial de Pagos */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-              <span>Tus Ventas Referidas ({commissions.length})</span>
-            </h3>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Privacidad activa: No se muestran datos personales de los clientes
-            </span>
-          </div>
-
-          {commissions.length === 0 ? (
-            <div className="p-8 text-center rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
-              Aún no registras ventas con tu enlace. ¡Comparte tu link <code>/r/{affiliate.referral_code}</code> para empezar a comisionar!
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
-                    <tr>
-                      <th className="py-3 px-4">Ticket</th>
-                      <th className="py-3 px-4">Fecha</th>
-                      <th className="py-3 px-4">Plan</th>
-                      <th className="py-3 px-4">Venta Neta</th>
-                      <th className="py-3 px-4">Comisión (30%)</th>
-                      <th className="py-3 px-4">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {commissions.map((c) => {
-                      const isCOP = c.currency === 'COP';
-                      const formattedNet = isCOP ? formatCOP(c.net_sale_price) : `${c.net_sale_price} USDT`;
-                      const formattedComm = isCOP ? formatCOP(c.commission_amount) : `${c.commission_amount} USDT`;
-
-                      let statusBadge = (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300">
-                          Estimada
-                        </span>
-                      );
-                      if (c.status === 'validating') {
-                        statusBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                            En Validación
-                          </span>
-                        );
-                      } else if (c.status === 'available') {
-                        statusBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                            Disponible
-                          </span>
-                        );
-                      } else if (c.status === 'paid') {
-                        statusBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            Pagada
-                          </span>
-                        );
-                      }
-
-                      return (
-                        <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                          <td className="py-3 px-4 font-mono font-bold text-slate-800 dark:text-slate-200">
-                            {c.ticket_number ? formatTicketNumber(c.ticket_number) : 'Sin asignar'}
-                          </td>
-                          <td className="py-3 px-4 text-slate-500">
-                            {new Date(c.created_at).toLocaleDateString('es-CO')}
-                          </td>
-                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                            {c.service_name}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-slate-700 dark:text-slate-300">
-                            {formattedNet}
-                          </td>
-                          <td className="py-3 px-4 font-mono font-bold text-cyan-700 dark:text-cyan-400">
-                            {formattedComm}
-                          </td>
-                          <td className="py-3 px-4">{statusBadge}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Historial de Liquidaciones USDT */}
-        {payouts.length > 0 && (
-          <div className="space-y-4 pt-4">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <Coins className="w-4 h-4 text-amber-500" />
-              <span>Historial de Liquidaciones USDT ({payouts.length})</span>
-            </h3>
-
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
-                    <tr>
-                      <th className="py-3 px-4">Fecha</th>
-                      <th className="py-3 px-4">Bruto USDT</th>
-                      <th className="py-3 px-4">Tarifa Fija</th>
-                      <th className="py-3 px-4">Neto Enviado</th>
-                      <th className="py-3 px-4">Binance UID</th>
-                      <th className="py-3 px-4">Referencia / Tx</th>
-                      <th className="py-3 px-4">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-mono">
-                    {payouts.map((p) => (
-                      <tr key={p.id}>
-                        <td className="py-3 px-4 text-slate-500 font-sans">
-                          {new Date(p.created_at).toLocaleDateString('es-CO')}
-                        </td>
-                        <td className="py-3 px-4">{p.gross_amount_usdt.toFixed(2)} USDT</td>
-                        <td className="py-3 px-4 text-rose-500">-{p.withdrawal_fee_usdt.toFixed(2)} USDT</td>
-                        <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
-                          {p.net_amount_usdt.toFixed(2)} USDT
-                        </td>
-                        <td className="py-3 px-4">{p.binance_uid}</td>
-                        <td className="py-3 px-4 text-slate-400 font-sans truncate max-w-[150px]">
-                          {p.binance_tx_reference || 'En proceso'}
-                        </td>
-                        <td className="py-3 px-4 font-sans">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              p.status === 'completed'
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                                : 'bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                            }`}
-                          >
-                            {p.status === 'completed' ? 'Completada' : 'Pendiente'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+      <main className="mx-auto max-w-6xl space-y-6 px-4 pt-6 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl font-bold">Tu actividad como afiliado</h1><Button variant="secondary" onClick={loadAffiliateData}>Actualizar</Button></div>
+        {dataError && <p role="alert" className="rounded-xl border border-rose-300 p-4 text-rose-800 dark:text-rose-200">{dataError}</p>}
+        <AffiliateFinanceTabs value={tab} onChange={setTab} />
+        <section id="affiliate-finance-content" aria-label={{ summary: 'Resumen', sales: 'Mis ventas', withdrawals: 'Retiros', account: 'Cuenta de cobro' }[tab]} className="space-y-6">
+          {tab === 'summary' && <>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="text-lg font-bold">Tu enlace de referido · 30% de comisión</h2><p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Se atribuye el último enlace válido durante 30 días. Comparte servicios compatibles con Android TV y Google TV.</p>
+              <div className="mt-4 flex min-w-0 flex-wrap items-center gap-3"><span className="min-w-0 break-all text-sm">{referralUrl}</span><Button variant="secondary" onClick={handleCopyLink}>{copiedLink ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}{copiedLink ? 'Copiado' : 'Copiar enlace'}</Button></div>
+            </section>
+            <dl className="grid gap-4 sm:grid-cols-2">
+              {[['Disponible en moneda original', originalBalance(availableCommissions)], ['En espera de pago o validación', originalBalance(pendingCommissions)], ['Reservado para retiros', `${reservedUSDT.toFixed(2)} USDT brutos`], ['Transferido', `${totalPaidUSDT.toFixed(2)} USDT netos`]].map(([label, amount]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><dt className="text-sm text-slate-600 dark:text-slate-300">{label}</dt><dd className="mt-2 break-words text-xl font-bold">{amount}</dd></div>)}
+            </dl>
+            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">La comisión se habilita 7 días después de confirmar el pago de la venta. El saldo reservado no se puede retirar de nuevo. Consulta el importe exacto convertido en Retiros.</p>
+            <Button onClick={() => setTab('withdrawals')}>Ver cuánto puedo retirar</Button>
+          </>}
+          {tab === 'sales' && <><h2 className="text-lg font-bold">Mis ventas ({commissions.length})</h2>{!commissions.length && <p>Aún no tienes ventas referidas. Comparte tu enlace desde Resumen.</p>}
+            <div className="grid gap-4 sm:grid-cols-2">{commissions.map(c => <article key={c.id} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5 text-sm dark:border-slate-700 dark:bg-slate-900"><h3 className="font-bold">{c.service_name}</h3><p>Ticket {c.ticket_number ? formatTicketNumber(c.ticket_number) : 'Sin asignar'} · {new Date(c.created_at).toLocaleDateString('es-CO')}</p><p>Venta neta: {Number(c.net_sale_price).toLocaleString('es-CO')} {c.currency}</p><p className="font-semibold">Comisión: {Number(c.commission_amount).toLocaleString('es-CO')} {c.currency}</p><p>{c.status === 'paid' ? 'Pagada' : c.status === 'cancelled' ? 'Cancelada' : c.payout_id ? 'Reservada para retiro' : c.requires_reconciliation ? 'Requiere conciliación' : availableCommissions.includes(c) ? 'Disponible' : c.ticket_paid_at ? 'En validación' : 'Pago por confirmar'}</p>{c.available_at && !c.requires_reconciliation && <p>Disponible desde: {new Date(c.available_at).toLocaleString('es-CO')}</p>}</article>)}</div>
+          </>}
+          {tab === 'withdrawals' && <>
+            <div className="space-y-3"><h2 className="text-lg font-bold">Solicitar retiro</h2><p className="text-sm leading-6">Mínimo 5 USDT brutos. Tarifa fija del programa: 2 USDT para cualquier monto. Revisa el neto y el destino antes de confirmar.</p><p className="text-sm leading-6">Si no hay tasa configurada, el saldo COP queda pendiente de conversión; solo podrán incluirse comisiones nativas en USDT. No se aplica una tasa aproximada.</p><Button disabled={quoteLoading || submittingPayout} onClick={refreshQuote}>{quoteLoading ? 'Consultando...' : 'Consultar desglose de retiro'}</Button></div>
+            {payoutError && <p role="alert" className="rounded-xl border border-rose-300 p-4 text-sm text-rose-800 dark:text-rose-200">{payoutError}</p>}
+            {quote && <><WithdrawalQuoteCard quote={quote} /><Button disabled={!quote.eligible || submittingPayout} onClick={() => setIsPayoutModalOpen(true)}>Revisar y confirmar retiro</Button></>}
+            <h2 className="border-t border-slate-200 pt-6 text-lg font-bold dark:border-slate-700">Historial de retiros</h2>
+            {!payouts.length && <p className="text-sm">Aún no has solicitado retiros.</p>}
+            <div className="grid gap-4 sm:grid-cols-2">{payouts.map(p => <article key={p.id} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5 text-sm dark:border-slate-700 dark:bg-slate-900"><h3 className="font-bold">{{ pending: 'Pendiente de revisión', processing: 'En proceso de transferencia', completed: 'Pagado', rejected: 'Rechazado' }[p.status]}</h3><p>{new Date(p.created_at).toLocaleString('es-CO')}</p><dl className="space-y-2">{[['Bruto', `${Number(p.gross_amount_usdt).toFixed(2)} USDT`], ['Tarifa', `${Number(p.withdrawal_fee_usdt).toFixed(2)} USDT`], [p.status === 'completed' ? 'Neto enviado' : 'Neto solicitado', `${Number(p.net_amount_usdt).toFixed(2)} USDT`], ['COP incluidos', `${Number(p.cop_total_original || 0).toLocaleString('es-CO')} COP`], ['Tasa congelada', p.cop_to_usdt_rate ? `1 USDT = ${Number(p.cop_to_usdt_rate).toLocaleString('es-CO')} COP` : 'Sin conversión COP'], ['Binance UID de esta solicitud', p.binance_uid], ['Referencia', p.binance_tx_reference || 'Sin referencia registrada']].map(([label, value]) => <div key={label} className="flex flex-wrap justify-between gap-2"><dt>{label}</dt><dd className="break-all font-semibold">{value}</dd></div>)}</dl>{p.rejected_reason && <p>Motivo del rechazo: {p.rejected_reason}</p>}{p.status === 'processing' && <p>El administrador está revisando la transferencia. No necesitas solicitarla otra vez.</p>}</article>)}</div>
+          </>}
+          {tab === 'account' && <section className="max-w-xl space-y-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="text-lg font-bold">Cuenta de cobro</h2><p className="text-sm leading-6">Recibirás USDT en el Binance UID registrado. No compartas contraseñas ni claves de acceso. Cambiarlo no modifica el destino guardado en retiros ya solicitados.</p>{isEditingBinanceUid ? <form onSubmit={event => { event.preventDefault(); void handleSaveBinanceUid(); }} className="space-y-4"><div><label htmlFor="binance-uid" className="mb-2 block text-sm font-semibold">Binance UID<RequiredIndicator /></label><input id="binance-uid" required value={newBinanceUid} onChange={event => setNewBinanceUid(event.target.value)} className="min-h-12 w-full rounded-xl border border-slate-300 bg-transparent px-4 text-base dark:border-slate-600" /></div><div className="flex flex-wrap gap-3"><Button type="submit" disabled={updatingBinanceUid || !newBinanceUid.trim()}>{updatingBinanceUid ? 'Guardando...' : 'Guardar Binance UID'}</Button><Button type="button" variant="secondary" disabled={updatingBinanceUid} onClick={() => setIsEditingBinanceUid(false)}>Cancelar</Button></div></form> : <><p className="break-all font-semibold">{affiliate.binance_uid || 'Binance UID no registrado'}</p><Button variant="secondary" onClick={() => { setNewBinanceUid(affiliate.binance_uid || ''); setIsEditingBinanceUid(true); setAccountSaved(false); }}>Editar Binance UID</Button></>}{accountError && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">{accountError}</p>}{accountSaved && <p role="status" className="text-sm">Binance UID guardado. Los destinos de solicitudes anteriores no cambian.</p>}</section>}
+        </section>
       </main>
-
-      {/* Modal para Solicitar Liquidación */}
-      <Modal
-        isOpen={isPayoutModalOpen}
-        onClose={() => setIsPayoutModalOpen(false)}
-        title="Confirmar Solicitud de Liquidación"
-        description="Revisa el desglose de tu saldo disponible y confirma la transferencia a tu Binance UID."
-        maxWidth="md"
-      >
-        <div className="space-y-4 pt-2">
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Saldo Bruto Disponible:</span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">
-                {totalGrossAvailableUSDT.toFixed(2)} USDT
-              </span>
-            </div>
-            <div className="flex justify-between text-rose-600 dark:text-rose-400">
-              <span>Tarifa fija de retiro:</span>
-              <span className="font-mono font-bold">-2.00 USDT</span>
-            </div>
-            <div className="border-t border-slate-200 dark:border-slate-800 pt-2 flex justify-between text-sm">
-              <span className="font-bold text-slate-900 dark:text-white">Neto a transferir:</span>
-              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
-                {(totalGrossAvailableUSDT - 2.0).toFixed(2)} USDT
-              </span>
-            </div>
-            <div className="border-t border-slate-200 dark:border-slate-800 pt-2 text-[11px] text-slate-500">
-              <span>Destino: </span>
-              <strong className="text-slate-900 dark:text-white font-mono">{affiliate.binance_uid}</strong> (Binance Pay)
-            </div>
-          </div>
-
-          {payoutError && (
-            <div className="p-3 rounded-xl bg-rose-50 text-rose-800 text-xs flex items-center gap-2 border border-rose-300">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{payoutError}</span>
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsPayoutModalOpen(false)}
-              className="w-full text-xs"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              disabled={submittingPayout}
-              onClick={handleRequestPayout}
-              className="w-full text-xs font-bold"
-            >
-              {submittingPayout ? 'Enviando...' : 'Confirmar Retiro'}
-            </Button>
-          </div>
-        </div>
+      <Modal isOpen={isPayoutModalOpen} onClose={() => { if (!submittingPayout) setIsPayoutModalOpen(false); }} title="Confirmar solicitud de retiro" description="Confirma el importe y el destino que acabas de revisar." maxWidth="md">
+        {quote ? <div className="space-y-4"><WithdrawalQuoteCard quote={quote} /><div className="flex flex-wrap gap-3"><Button disabled={submittingPayout || !quote.eligible} onClick={handleRequestPayout}>{submittingPayout ? 'Enviando solicitud...' : 'Confirmar retiro'}</Button><Button variant="secondary" disabled={submittingPayout} onClick={() => setIsPayoutModalOpen(false)}>Volver</Button></div></div> : <div className="space-y-4"><p role="alert">{payoutError || 'Vuelve a consultar el desglose antes de confirmar.'}</p><Button variant="secondary" onClick={() => setIsPayoutModalOpen(false)}>Volver al historial</Button></div>}
       </Modal>
     </div>
   );

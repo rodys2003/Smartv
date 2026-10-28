@@ -24,8 +24,8 @@ const faqs = [
   { question: '¿Necesito hacer la optimización del televisor?', answer: 'No. Tú recomiendas el servicio y compartes tu enlace; SmartvPro se encarga de la atención técnica remota. Explica el alcance con claridad: trabajamos con Android TV y Google TV compatibles, no con Samsung Tizen ni LG webOS.' },
   { question: '¿Mi cuenta se activa al enviar el formulario?', answer: 'No. La aprobación es manual. Tu WhatsApp y TikTok permiten revisar la solicitud y coordinar contigo. No se garantiza la aprobación ni un plazo de respuesta concreto.' },
   { question: '¿Cómo se atribuye una venta a mi enlace?', answer: 'El referido se guarda durante 30 días en el navegador del cliente. Se utiliza el último enlace válido antes de crear el ticket. El registro puede perderse si cambia de dispositivo o borra las cookies; no se permiten autorreferidos.' },
-  { question: '¿Crear un ticket ya genera dinero disponible?', answer: 'No. Una reserva puede aparecer como comisión estimada. El pago debe confirmarse y el servicio finalizar; después se aplica el periodo de validación de 7 días antes de que la comisión esté disponible.' },
-  { question: '¿Cuánto cuesta retirar y cuándo registro mi Binance UID?', answer: 'Registras tu Binance UID después de la activación. Los retiros se pagan en USDT por Binance, con mínimo de 5 USDT y una tarifa del programa de 2 USDT por retiro. Por ejemplo, un retiro bruto de 5 USDT deja 3 USDT netos.' },
+  { question: '¿Crear un ticket ya genera dinero disponible?', answer: 'No. Una reserva puede aparecer como comisión estimada. La comisión queda disponible 7 días después de que el administrador confirme el pago de la venta. Crear el ticket o comenzar el servicio no inicia ese plazo.' },
+  { question: '¿Cuánto cuesta retirar y cuándo registro mi Binance UID?', answer: 'Registras tu Binance UID después de la activación. Los retiros se pagan en USDT por Binance, con mínimo de 5 USDT brutos y una tarifa fija del programa de 2 USDT por retiro, para cualquier monto. No es una tarifa de red. Por ejemplo, un retiro bruto de 5 USDT deja 3 USDT netos.' },
 ];
 
 export default function AffiliateProgramInfoPage() {
@@ -89,7 +89,7 @@ export default function AffiliateProgramInfoPage() {
               <div className="border-t border-slate-200 pt-4 dark:border-slate-700"><dt className="text-sm text-slate-600 dark:text-slate-400">Venta en USDT: {PLAN_USDT_PRICES[plan.id]} USDT</dt><dd className="mt-1 text-2xl font-black text-cyan-700 dark:text-cyan-300">{usdt(PLAN_USDT_PRICES[plan.id] * 0.3)} <span className="text-sm font-semibold">de comisión</span></dd></div>
             </dl>
           </article>)}</div>
-          <p className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm leading-7 text-cyan-950 dark:border-cyan-800 dark:bg-cyan-950 dark:text-cyan-100">La comisión se calcula sobre el importe neto del plan efectivamente cobrado, después de descuentos. Si la venta se cobra en COP, la conversión a USDT queda documentada en la liquidación. Los ejemplos no representan ingresos garantizados ni el importe neto de un retiro.</p>
+          <p className="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-sm leading-7 text-cyan-950 dark:border-cyan-800 dark:bg-cyan-950 dark:text-cyan-100">La comisión se calcula sobre el importe neto del plan efectivamente cobrado, después de descuentos. Si la venta se cobra en COP, el administrador configura la tasa COP/USDT. Verás la tasa y el neto antes de solicitar el retiro; ambos quedan congelados al confirmar. Sin tasa configurada, las comisiones COP quedan pendientes de conversión. Los ejemplos no representan ingresos garantizados ni el importe neto de un retiro.</p>
         </div>
       </section>
 
@@ -99,7 +99,7 @@ export default function AffiliateProgramInfoPage() {
           <dl className="grid gap-6 sm:grid-cols-2">
             <div><dt className="text-lg font-bold">Retiro mínimo: 5 USDT</dt><dd className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">Pago exclusivamente en USDT por Binance. Tarifa del programa: 2 USDT por retiro. Se descuenta del importe bruto solicitado.</dd></div>
             <div><dt className="text-lg font-bold">Referido válido por 30 días</dt><dd className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">Se atribuye al último enlace válido antes de crear el ticket. La reserva no equivale a un pago confirmado.</dd></div>
-            <div><dt className="text-lg font-bold">Validación de 7 días</dt><dd className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">Tras el pago confirmado y la finalización del servicio, se aplica el periodo de validación antes de disponer de la comisión.</dd></div>
+            <div><dt className="text-lg font-bold">Validación de 7 días</dt><dd className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">Puedes retirar la comisión 7 días después del pago de la venta confirmado por el administrador. Los fondos reservados para un retiro no vuelven a estar disponibles mientras se revisa.</dd></div>
             <div><dt className="text-lg font-bold">Recomendaciones responsables</dt><dd className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">Sin autorreferidos, spam ni promesas de compatibilidad universal. Samsung Tizen y LG webOS no están incluidos.</dd></div>
           </dl>
         </div>
