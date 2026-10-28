@@ -1,9 +1,9 @@
+import { financeRpc } from './affiliateFinanceService';
 import { supabase } from '@/lib/supabase/client';
 import {
   Affiliate,
   AffiliateCommission,
   AffiliatePayout,
-  AffiliateStats,
   AffiliateStatus,
 } from '@/types/affiliate';
 
@@ -93,715 +93,135 @@ export function getActiveReferralCode(): string | null {
   }
 }
 
-/**
- * Normaliza campos adicionales (phone, tiktok_account) si fueron guardados en el campo notes.
- */
+/** Normalize legacy optional profile fields without mutating the ledger. */
 function hydrateAffiliateExtraFields(aff: Affiliate | null): Affiliate | null {
   if (!aff) return null;
-  if ((!aff.phone || !aff.tiktok_account) && aff.notes) {
-    try {
-      const parsed = JSON.parse(aff.notes);
-      if (parsed.phone && !aff.phone) aff.phone = parsed.phone;
-      if (parsed.tiktok && !aff.tiktok_account) aff.tiktok_account = parsed.tiktok;
-    } catch {}
-  }
-  return aff;
+  try {
+    const notes = JSON.parse(aff.notes || '{}');
+    return { ...aff, phone: aff.phone || notes.phone, tiktok_account: aff.tiktok_account || notes.tiktok };
+  } catch { return aff; }
 }
 
-/**
- * Obtiene el perfil de un afiliado por su User ID de Supabase.
- */
+async function readRows<T>(table: string, key?: string, value?: string): Promise<T[]> {
+  let query = supabase.from(table).select('*');
+  if (key && value) query = query.eq(key, value);
+  const { data, error } = await query.order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []) as T[];
+}
+
 export async function getAffiliateByUserId(userId: string): Promise<Affiliate | null> {
-  const { data, error } = await supabase
-    .from('affiliates')
-    .select('*')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('Could not query affiliates table (may not exist yet):', error.message);
-    return null;
-  }
+  const { data, error } = await supabase.from('affiliates').select('*').eq('id', userId).maybeSingle();
+  if (error) throw new Error(error.message);
   return hydrateAffiliateExtraFields(data as Affiliate | null);
 }
 
-/**
- * Busca un afiliado por su código de referido.
- */
+/** Public lookup returns only referral identity, never payout/contact details. */
 export async function getAffiliateByCode(code: string): Promise<Affiliate | null> {
-  const cleanCode = code.trim().toUpperCase();
-  const { data, error } = await supabase
-    .from('affiliates')
-    .select('*')
-    .ilike('referral_code', cleanCode)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('Could not find affiliate by code:', error.message);
-    return null;
-  }
-  return hydrateAffiliateExtraFields(data as Affiliate | null);
+  return financeRpc<Affiliate | null>('affiliate_lookup_code', { p_code: code.trim().toUpperCase() });
 }
 
-/**
- * Genera un código de referido automático y único validando que no existan duplicados en la base de datos.
- * Ej: "ANA8X2", "CARLOS9K", "SMART7P"
- */
 export async function generateUniqueReferralCode(seedNameOrEmail?: string): Promise<string> {
-  let prefix = (seedNameOrEmail || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, 5);
-
-  if (prefix.length < 3) {
-    prefix = 'SMART';
-  }
-
+  let prefix = (seedNameOrEmail || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 5);
+  if (prefix.length < 3) prefix = 'SMART';
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-  for (let attempt = 0; attempt < 15; attempt++) {
+  for (let attempt = 0; attempt < 25; attempt++) {
     let suffix = '';
-    for (let i = 0; i < 3; i++) {
-      suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const candidateCode = `${prefix}${suffix}`;
-    const existing = await getAffiliateByCode(candidateCode);
-    if (!existing) {
-      return candidateCode;
-    }
+    for (let i = 0; i < 4; i++) suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+    const candidate = prefix + suffix;
+    if (!await getAffiliateByCode(candidate)) return candidate;
   }
-
-  for (let attempt = 0; attempt < 10; attempt++) {
-    let randomCode = 'REF';
-    for (let i = 0; i < 4; i++) {
-      randomCode += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const existing = await getAffiliateByCode(randomCode);
-    if (!existing) {
-      return randomCode;
-    }
-  }
-
-  return `AFF${Date.now().toString(36).toUpperCase().slice(-5)}`;
+  throw new Error('No se pudo generar un código único. Intenta de nuevo.');
 }
 
-/**
- * Registra una solicitud para convertirse en afiliado.
- * El código de referido se genera automáticamente validando que no existan duplicados.
- * La configuración de Binance UID se realiza una vez que el usuario es aceptado.
- * Requiere teléfono de WhatsApp y cuenta de TikTok.
- */
 export async function registerAffiliateRequest(params: {
-  userId: string;
-  email: string;
-  name?: string;
-  phone: string;
-  tiktokAccount: string;
+  userId: string; email: string; name?: string; phone: string; tiktokAccount: string;
 }): Promise<Affiliate> {
-  const cleanPhone = params.phone.trim();
-  const cleanTiktok = params.tiktokAccount.trim();
-
-  if (!cleanPhone) {
-    throw new Error('El número de teléfono / WhatsApp es obligatorio para contactarte.');
-  }
-  if (!cleanTiktok) {
-    throw new Error('La cuenta de TikTok es obligatoria para verificar tu perfil.');
-  }
-
-  const notesJson = JSON.stringify({
-    phone: cleanPhone,
-    tiktok: cleanTiktok,
-    applied_at: new Date().toISOString(),
+  return financeRpc<Affiliate>('affiliate_register', {
+    p_name: params.name?.trim() || null, p_phone: params.phone.trim(), p_tiktok: params.tiktokAccount.trim(),
   });
-
-  const payload: Record<string, unknown> = {
-    id: params.userId,
-    user_email: params.email.trim().toLowerCase(),
-    user_name: params.name?.trim() || null,
-    referral_code: null, // El código de referido se genera exclusivamente una vez aprobada la postulación
-    status: 'pending' as AffiliateStatus,
-    commission_rate: DEFAULT_COMMISSION_RATE,
-    binance_uid: null, // Se configura únicamente tras ser aceptado
-    phone: cleanPhone,
-    tiktok_account: cleanTiktok,
-    notes: notesJson,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data, error } = await supabase
-    .from('affiliates')
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    if (error.message?.includes('column "phone"') || error.message?.includes('column "tiktok_account"')) {
-      delete payload.phone;
-      delete payload.tiktok_account;
-      const retry = await supabase
-        .from('affiliates')
-        .insert([payload])
-        .select()
-        .single();
-      if (retry.error) throw retry.error;
-      return hydrateAffiliateExtraFields(retry.data as Affiliate)!;
-    }
-    throw error;
-  }
-  return hydrateAffiliateExtraFields(data as Affiliate)!;
 }
 
-/**
- * Registra una comisión en estado 'estimated' cuando un cliente crea un ticket con un código de referido.
- */
 export async function recordEstimatedCommission(params: {
-  referralCode: string;
-  ticketId?: string;
-  ticketNumber?: number;
-  serviceName: string;
-  currency: 'COP' | 'USDT';
-  grossSalePrice: number;
-  discountAmount?: number;
+  referralCode: string; ticketId?: string; ticketNumber?: number; serviceName: string;
+  currency: 'COP' | 'USDT'; grossSalePrice: number; discountAmount?: number;
 }): Promise<AffiliateCommission | null> {
-  const affiliate = await getAffiliateByCode(params.referralCode);
-  if (!affiliate || affiliate.status !== 'active') {
-    return null; // Solo afiliados activos acumulan comisiones
-  }
-
-  const { netPrice, commissionAmount, rate } = calculateCommission(
-    params.grossSalePrice,
-    params.discountAmount || 0,
-    affiliate.commission_rate || DEFAULT_COMMISSION_RATE
-  );
-
-  const payload = {
-    affiliate_id: affiliate.id,
-    referral_code: affiliate.referral_code,
-    ticket_id: params.ticketId || null,
-    ticket_number: params.ticketNumber || null,
-    service_name: params.serviceName,
-    currency: params.currency,
-    gross_sale_price: params.grossSalePrice,
-    discount_amount: params.discountAmount || 0,
-    net_sale_price: netPrice,
-    commission_rate: rate,
-    commission_amount: commissionAmount,
-    status: 'estimated',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data, error } = await supabase
-    .from('affiliate_commissions')
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Failed to record affiliate commission:', error);
-    return null;
-  }
-  return data as AffiliateCommission;
+  if (!params.ticketId) throw new Error('Se requiere el ticket original.');
+  return financeRpc<AffiliateCommission | null>('affiliate_capture_ticket', { p_ticket_id: params.ticketId });
 }
 
-/**
- * Genera una solicitud de liquidación aplicando la tarifa fija de 2 USDT.
- */
+/** Legacy callers cannot bypass quote confirmation or supply their own monetary values. */
 export async function createPayoutRequest(params: {
-  affiliateId: string;
-  binanceUid: string;
-  grossAmountUsdt: number;
-  copTotalOriginal?: number;
-  copToUsdtRate?: number;
-  commissionIdsToInclude: string[];
-  notes?: string;
+  affiliateId: string; binanceUid: string; grossAmountUsdt: number; copTotalOriginal?: number;
+  copToUsdtRate?: number; commissionIdsToInclude: string[]; notes?: string;
 }): Promise<AffiliatePayout> {
-  const breakdown = calculatePayoutBreakdown(params.grossAmountUsdt, FIXED_WITHDRAWAL_FEE_USDT);
-
-  const payoutPayload = {
-    affiliate_id: params.affiliateId,
-    binance_uid: params.binanceUid.trim(),
-    gross_amount_usdt: breakdown.grossUsdt,
-    withdrawal_fee_usdt: breakdown.feeUsdt,
-    net_amount_usdt: breakdown.netUsdt,
-    cop_total_original: params.copTotalOriginal || 0,
-    cop_to_usdt_rate: params.copToUsdtRate || null,
-    status: 'pending',
-    notes: params.notes || null,
-    created_at: new Date().toISOString(),
-  };
-
-  const { data: payout, error: payoutError } = await supabase
-    .from('affiliate_payouts')
-    .insert([payoutPayload])
-    .select()
-    .single();
-
-  if (payoutError) throw payoutError;
-
-  // Asociar comisiones al ID de la liquidación y moverlas a 'processing'
-  if (params.commissionIdsToInclude.length > 0) {
-    await supabase
-      .from('affiliate_commissions')
-      .update({
-        payout_id: payout.id,
-        updated_at: new Date().toISOString(),
-      })
-      .in('id', params.commissionIdsToInclude);
-  }
-
-  return payout as AffiliatePayout;
+  void params;
+  throw new Error('Actualiza el panel y confirma una cotización antes de solicitar el retiro.');
 }
 
-/**
- * Obtiene todos los afiliados registrados (Uso exclusivo de Administración).
- */
 export async function getAllAffiliates(): Promise<Affiliate[]> {
-  const { data, error } = await supabase
-    .from('affiliates')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Could not list affiliates:', error.message);
-    return [];
-  }
-  return ((data || []) as Affiliate[]).map((a) => hydrateAffiliateExtraFields(a)!);
+  return (await readRows<Affiliate>('affiliates')).map(a => hydrateAffiliateExtraFields(a)!);
 }
 
-/**
- * Actualiza el estado de un afiliado ('pending' | 'active' | 'suspended').
- * Si pasa a 'active' y aún no tiene código de referido, genera automáticamente uno único.
- */
-export async function updateAffiliateStatus(
-  affiliateId: string,
-  status: AffiliateStatus
-): Promise<{ success: boolean; referralCode?: string | null }> {
-  const updatePayload: Record<string, unknown> = {
-    status,
-    updated_at: new Date().toISOString(),
-  };
-
-  let generatedCode: string | null = null;
-
-  if (status === 'active') {
-    // Si aún no cuenta con código, lo generamos al activarlo
-    const { data: current } = await supabase
-      .from('affiliates')
-      .select('referral_code, user_name, user_email')
-      .eq('id', affiliateId)
-      .maybeSingle();
-
-    if (!current?.referral_code) {
-      generatedCode = await generateUniqueReferralCode(current?.user_name || current?.user_email || 'SMART');
-      updatePayload.referral_code = generatedCode;
-    } else {
-      generatedCode = current.referral_code;
-    }
-  }
-
-  const { error } = await supabase
-    .from('affiliates')
-    .update(updatePayload)
-    .eq('id', affiliateId);
-
-  if (error) {
-    console.error('Error updating affiliate status:', error);
-    return { success: false };
-  }
-  return { success: true, referralCode: generatedCode };
+export async function updateAffiliateStatus(affiliateId: string, status: AffiliateStatus): Promise<{ success: boolean; referralCode?: string | null }> {
+  const result = await financeRpc<Affiliate>('affiliate_admin_update', { p_id: affiliateId, p_status: status });
+  return { success: true, referralCode: result.referral_code };
 }
 
-/**
- * Crea o activa manualmente un afiliado desde el panel de administración.
- */
 export async function createOrActivateAffiliateAdmin(params: {
-  userId?: string;
-  email: string;
-  name?: string;
-  referralCode: string;
-  binanceUid?: string;
-  commissionRate?: number;
-  status?: AffiliateStatus;
+  userId?: string; email: string; name?: string; referralCode: string; binanceUid?: string;
+  commissionRate?: number; status?: AffiliateStatus;
 }): Promise<Affiliate> {
-  const cleanCode = params.referralCode.trim().toUpperCase();
-  if (!isValidReferralCode(cleanCode)) {
-    throw new Error('El código debe tener entre 3 y 15 caracteres alfanuméricos.');
-  }
-
-  // Si no se suministra un UUID de auth, generamos uno aleatorio válido
-  const id = params.userId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `aff_${Date.now()}`);
-
-  const payload = {
-    id,
-    user_email: params.email.trim().toLowerCase(),
-    user_name: params.name?.trim() || null,
-    referral_code: cleanCode,
-    status: params.status || 'active',
-    commission_rate: params.commissionRate ?? DEFAULT_COMMISSION_RATE,
-    binance_uid: params.binanceUid?.trim() || null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data, error } = await supabase
-    .from('affiliates')
-    .upsert([payload], { onConflict: 'referral_code' })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as Affiliate;
+  return financeRpc<Affiliate>('affiliate_admin_upsert', {
+    p_email: params.email.trim().toLowerCase(), p_name: params.name || null,
+    p_code: params.referralCode.trim().toUpperCase(), p_binance_uid: params.binanceUid || null,
+    p_status: params.status || 'active',
+  });
 }
 
-/**
- * Obtiene el listado de comisiones para auditoría en administración.
- */
-export async function getAllCommissions(): Promise<AffiliateCommission[]> {
-  const now = new Date().toISOString();
-  // Auto-promover comisiones validadas cuyo plazo de retención ya venció a 'available'
-  await supabase
-    .from('affiliate_commissions')
-    .update({ status: 'available', updated_at: now })
-    .eq('status', 'validating')
-    .lte('available_at', now);
+export const getAllCommissions = () => financeRpc<AffiliateCommission[]>('affiliate_get_commissions');
+export const getAllPayouts = () => readRows<AffiliatePayout>('affiliate_payouts');
+export const getMyCommissions = (id: string) => financeRpc<AffiliateCommission[]>('affiliate_get_commissions', { p_affiliate_id: id });
+export const getMyPayouts = (id: string) => readRows<AffiliatePayout>('affiliate_payouts', 'affiliate_id', id);
 
-  const { data, error } = await supabase
-    .from('affiliate_commissions')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Could not list commissions:', error.message);
-    return [];
-  }
-  return (data || []) as AffiliateCommission[];
-}
-
-/**
- * Pasa una comisión a 'validating' cuando el administrador confirma el pago del ticket.
- */
 export async function markCommissionPaymentConfirmed(ticketNumber: number): Promise<void> {
-  const now = new Date().toISOString();
-  await supabase
-    .from('affiliate_commissions')
-    .update({
-      status: 'validating',
-      ticket_paid_at: now,
-      updated_at: now,
-    })
-    .eq('ticket_number', ticketNumber)
-    .eq('status', 'estimated');
+  await financeRpc('affiliate_ticket_number_action', { p_ticket_number: ticketNumber, p_action: 'payment' });
 }
-
-/**
- * Registra la finalización del servicio y calcula la fecha de liberación (+7 días de garantía).
- * Si retentionDays es 0, pasa directamente a 'available'.
- */
-export async function markCommissionServiceCompleted(
-  ticketNumber: number,
-  retentionDays = 7
-): Promise<void> {
-  const now = new Date();
-  const availableAt = new Date(now.getTime() + retentionDays * 24 * 60 * 60 * 1000);
-  const nextStatus = retentionDays <= 0 ? 'available' : 'validating';
-
-  await supabase
-    .from('affiliate_commissions')
-    .update({
-      status: nextStatus,
-      service_completed_at: now.toISOString(),
-      available_at: availableAt.toISOString(),
-      updated_at: now.toISOString(),
-    })
-    .eq('ticket_number', ticketNumber)
-    .in('status', ['estimated', 'validating']);
+export async function markCommissionServiceCompleted(ticketNumber: number, retentionDays = 7): Promise<void> {
+  if (retentionDays !== 7) throw new Error('La validación mínima es de 7 días desde el pago.');
+  await financeRpc('affiliate_ticket_number_action', { p_ticket_number: ticketNumber, p_action: 'completed' });
 }
-
-/**
- * Libera de inmediato una comisión a estado 'available' desde administración.
- */
 export async function releaseCommissionImmediately(commissionId: string): Promise<boolean> {
-  const now = new Date().toISOString();
-  const { error } = await supabase
-    .from('affiliate_commissions')
-    .update({
-      status: 'available',
-      available_at: now,
-      updated_at: now,
-    })
-    .eq('id', commissionId)
-    .in('status', ['validating', 'estimated']);
-
-  return !error;
+  void commissionId;
+  throw new Error('No se permite adelantar la validación de 7 días.');
 }
-
-/**
- * Cancela una comisión cuando el ticket asociado es cancelado o descartado.
- */
 export async function markCommissionCancelled(ticketNumber: number): Promise<void> {
-  const now = new Date().toISOString();
-  await supabase
-    .from('affiliate_commissions')
-    .update({
-      status: 'cancelled',
-      updated_at: now,
-    })
-    .eq('ticket_number', ticketNumber)
-    .in('status', ['estimated', 'validating']);
+  await financeRpc('affiliate_ticket_number_action', { p_ticket_number: ticketNumber, p_action: 'cancelled' });
 }
-
-/**
- * Obtiene todas las liquidaciones registradas (Uso exclusivo de Administración).
- */
-export async function getAllPayouts(): Promise<AffiliatePayout[]> {
-  const { data, error } = await supabase
-    .from('affiliate_payouts')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Could not list affiliate payouts:', error.message);
-    return [];
-  }
-  return (data || []) as AffiliatePayout[];
-}
-
-/**
- * Completa y registra una liquidación enviada por Binance, marcando las comisiones como 'paid'.
- */
 export async function completePayoutAdmin(params: {
-  payoutId: string;
-  binanceTxReference: string;
-  copToUsdtRate?: number;
-  notes?: string;
+  payoutId: string; binanceTxReference: string; copToUsdtRate?: number; notes?: string;
 }): Promise<boolean> {
-  const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
-    status: 'completed',
-    binance_tx_reference: params.binanceTxReference.trim(),
-    paid_at: now,
-  };
-  if (params.copToUsdtRate && params.copToUsdtRate > 0) {
-    updateData.cop_to_usdt_rate = params.copToUsdtRate;
-  }
-  if (params.notes) {
-    updateData.notes = params.notes;
-  }
-
-  const { error: payoutErr } = await supabase
-    .from('affiliate_payouts')
-    .update(updateData)
-    .eq('id', params.payoutId);
-
-  if (payoutErr) {
-    console.error('Error completing payout:', payoutErr);
-    return false;
-  }
-
-  // Transicionar comisiones vinculadas a estado 'paid'
-  const { error: commErr } = await supabase
-    .from('affiliate_commissions')
-    .update({
-      status: 'paid',
-      updated_at: now,
-    })
-    .eq('payout_id', params.payoutId);
-
-  if (commErr) {
-    console.error('Error marking commissions as paid:', commErr);
-  }
+  await financeRpc('affiliate_transition_payout', {
+    p_payout_id: params.payoutId, p_action: 'completed', p_reference: params.binanceTxReference.trim(), p_reason: params.notes || null,
+  });
   return true;
 }
-
-/**
- * Rechaza una solicitud de liquidación y libera las comisiones para que vuelvan a estar disponibles.
- */
 export async function rejectPayoutAdmin(payoutId: string, reason?: string): Promise<boolean> {
-  const now = new Date().toISOString();
-  const { error: payoutErr } = await supabase
-    .from('affiliate_payouts')
-    .update({
-      status: 'rejected',
-      notes: reason || 'Rechazada por administrador',
-    })
-    .eq('id', payoutId);
-
-  if (payoutErr) return false;
-
-  await supabase
-    .from('affiliate_commissions')
-    .update({
-      payout_id: null,
-      status: 'available',
-      updated_at: now,
-    })
-    .eq('payout_id', payoutId);
-
+  await financeRpc('affiliate_transition_payout', { p_payout_id: payoutId, p_action: 'rejected', p_reason: reason || null });
   return true;
 }
-
-/**
- * Prepara y registra una liquidación administrativa en lote directamente desde el panel de admin.
- */
 export async function prepareAdminBatchPayout(params: {
-  affiliateId: string;
-  binanceUid: string;
-  copToUsdtRate: number;
-  binanceTxReference: string;
-  notes?: string;
+  affiliateId: string; binanceUid: string; copToUsdtRate: number; binanceTxReference: string; notes?: string;
 }): Promise<AffiliatePayout> {
-  // 1. Obtener todas las comisiones disponibles sin liquidación previa
-  const { data: availableComms, error } = await supabase
-    .from('affiliate_commissions')
-    .select('*')
-    .eq('affiliate_id', params.affiliateId)
-    .eq('status', 'available')
-    .is('payout_id', null);
-
-  if (error || !availableComms || availableComms.length === 0) {
-    throw new Error('El afiliado no tiene comisiones disponibles para liquidar.');
-  }
-
-  // 2. Sumas por divisa
-  const usdtSum = availableComms
-    .filter((c) => c.currency === 'USDT')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-
-  const copSum = availableComms
-    .filter((c) => c.currency === 'COP')
-    .reduce((sum, c) => sum + Number(c.commission_amount || 0), 0);
-
-  const copConvertedToUsdt = copSum > 0 && params.copToUsdtRate > 0
-    ? Number((copSum / params.copToUsdtRate).toFixed(2))
-    : 0;
-
-  const grossUsdt = Number((usdtSum + copConvertedToUsdt).toFixed(2));
-  if (grossUsdt <= FIXED_WITHDRAWAL_FEE_USDT) {
-    throw new Error(`El monto bruto (${grossUsdt} USDT) no supera la tarifa fija de 2 USDT.`);
-  }
-
-  const netUsdt = Number((grossUsdt - FIXED_WITHDRAWAL_FEE_USDT).toFixed(2));
-  const now = new Date().toISOString();
-
-  // 3. Crear registro de liquidación con referencia de Binance
-  const payoutPayload = {
-    affiliate_id: params.affiliateId,
-    binance_uid: params.binanceUid.trim(),
-    gross_amount_usdt: grossUsdt,
-    withdrawal_fee_usdt: FIXED_WITHDRAWAL_FEE_USDT,
-    net_amount_usdt: netUsdt,
-    cop_total_original: copSum,
-    cop_to_usdt_rate: params.copToUsdtRate,
-    status: 'completed',
-    binance_tx_reference: params.binanceTxReference.trim(),
-    notes: params.notes || 'Liquidación administrativa procesada',
-    created_at: now,
-    paid_at: now,
-  };
-
-  const { data: payout, error: pErr } = await supabase
-    .from('affiliate_payouts')
-    .insert([payoutPayload])
-    .select()
-    .single();
-
-  if (pErr) throw pErr;
-
-  // 4. Bloquear y marcar comisiones como pagadas (Criterio: nunca se duplica en otra liquidación)
-  const commIds = availableComms.map((c) => c.id);
-  await supabase
-    .from('affiliate_commissions')
-    .update({
-      payout_id: payout.id,
-      status: 'paid',
-      updated_at: now,
-    })
-    .in('id', commIds);
-
-  return payout as AffiliatePayout;
+  void params;
+  throw new Error('El afiliado debe confirmar la cotización y solicitar el retiro antes del pago.');
 }
-
 export async function getAffiliateProfile(userId: string, email?: string): Promise<Affiliate | null> {
-  const byId = await getAffiliateByUserId(userId);
-  if (byId) return byId;
-
-  if (email) {
-    const { data, error } = await supabase
-      .from('affiliates')
-      .select('*')
-      .ilike('user_email', email.trim())
-      .maybeSingle();
-
-    if (!error && data) return hydrateAffiliateExtraFields(data as Affiliate);
-  }
-
-  return null;
+  void email;
+  return getAffiliateByUserId(userId);
 }
-
-/**
- * Actualiza el Binance UID del afiliado para recibir pagos.
- */
 export async function updateAffiliateBinanceUid(affiliateId: string, binanceUid: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('affiliates')
-    .update({
-      binance_uid: binanceUid.trim(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', affiliateId);
-
-  if (error) {
-    console.error('Failed to update Binance UID:', error);
-    return false;
-  }
+  await financeRpc('affiliate_update_destination', { p_id: affiliateId, p_uid: binanceUid.trim() });
   return true;
 }
-
-/**
- * Obtiene las comisiones generadas por un afiliado específico (Aislamiento de datos).
- */
-export async function getMyCommissions(affiliateId: string): Promise<AffiliateCommission[]> {
-  const now = new Date().toISOString();
-  // Auto-promover comisiones que ya cumplieron el plazo de retención a 'available'
-  await supabase
-    .from('affiliate_commissions')
-    .update({ status: 'available', updated_at: now })
-    .eq('affiliate_id', affiliateId)
-    .eq('status', 'validating')
-    .lte('available_at', now);
-
-  const { data, error } = await supabase
-    .from('affiliate_commissions')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Failed to load my commissions:', error.message);
-    return [];
-  }
-  return (data || []) as AffiliateCommission[];
-}
-
-/**
- * Obtiene el historial de liquidaciones de un afiliado específico.
- */
-export async function getMyPayouts(affiliateId: string): Promise<AffiliatePayout[]> {
-  const { data, error } = await supabase
-    .from('affiliate_payouts')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.warn('Failed to load my payouts:', error.message);
-    return [];
-  }
-  return (data || []) as AffiliatePayout[];
-}
-
-

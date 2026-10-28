@@ -30,6 +30,12 @@ runInNewContext(outputText, {
         },
       };
     }
+    if (name.includes('affiliateFinanceService')) {
+      return { financeRpc: async (rpcName) => {
+        if (rpcName === 'affiliate_lookup_code') return null;
+        throw new Error(`Unexpected finance RPC: ${rpcName}`);
+      } };
+    }
     if (name.includes('types/affiliate')) {
       return {};
     }

@@ -3,7 +3,7 @@ export type AffiliateStatus = 'pending' | 'active' | 'suspended';
 export type CommissionStatus =
   | 'estimated'   // Ticket creado, pago aún no confirmado por el admin
   | 'validating'  // Pago confirmado por el admin, servicio en curso o recién finalizado
-  | 'available'   // Servicio finalizado y cumplido el plazo de garantía (7 días)
+  | 'available'   // Pago confirmado y cumplido el plazo de validación (7 días)
   | 'paid'        // Liquidado y transferido al Binance UID del afiliado
   | 'cancelled';  // Ticket cancelado o compra reembolsada
 
@@ -40,8 +40,10 @@ export interface AffiliateCommission {
   status: CommissionStatus;
   ticket_paid_at?: string | null;
   service_completed_at?: string | null;
-  available_at?: string | null; // service_completed_at + 7 days
+  available_at?: string | null; // ticket_paid_at + 7 days
   payout_id?: string | null;
+  requires_reconciliation?: boolean;
+  payment_verified?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +62,12 @@ export interface AffiliatePayout {
   notes?: string | null;
   created_at: string;
   paid_at?: string | null;
+  request_id?: string | null;
+  rate_version?: number | null;
+  rejected_reason?: string | null;
+  processed_at?: string | null;
+  updated_at?: string | null;
+  commission_ids?: string[];
 }
 
 export interface AffiliateStats {
