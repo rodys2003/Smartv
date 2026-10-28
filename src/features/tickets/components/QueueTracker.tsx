@@ -29,7 +29,6 @@ export function QueueTracker({
     servingTicket,
     waitingTickets,
     waitingCount,
-    completedCount,
     totalCount,
     maxTickets,
     ticketsEnabled,
@@ -306,9 +305,6 @@ export function QueueTracker({
               <Zap className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Próximos 5 Turnos en Fila</span>
             </h3>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Total atendidos: <strong className="text-emerald-600 dark:text-emerald-400">{completedCount}</strong> / {maxTickets}
-            </span>
           </div>
 
           {waitingTickets.length === 0 ? (
