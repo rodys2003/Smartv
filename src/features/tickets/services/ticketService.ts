@@ -168,3 +168,42 @@ export async function updateTicketPlan(
 
   return data as Ticket;
 }
+
+/**
+ * Actualiza el estado de pago del ticket ('paid' | 'pending').
+ */
+export async function updateTicketPaymentStatus(
+  ticketId: string,
+  paymentStatus: 'paid' | 'pending',
+  currentNotes?: string | null
+): Promise<Ticket | null> {
+  let notesObj: Record<string, unknown> = {};
+  if (currentNotes?.startsWith('{')) {
+    try {
+      notesObj = JSON.parse(currentNotes);
+    } catch {}
+  }
+
+  notesObj.payment_status = paymentStatus;
+  notesObj.is_paid = paymentStatus === 'paid';
+  notesObj.paid_at = paymentStatus === 'paid' ? new Date().toISOString() : null;
+
+  const notesJson = JSON.stringify(notesObj);
+
+  const { data, error } = await supabase
+    .from('tickets')
+    .update({
+      notes: notesJson,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ticketId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating ticket payment status:', error);
+    return null;
+  }
+
+  return data as Ticket;
+}

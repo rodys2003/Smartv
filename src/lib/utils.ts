@@ -207,3 +207,48 @@ export function parseTicketPaymentInfo(ticket?: {
     isCrypto: false,
   };
 }
+
+export type TicketPaymentStatus = 'paid' | 'pending' | 'free';
+
+/**
+ * Determina si el servicio está pago, pendiente de pago o si es gratis.
+ */
+export function getTicketPaymentStatus(ticket?: {
+  total_price?: number;
+  notes?: string | null;
+  service_tier?: string;
+} | null): TicketPaymentStatus {
+  if (!ticket) return 'pending';
+
+  // Si el precio total registrado es 0, el servicio es gratis
+  if (ticket.total_price === 0) {
+    return 'free';
+  }
+
+  if (ticket.notes) {
+    const trimmed = ticket.notes.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (
+          parsed.is_free === true ||
+          parsed.payment_status === 'free' ||
+          parsed.cop_price === 0 ||
+          parsed.usdt_price === 0
+        ) {
+          return 'free';
+        }
+        if (parsed.is_paid === true || parsed.payment_status === 'paid') {
+          return 'paid';
+        }
+        if (parsed.payment_status === 'pending') {
+          return 'pending';
+        }
+      } catch {
+        // ignore JSON parse error
+      }
+    }
+  }
+
+  return 'pending';
+}

@@ -5,13 +5,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ticket, TicketStatus } from '@/types';
-import { getTickets, updateTicketStatus } from '@/features/tickets/services/ticketService';
+import { getTickets, updateTicketStatus, updateTicketPaymentStatus } from '@/features/tickets/services/ticketService';
 import {
   getQueueSettings,
   updateQueueSettings,
   QueueSettings,
 } from '@/features/settings/services/settingsService';
-import { formatCOP, formatTicketNumber, parseTicketPaymentInfo } from '@/lib/utils';
+import { formatCOP, formatTicketNumber, parseTicketPaymentInfo, getTicketPaymentStatus } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -73,6 +73,9 @@ import {
   X,
   Phone,
   ExternalLink,
+  CheckCircle2,
+  CreditCard,
+  Gift,
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -298,21 +301,41 @@ export default function AdminPage() {
   };
 
   const handleUpdateAffiliateStatus = async (affiliateId: string, nextStatus: 'pending' | 'active' | 'suspended') => {
-    const ok = await updateAffiliateStatus(affiliateId, nextStatus);
-    if (ok) {
+    const res = await updateAffiliateStatus(affiliateId, nextStatus);
+    if (res.success) {
       setAffiliates((prev) =>
-        prev.map((a) => (a.id === affiliateId ? { ...a, status: nextStatus } : a))
+        prev.map((a) =>
+          a.id === affiliateId
+            ? { ...a, status: nextStatus, ...(res.referralCode ? { referral_code: res.referralCode } : {}) }
+            : a
+        )
       );
       setAffiliateFeedback({
         type: 'success',
         text:
           nextStatus === 'active'
-            ? '¡Afiliado aprobado y activado con éxito!'
+            ? `¡Afiliado aprobado y activado con éxito! Código generado: ${res.referralCode || 'asignado'}`
             : 'Estado de afiliado actualizado.',
       });
       setTimeout(() => setAffiliateFeedback(null), 3000);
     } else {
       setAffiliateFeedback({ type: 'error', text: 'Error al actualizar el estado del afiliado.' });
+    }
+  };
+
+  const handleTogglePaymentStatus = async (ticket: Ticket) => {
+    const current = getTicketPaymentStatus(ticket);
+    const nextStatus: 'paid' | 'pending' = current === 'paid' ? 'pending' : 'paid';
+    const updated = await updateTicketPaymentStatus(ticket.id, nextStatus, ticket.notes);
+    if (updated) {
+      setTickets((prev) =>
+        prev.map((t) => (t.id === ticket.id ? { ...t, notes: updated.notes } : t))
+      );
+      if (nextStatus === 'paid') {
+        markCommissionPaymentConfirmed(ticket.ticket_number).catch((err) =>
+          console.error('Failed to confirm affiliate commission:', err)
+        );
+      }
     }
   };
 
@@ -1105,9 +1128,9 @@ export default function AdminPage() {
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="font-mono font-black text-sm text-cyan-700 dark:text-cyan-300">
-                                    {aff.referral_code}
+                                    {aff.referral_code || 'Código por generar al aprobar'}
                                   </span>
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30">
                                     Pendiente
@@ -1288,23 +1311,27 @@ export default function AdminPage() {
 
                             {/* Enlace de referido y botones */}
                             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                              <button
-                                type="button"
-                                onClick={() => handleCopyReferralLink(aff.referral_code)}
-                                className="flex items-center gap-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 cursor-pointer"
-                              >
-                                {isCopied ? (
-                                  <>
-                                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                                    <span className="text-emerald-600 dark:text-emerald-400">¡Enlace copiado!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3.5 h-3.5" />
-                                    <span>Copiar /r/{aff.referral_code}</span>
-                                  </>
-                                )}
-                              </button>
+                              {aff.referral_code ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyReferralLink(aff.referral_code!)}
+                                  className="flex items-center gap-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 cursor-pointer"
+                                >
+                                  {isCopied ? (
+                                    <>
+                                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                                      <span className="text-emerald-600 dark:text-emerald-400">¡Enlace copiado!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3.5 h-3.5" />
+                                      <span>Copiar /r/{aff.referral_code}</span>
+                                    </>
+                                  )}
+                                </button>
+                              ) : (
+                                <span className="text-[11px] text-slate-400">Sin código asignado</span>
+                              )}
 
                               <button
                                 type="button"
@@ -1844,9 +1871,17 @@ export default function AdminPage() {
               <Tv className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Cola de Clientes Oficial ({filteredTickets.length})</span>
             </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Nomenclatura: <strong># A073</strong> a <strong># A999</strong>, luego <strong># B001</strong>...
-            </span>
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              <span className="px-2 py-0.5 rounded-md font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20">
+                {tickets.filter((t) => getTicketPaymentStatus(t) === 'paid').length} Pagos
+              </span>
+              <span className="px-2 py-0.5 rounded-md font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20">
+                {tickets.filter((t) => getTicketPaymentStatus(t) === 'pending').length} Pendientes de pago
+              </span>
+              <span className="px-2 py-0.5 rounded-md font-bold bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/20">
+                {tickets.filter((t) => getTicketPaymentStatus(t) === 'free').length} Gratis
+              </span>
+            </div>
           </div>
 
           {filteredTickets.length === 0 ? (
@@ -1874,6 +1909,41 @@ export default function AdminPage() {
                           <span className="text-xs text-slate-500 dark:text-slate-400">({t.user_email})</span>
                         )}
                         <Badge status={t.status} />
+                        {(() => {
+                          const paymentStatus = getTicketPaymentStatus(t);
+                          if (paymentStatus === 'free') {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/30">
+                                <Gift className="w-3 h-3" />
+                                <span>Gratis</span>
+                              </span>
+                            );
+                          }
+                          if (paymentStatus === 'paid') {
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePaymentStatus(t)}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 hover:opacity-80 transition-opacity cursor-pointer"
+                                title="Servicio Pago (clic para cambiar a Pendiente de pago)"
+                              >
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Pago</span>
+                              </button>
+                            );
+                          }
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePaymentStatus(t)}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:opacity-80 transition-opacity cursor-pointer"
+                              title="Servicio Pendiente de pago (clic para marcar como Pago)"
+                            >
+                              <Clock className="w-3 h-3" />
+                              <span>Pendiente de pago</span>
+                            </button>
+                          );
+                        })()}
                       </div>
                       <p className="text-xs text-slate-700 dark:text-slate-300">
                         <strong className="text-slate-500 dark:text-slate-400">TV: </strong>
@@ -1969,6 +2039,29 @@ export default function AdminPage() {
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
+
+                    {/* Quick Payment Status Toggle */}
+                    {getTicketPaymentStatus(t) !== 'free' && (
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePaymentStatus(t)}
+                        className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                          getTicketPaymentStatus(t) === 'paid'
+                            ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100'
+                            : 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30 hover:bg-amber-100'
+                        }`}
+                        title={
+                          getTicketPaymentStatus(t) === 'paid'
+                            ? 'Servicio Pago (clic para volver a Pendiente de pago)'
+                            : 'Marcar servicio como Pago'
+                        }
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span className="hidden xl:inline">
+                          {getTicketPaymentStatus(t) === 'paid' ? 'Pago' : 'Marcar Pago'}
+                        </span>
+                      </button>
+                    )}
 
                     {/* Status actions */}
                     {t.status === 'waiting' && (
