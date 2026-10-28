@@ -12,6 +12,8 @@ export function useQueue() {
   const [waitingTickets, setWaitingTickets] = useState<Ticket[]>([]);
   const [completedCount, setCompletedCount] = useState<number>(0);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [latestTicketNumber, setLatestTicketNumber] = useState<number>(0);
+  const [nextTicketNumber, setNextTicketNumber] = useState<number>(1);
   const [settings, setSettings] = useState<QueueSettings>({
     max_tickets: 100,
     tickets_enabled: true,
@@ -30,6 +32,8 @@ export function useQueue() {
       setServingTicket(queueData.servingTicket);
       setWaitingTickets(queueData.waitingTickets);
       setCompletedCount(queueData.completedCount);
+      setLatestTicketNumber(queueData.latestTicketNumber);
+      setNextTicketNumber(queueData.nextTicketNumber);
       setTotalCount(
         (queueData.servingTicket ? 1 : 0) +
           queueData.waitingTickets.length +
@@ -102,6 +106,8 @@ export function useQueue() {
     totalCount,
     waitingCount,
     waitTimeFormatted,
+    latestTicketNumber,
+    nextTicketNumber,
     settings,
     maxTickets: settings.max_tickets,
     isUnlimited,

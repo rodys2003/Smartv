@@ -36,6 +36,7 @@ export function QueueTracker({
     canIssueTicket,
     loading,
     refreshQueue,
+    nextTicketNumber,
   } = useQueue();
 
   const waitTimeDisplay = formatWaitTime(waitingCount);
@@ -219,7 +220,7 @@ export function QueueTracker({
                 className="shrink-0 font-black text-xs shadow-md dark:shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center gap-2 cursor-pointer w-full md:w-auto justify-center"
               >
                 <Zap className="w-4 h-4 fill-white" />
-                <span>Tomar Turno Inmediato ({formatTicketNumber(1)})</span>
+                <span>Tomar Turno Inmediato ({formatTicketNumber(nextTicketNumber)})</span>
               </Button>
             )}
           </div>
@@ -319,7 +320,7 @@ export function QueueTracker({
                   onClick={onOpenTicketModal}
                   className="mt-3 text-xs"
                 >
-                  Tomar Turno # A073
+                  {`Tomar Turno ${formatTicketNumber(nextTicketNumber)}`}
                 </Button>
               )}
             </div>

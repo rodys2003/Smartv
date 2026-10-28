@@ -99,15 +99,32 @@ export async function getActiveQueue(): Promise<{
   servingTicket: Ticket | null;
   waitingTickets: Ticket[];
   completedCount: number;
+  latestTicketNumber: number;
+  nextTicketNumber: number;
 }> {
-  const { data, error } = await supabase
-    .from('tickets')
-    .select('*')
-    .order('ticket_number', { ascending: true });
+  const [{ data, error }, { data: latestRow }] = await Promise.all([
+    supabase
+      .from('tickets')
+      .select('*')
+      .order('ticket_number', { ascending: true }),
+    supabase
+      .from('tickets')
+      .select('ticket_number')
+      .order('ticket_number', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   if (error || !data) {
     console.error('Error fetching active queue:', error);
-    return { servingTicket: null, waitingTickets: [], completedCount: 0 };
+    const fallbackLatest = latestRow?.ticket_number || 0;
+    return {
+      servingTicket: null,
+      waitingTickets: [],
+      completedCount: 0,
+      latestTicketNumber: fallbackLatest,
+      nextTicketNumber: fallbackLatest + 1,
+    };
   }
 
   const all = data as Ticket[];
@@ -115,10 +132,16 @@ export async function getActiveQueue(): Promise<{
   const waiting = all.filter((t) => t.status === 'waiting');
   const completed = all.filter((t) => t.status === 'completed');
 
+  const maxFromAll = all.length > 0 ? Math.max(...all.map((t) => t.ticket_number || 0)) : 0;
+  const latestTicketNumber = Math.max(latestRow?.ticket_number || 0, maxFromAll);
+  const nextTicketNumber = latestTicketNumber + 1;
+
   return {
     servingTicket: inProgress || null,
     waitingTickets: waiting,
     completedCount: completed.length,
+    latestTicketNumber,
+    nextTicketNumber,
   };
 }
 
