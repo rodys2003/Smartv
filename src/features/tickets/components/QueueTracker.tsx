@@ -99,12 +99,12 @@ export function QueueTracker({
               <p className="font-bold text-amber-300 text-sm">
                 {!ticketsEnabled
                   ? 'Asignación de turnos pausada temporalmente'
-                  : `Límite de atención alcanzado (${totalCount}/${maxTickets} clientes)`}
+                  : `Límite de atención alcanzado (${totalCount}/${maxTickets ?? 100} clientes)`}
               </p>
               <p className="mt-0.5 text-amber-200/90 leading-relaxed">
                 {!ticketsEnabled
                   ? 'El administrador ha pausado la recepción de nuevos turnos para atender a los clientes en fila. Espera unos momentos.'
-                  : `Hemos alcanzado el tope de ${maxTickets} clientes por sesión para garantizar la máxima calidad. Espera a que el administrador vuelva a habilitar turnos.`}
+                  : `Hemos alcanzado el tope de ${maxTickets ?? 100} clientes por sesión para garantizar la máxima calidad. Espera a que el administrador vuelva a habilitar turnos.`}
               </p>
             </div>
           </div>

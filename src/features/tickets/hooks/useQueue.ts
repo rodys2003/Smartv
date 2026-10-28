@@ -16,6 +16,7 @@ export function useQueue() {
     max_tickets: 100,
     tickets_enabled: true,
     whatsapp_queue_threshold: 5,
+    unlimited_tickets: false,
   });
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -83,9 +84,14 @@ export function useQueue() {
     };
   }, [refreshQueue]);
 
+  const isUnlimited = Boolean(
+    settings.unlimited_tickets ||
+      settings.max_tickets === null ||
+      settings.max_tickets <= 0
+  );
   const waitingCount = waitingTickets.length;
   const waitTimeFormatted = formatWaitTime(waitingCount);
-  const isLimitReached = totalCount >= settings.max_tickets;
+  const isLimitReached = !isUnlimited && settings.max_tickets !== null && totalCount >= settings.max_tickets;
   const canIssueTicket = settings.tickets_enabled && !isLimitReached;
   const whatsappThreshold = settings.whatsapp_queue_threshold ?? 5;
 
@@ -98,6 +104,7 @@ export function useQueue() {
     waitTimeFormatted,
     settings,
     maxTickets: settings.max_tickets,
+    isUnlimited,
     ticketsEnabled: settings.tickets_enabled,
     whatsappThreshold,
     isLimitReached,

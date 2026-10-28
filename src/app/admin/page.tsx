@@ -69,6 +69,7 @@ import {
   CheckCircle2,
   CreditCard,
   Gift,
+  Infinity as InfinityIcon,
 } from 'lucide-react';
 
 export default function AdminPage() {
@@ -81,6 +82,7 @@ export default function AdminPage() {
     max_tickets: 100,
     tickets_enabled: true,
     whatsapp_queue_threshold: 5,
+    unlimited_tickets: false,
   });
   const [loading, setLoading] = useState(true);
   const [updatingSettings, setUpdatingSettings] = useState(false);
@@ -166,12 +168,32 @@ export default function AdminPage() {
     setUpdatingSettings(false);
   };
 
+  const handleToggleUnlimitedTickets = async () => {
+    setUpdatingSettings(true);
+    const currentlyUnlimited = Boolean(
+      settings.unlimited_tickets ||
+        settings.max_tickets === null ||
+        settings.max_tickets <= 0
+    );
+    const updated = await updateQueueSettings({
+      unlimited_tickets: !currentlyUnlimited,
+      max_tickets: !currentlyUnlimited ? null : 100,
+      tickets_enabled: true,
+    });
+    if (updated) {
+      setSettings(updated);
+    }
+    setUpdatingSettings(false);
+  };
+
   const handleResetCapacityLimit = async () => {
     setUpdatingSettings(true);
     // Re-enable tickets and ensure max_tickets is set to 100 or current + 50
-    const newMax = Math.max(100, tickets.length + 50);
+    const currentMax = settings.max_tickets ?? 100;
+    const newMax = Math.max(100, currentMax + 50);
     const updated = await updateQueueSettings({
       tickets_enabled: true,
+      unlimited_tickets: false,
       max_tickets: newMax,
     });
     if (updated) {
@@ -337,7 +359,12 @@ export default function AdminPage() {
   const cancelledCount = tickets.filter((t) => t.status === 'cancelled').length;
   const nonCancelledCount = tickets.filter((t) => t.status !== 'cancelled').length;
 
-  const isLimitReached = nonCancelledCount >= settings.max_tickets;
+  const isUnlimited = Boolean(
+    settings.unlimited_tickets ||
+      settings.max_tickets === null ||
+      settings.max_tickets <= 0
+  );
+  const isLimitReached = !isUnlimited && settings.max_tickets !== null && nonCancelledCount >= settings.max_tickets;
 
   if (authLoading) {
     return (
@@ -528,44 +555,62 @@ export default function AdminPage() {
         {/* Queue Settings & Capacity Controller Box */}
         <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-md dark:shadow-[0_0_30px_rgba(6,182,212,0.15)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 <Users className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                 <span>Control de Capacidad & Emisión de Turnos</span>
               </span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                  settings.tickets_enabled && !isLimitReached
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
-                    : 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                  !settings.tickets_enabled
+                    ? 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                    : isUnlimited
+                    ? 'bg-cyan-50 text-cyan-800 border-cyan-300 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/30'
+                    : isLimitReached
+                    ? 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
                 }`}
               >
-                {settings.tickets_enabled && !isLimitReached
-                  ? 'Turnos Habilitados'
+                {!settings.tickets_enabled
+                  ? 'Turnos Pausados'
+                  : isUnlimited
+                  ? 'Sin Límite de Turnos'
                   : isLimitReached
-                  ? 'Tope de 100 Alcanzado'
-                  : 'Turnos Pausados'}
+                  ? `Tope Alcanzado (${settings.max_tickets})`
+                  : 'Turnos Habilitados'}
               </span>
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl">
-              Capacidad configurada: <strong>{nonCancelledCount}</strong> tickets registrados de{' '}
-              <strong>{settings.max_tickets}</strong> permitidos. Cuando se alcanza el límite de{' '}
-              {settings.max_tickets} clientes, el sistema bloquea automáticamente la creación de turnos hasta que el administrador vuelva a habilitarlos.
+              {isUnlimited ? (
+                <>
+                  Capacidad configurada: <strong>Turnos Ilimitados Activo</strong>. Hay{' '}
+                  <strong>{nonCancelledCount}</strong> tickets registrados sin ningún tope o restricción. El sistema no bloqueará la creación de turnos.
+                </>
+              ) : (
+                <>
+                  Capacidad configurada: <strong>{nonCancelledCount}</strong> tickets registrados de{' '}
+                  <strong>{settings.max_tickets}</strong> permitidos. Cuando se alcanza el límite, el sistema bloquea automáticamente la creación de turnos.
+                </>
+              )}
             </p>
 
             {/* Progress Bar of Capacity */}
             <div className="w-full bg-slate-100 dark:bg-slate-950 rounded-full h-2.5 border border-slate-200 dark:border-slate-800 overflow-hidden mt-2">
               <div
                 className={`h-full transition-all duration-500 ${
-                  isLimitReached
-                    ? 'bg-rose-500'
-                    : nonCancelledCount >= 80
+                  isUnlimited
+                    ? 'bg-gradient-to-r from-cyan-500 via-emerald-400 to-cyan-400 w-full animate-pulse'
+                    : isLimitReached
+                    ? 'bg-rose-500 w-full'
+                    : nonCancelledCount >= ((settings.max_tickets || 100) * 0.8)
                     ? 'bg-amber-400'
                     : 'bg-cyan-500 dark:bg-cyan-400'
                 }`}
                 style={{
-                  width: `${Math.min(100, (nonCancelledCount / settings.max_tickets) * 100)}%`,
+                  width: isUnlimited
+                    ? '100%'
+                    : `${Math.min(100, (nonCancelledCount / (settings.max_tickets || 100)) * 100)}%`,
                 }}
               />
             </div>
@@ -593,17 +638,35 @@ export default function AdminPage() {
               )}
             </Button>
 
-            {/* Re-enable button when limit reached or to expand capacity */}
+            {/* Toggle unlimited tickets action */}
             <Button
-              variant="whatsapp"
+              variant={isUnlimited ? 'outline' : 'whatsapp'}
               size="md"
               disabled={updatingSettings}
-              onClick={handleResetCapacityLimit}
-              className="text-xs font-bold flex items-center gap-2 shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              onClick={handleToggleUnlimitedTickets}
+              className={`text-xs font-bold flex items-center gap-2 ${
+                isUnlimited
+                  ? 'border-cyan-500 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-cyan-950/40'
+                  : 'shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+              }`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Habilitar Más Cupos (+50)</span>
+              <InfinityIcon className="w-4 h-4" />
+              <span>{isUnlimited ? 'Restablecer Límite (100)' : 'Quitar Límite de Tickets'}</span>
             </Button>
+
+            {/* If limited, show +50 cupos */}
+            {!isUnlimited && (
+              <Button
+                variant="outline"
+                size="md"
+                disabled={updatingSettings}
+                onClick={handleResetCapacityLimit}
+                className="text-xs font-bold flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>+50 Cupos</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1371,7 +1434,7 @@ export default function AdminPage() {
               {tickets.length}
             </span>
             <span className="text-[10px] text-slate-500 block mt-0.5">
-              Tope: {settings.max_tickets}
+              Tope: {isUnlimited ? 'Ilimitado' : (settings.max_tickets ?? 100)}
             </span>
           </button>
 

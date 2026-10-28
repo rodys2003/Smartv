@@ -1,10 +1,11 @@
 import { supabase } from '@/lib/supabase/client';
 
 export interface QueueSettings {
-  max_tickets: number;
+  max_tickets: number | null;
   tickets_enabled: boolean;
   announcement?: string | null;
   whatsapp_queue_threshold?: number;
+  unlimited_tickets?: boolean;
 }
 
 const DEFAULT_SETTINGS: QueueSettings = {
@@ -12,6 +13,7 @@ const DEFAULT_SETTINGS: QueueSettings = {
   tickets_enabled: true,
   announcement: null,
   whatsapp_queue_threshold: 5,
+  unlimited_tickets: false,
 };
 
 export async function getQueueSettings(): Promise<QueueSettings> {
@@ -26,11 +28,15 @@ export async function getQueueSettings(): Promise<QueueSettings> {
       return DEFAULT_SETTINGS;
     }
 
+    const rawMax = data.value.max_tickets;
+    const isUnlimited = data.value.unlimited_tickets ?? (rawMax === null || rawMax <= 0 || rawMax >= 999999);
+
     return {
-      max_tickets: data.value.max_tickets ?? 100,
+      max_tickets: isUnlimited ? null : (rawMax ?? 100),
       tickets_enabled: data.value.tickets_enabled ?? true,
       announcement: data.value.announcement ?? null,
       whatsapp_queue_threshold: data.value.whatsapp_queue_threshold ?? 5,
+      unlimited_tickets: Boolean(isUnlimited),
     };
   } catch (err) {
     console.error('Error fetching queue settings:', err);
@@ -72,8 +78,9 @@ export interface TicketAvailability {
   available: boolean;
   reason?: 'limit_reached' | 'tickets_paused';
   currentCount: number;
-  maxTickets: number;
+  maxTickets: number | null;
   ticketsEnabled: boolean;
+  unlimited?: boolean;
 }
 
 export async function checkTicketAvailability(): Promise<TicketAvailability> {
@@ -95,16 +102,24 @@ export async function checkTicketAvailability(): Promise<TicketAvailability> {
         currentCount,
         maxTickets: settings.max_tickets,
         ticketsEnabled: false,
+        unlimited: Boolean(settings.unlimited_tickets),
       };
     }
 
-    if (currentCount >= settings.max_tickets) {
+    const isUnlimited = Boolean(
+      settings.unlimited_tickets ||
+        settings.max_tickets === null ||
+        settings.max_tickets <= 0
+    );
+
+    if (!isUnlimited && settings.max_tickets !== null && currentCount >= settings.max_tickets) {
       return {
         available: false,
         reason: 'limit_reached',
         currentCount,
         maxTickets: settings.max_tickets,
         ticketsEnabled: true,
+        unlimited: false,
       };
     }
 
@@ -113,6 +128,7 @@ export async function checkTicketAvailability(): Promise<TicketAvailability> {
       currentCount,
       maxTickets: settings.max_tickets,
       ticketsEnabled: true,
+      unlimited: isUnlimited,
     };
   } catch (err) {
     console.error('Error checking ticket availability:', err);
@@ -121,6 +137,7 @@ export async function checkTicketAvailability(): Promise<TicketAvailability> {
       currentCount: 0,
       maxTickets: 100,
       ticketsEnabled: true,
+      unlimited: false,
     };
   }
 }
