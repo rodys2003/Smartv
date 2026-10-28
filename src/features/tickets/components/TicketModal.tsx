@@ -330,6 +330,9 @@ export function TicketModal({
                 <AlertTriangle aria-hidden="true" className="mt-1 h-5 w-5 shrink-0" />
                 <strong>No compatible con Samsung Tizen ni LG webOS.</strong>
               </p>
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                <strong>Requisito indispensable:</strong> En tu televisor debes poder instalar la app <strong>Tailscale</strong> para enviar el código QR cuando sea tu turno. Si en tu TV no se puede instalar Tailscale, no se le podrá realizar el servicio.
+              </p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>

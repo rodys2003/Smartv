@@ -1,10 +1,13 @@
 import { TVBrandGuide, VideoTutorial } from '@/types';
 
+export const TAILSCALE_MANDATORY_NOTICE =
+  'Requisito Excluyente: Si en tu Smart TV no es posible instalar la app Tailscale, lamentablemente no se le podrá realizar el servicio de optimización remota.';
+
 export const TAILSCALE_TUTORIAL: VideoTutorial = {
   id: 'tailscale-guide',
-  title: 'Configuración Obligatoria: Instalar y Activar Tailscale',
+  title: 'Tutorial Oficial: Cómo Instalar Tailscale y Obtener tu Código QR',
   description:
-    'Tailscale nos permite conectarnos de forma segura y remota a tu Smart TV para realizar la optimización sin necesidad de abrir puertos ni poner en riesgo tu red.',
+    'Tailscale nos permite conectarnos de forma segura y remota a tu Smart TV para realizar la optimización. Solo debes descargar la app en tu TV y tener listo el código QR en tu pantalla.',
   embedUrl: 'https://www.youtube.com/embed/Gs-Q9kkfnmU?si=kli3Y0SKs7oOb-iP',
   thumbnailUrl: 'https://img.youtube.com/vi/Gs-Q9kkfnmU/hqdefault.jpg',
   category: 'tailscale',
@@ -14,7 +17,7 @@ export const USB_DEBUGGING_VIDEOS: VideoTutorial[] = [
   {
     id: 'usb-debug-1',
     title: 'Tutorial 1: Cómo habilitar Depuración USB en Android TV / Google TV',
-    description: 'Paso a paso para desbloquear el menú de opciones de desarrollador y activar la depuración USB.',
+    description: 'Guía complementaria en caso de que tu dispositivo requiera opciones de desarrollador adicionales.',
     embedUrl: 'https://www.youtube.com/embed/YZdGtqNbfXw?si=nDFlNQwXlmd1mERT',
     thumbnailUrl: 'https://img.youtube.com/vi/YZdGtqNbfXw/hqdefault.jpg',
     category: 'usb-debugging',
@@ -46,47 +49,36 @@ export const TV_GUIDES: TVBrandGuide[] = [
     steps: [
       {
         step: 1,
-        title: 'Activar el Modo Desarrollador en tu TV',
-        description: 'Desbloquea las opciones de desarrollador y la depuración USB en los ajustes del sistema.',
-        actionable: 'Mira los 3 videos tutoriales abajo para tu modelo si tienes dudas.',
+        title: 'Descargar e Instalar Tailscale en tu TV',
+        description: 'Instala la app oficial y gratuita Tailscale desde la tienda de aplicaciones de tu Smart TV y ábrela.',
+        actionable: 'Instalá Tailscale desde la tienda de tu TV, presioná "Sign in" o "Get Started" y dejá el código QR visible.',
         details: [
-          'En tu control remoto, ingresá a Ajustes (ícono de tuerca) ➔ Preferencias del dispositivo (o Sistema) ➔ Información.',
-          'Bajá hasta la opción "Compilación del SO de Android TV" (o "Número de compilación").',
-          'Presioná el botón central del control 7 veces seguidas sobre esa opción hasta que aparezca el mensaje: "¡Ya eres desarrollador!".',
-          'Volvé atrás, ingresá al nuevo menú "Opciones para desarrolladores" y activá: ✅ Depuración por USB (y si te aparece, también activá Depuración de red).',
+          'Abrí la Google Play Store (o tienda de aplicaciones oficial de tu Smart TV, Google TV o TV Box).',
+          'Buscá la aplicación gratuita oficial: Tailscale.',
+          'Instalala y dale a Abrir en tu televisor.',
+          'Al abrir la app, presioná en "Sign in" o "Get Started". En la pantalla de tu TV aparecerá un código QR grande de vinculación.',
         ],
       },
       {
         step: 2,
-        title: 'Instalar y Conectar la Red Segura (Tailscale)',
-        description: 'Instala la app oficial Tailscale para establecer el túnel cifrado privado.',
-        actionable: 'Mantené abierta la pantalla con el código o estado de conexión de Tailscale.',
+        title: 'Enviar el Código QR por WhatsApp en tu Turno',
+        description: 'Cuando llegue tu turno de atención, tómale una foto clara al código QR de tu televisor y envíanosla por WhatsApp.',
+        actionable: 'Tomale una foto al QR de tu TV y envíanosla por WhatsApp junto a tu número de turno.',
         details: [
-          'Abrí la Google Play Store en tu televisor y buscá la app gratuita: Tailscale.',
-          'Dale a Instalar y luego a Abrir.',
-          'Presioná el botón "Get Started".',
-          'Cuando el televisor te muestre la ventana: "Solicitud de conexión / Tailscale quiere configurar una VPN", seleccioná ACEPTAR.',
-          'Mantené la pantalla abierta donde aparece el código o el estado de conexión.',
-        ],
-      },
-      {
-        step: 3,
-        title: 'Confirmación por WhatsApp y Conexión',
-        description: 'Envía tu foto a WhatsApp al iniciar tu turno para proceder con la optimización.',
-        actionable: 'Envía la foto de la pantalla con Tailscale abierto y tu número de turno a WhatsApp.',
-        details: [
-          'Tomale una foto con tu celular a la pantalla de tu televisor mostrando la app Tailscale abierta.',
-          'Escribinos a nuestro WhatsApp enviando la foto de la pantalla junto con tu número de comprobante/turno.',
-          'En ese momento iniciaremos la conexión: en tu televisor aparecerá una ventana que dice "¿Permitir depuración por USB?". Solo deberás marcar la casilla "Permitir siempre" y presionar ACEPTAR.',
+          'Mantené la pantalla de Tailscale abierta en tu TV con el código QR visible.',
+          'Cuando el sistema o el técnico te avise que es tu turno de atención, abrí nuestro WhatsApp.',
+          'Tomale una foto nítida con tu teléfono celular a la pantalla de tu televisor mostrando el código QR.',
+          'Envianos la foto junto con tu número de turno asignado para iniciar la optimización de inmediato.',
         ],
       },
     ],
     whatsappChecklist: [
-      'Foto nítida de la pantalla de tu televisor mostrando la app Tailscale abierta',
+      'Tener descargada la app Tailscale en tu televisor (Requisito indispensable)',
+      'Foto nítida del código QR que muestra la app Tailscale en la pantalla de tu TV',
       'Número de comprobante / ticket de turno obtenido en la web',
       'Si elegiste plan de 70k: Foto o temática que deseas para tu TV (Anime, Gamer, Cine)',
       'Confirmar si deseas el paquete de Apps Mágicas (+20.000 COP)',
     ],
-    videos: USB_DEBUGGING_VIDEOS,
+    videos: [TAILSCALE_TUTORIAL, ...USB_DEBUGGING_VIDEOS],
   },
 ];

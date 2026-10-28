@@ -19,7 +19,10 @@ import {
   Network,
   Usb,
   ArrowRight,
-  Tv
+  Tv,
+  QrCode,
+  Download,
+  ChevronDown,
 } from 'lucide-react';
 
 interface StepByStepGuideProps {
@@ -41,7 +44,7 @@ export function StepByStepGuide({
 }: StepByStepGuideProps) {
   const [fullscreenVideo, setFullscreenVideo] = useState<VideoTutorial | null>(null);
 
-  const currentBrand = TV_GUIDES[0]; // Exclusively Android TV / Google TV
+  const currentBrand = TV_GUIDES[0]; // Android TV / Google TV / Fire TV
 
   // Close fullscreen on ESC key
   useEffect(() => {
@@ -82,13 +85,13 @@ export function StepByStepGuide({
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <Badge variant="cyan" className="mb-3">
-            Preparación Técnica Obligatoria
+            Preparación Rápida en 2 Pasos
           </Badge>
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
             Pasos que Debes Hacer en tu TV
           </h2>
           <p className="text-slate-600 dark:text-slate-400 mt-3 text-sm md:text-base">
-            Sigue estos 3 pasos obligatorios en tu Android TV o Google TV para que podamos conectarnos cuando llegue tu turno.
+            Ahora el proceso es mucho más simple: solo descargas <strong>Tailscale</strong> en tu televisor y nos envías el <strong>código QR</strong> cuando sea tu turno de atención.
           </p>
         </div>
 
@@ -102,12 +105,18 @@ export function StepByStepGuide({
             </div>
 
             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
-              Guía Técnica y Tutoriales Exclusivos para Clientes
+              Guía Técnica y Turnos de Atención
             </h3>
 
-            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed mb-6 max-w-xl mx-auto">
-              Para garantizar que los televisores estén correctamente preparados y asignar tu turno en la cola de atención 1 a 1, inicia sesión con Google.
+            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed mb-4 max-w-xl mx-auto">
+              Ahora el proceso es rápido y directo: únicamente debes descargar <strong>Tailscale</strong> en tu televisor y enviar el <strong>código QR</strong> cuando sea tu turno.
             </p>
+
+            {/* Warning in locked view */}
+            <div className="mb-6 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-300 dark:border-rose-500/30 text-xs text-rose-950 dark:text-rose-200 max-w-xl mx-auto flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+              <span><strong>Aviso indispensable:</strong> Si en tu Smart TV no es posible instalar Tailscale, no se le podrá realizar el servicio.</span>
+            </div>
 
             <div className="inline-flex flex-col sm:flex-row items-center gap-3">
               <Button
@@ -122,31 +131,49 @@ export function StepByStepGuide({
 
             <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
-                <Usb className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                Videos de Depuración USB
+                <Download className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                Descargar Tailscale en tu TV
               </span>
               <span className="flex items-center gap-1.5">
-                <Network className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                Configuración Tailscale
+                <QrCode className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                Enviar Código QR en tu Turno
               </span>
               <span className="flex items-center gap-1.5">
                 <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Chat Directo de WhatsApp
+                Atención Directa por WhatsApp
               </span>
             </div>
           </div>
         ) : (
           /* AUTHENTICATED STATE: FULL GUIDE & VIDEOS */
-          <div className="space-y-12">
-            {/* Device Compatibility Notice: ONLY Android TV, NO Samsung Tizen NO WebOS */}
+          <div className="space-y-10">
+            {/* 1. CRITICAL PREREQUISITE: TAILSCALE REQUIRED */}
+            <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 flex items-start gap-4 text-rose-950 dark:text-rose-100 shadow-sm">
+              <div className="p-2 rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs uppercase font-extrabold tracking-wider text-rose-800 dark:text-rose-300 block">
+                  Requisito Excluyente y Obligatorio
+                </span>
+                <p className="text-sm md:text-base font-extrabold text-rose-950 dark:text-rose-100 leading-snug">
+                  Si en tu Smart TV no se puede instalar la aplicación Tailscale, NO se le podrá realizar el servicio de optimización remota.
+                </p>
+                <p className="text-xs md:text-sm text-rose-900/90 dark:text-rose-200/90 leading-relaxed pt-0.5">
+                  La optimización se realiza de manera remota a través de Tailscale para garantizar máxima seguridad y rapidez. Si la tienda de aplicaciones de tu Smart TV no permite instalar Tailscale, el servicio técnico no se podrá llevar a cabo.
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Device Compatibility Notice: ONLY Android TV, NO Samsung Tizen NO WebOS */}
             <div className="p-4 md:p-5 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-start gap-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-sm">
               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">
-                  Dispositivos soportados: Únicamente Android TV y Google TV
+                  Dispositivos soportados: Únicamente Android TV, Google TV, Fire TV y TV Box
                 </p>
                 <p className="mt-0.5 text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
-                  Los televisores <strong>Samsung Smart TV (Tizen OS)</strong> y <strong>LG (webOS)</strong> quedan <strong>totalmente descartados</strong> debido a restricciones y bloqueos de seguridad del fabricante. Si tu televisor es Samsung o LG, puedes conectarle un Chromecast con Google TV o TV Box Android para optimizarlo.
+                  Los televisores <strong>Samsung Smart TV (Tizen OS)</strong> y <strong>LG (webOS)</strong> quedan <strong>totalmente descartados</strong> debido a que sus tiendas cerradas no admiten la instalación de Tailscale. Si tu televisor es Samsung o LG, puedes conectarle un Chromecast con Google TV, Fire TV Stick o TV Box Android para realizar la optimización.
                 </p>
               </div>
             </div>
@@ -160,12 +187,12 @@ export function StepByStepGuide({
               </p>
             </div>
 
-            {/* 3 STEPS GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+            {/* STEPS GRID (2 STEPS) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
               {currentBrand.steps.map((step) => (
                 <div
                   key={step.step}
-                  className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/40 transition-all duration-300 shadow-md hover:shadow-lg dark:shadow-xl relative overflow-hidden"
+                  className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-7 flex flex-col justify-between hover:border-cyan-500/40 transition-all duration-300 shadow-md hover:shadow-lg dark:shadow-xl relative overflow-hidden"
                 >
                   <div>
                     {/* Header with step number */}
@@ -173,14 +200,14 @@ export function StepByStepGuide({
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 font-black text-lg flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
                         {step.step}
                       </div>
-                      <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
+                      <h3 className="text-base md:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
                         {step.title}
                       </h3>
                     </div>
 
-                    {/* Detailed sub-list (Clean, No duplication) */}
+                    {/* Detailed sub-list */}
                     {step.details ? (
-                      <div className="space-y-2.5 mb-5 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
+                      <div className="space-y-3 mb-5 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
                         {step.details.map((item, idx) => (
                           <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-200">
                             <span className="w-5 h-5 rounded-full bg-cyan-100 dark:bg-cyan-500/15 border border-cyan-300 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
@@ -198,8 +225,12 @@ export function StepByStepGuide({
                   </div>
 
                   {/* Actionable tag */}
-                  <div className="mt-2 p-3 rounded-xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30 flex items-start gap-2.5 text-xs text-cyan-800 dark:text-cyan-300">
-                    <Camera className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                  <div className="mt-2 p-3.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30 flex items-start gap-2.5 text-xs text-cyan-800 dark:text-cyan-300">
+                    {step.step === 1 ? (
+                      <Download className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <QrCode className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                    )}
                     <span>
                       <strong className="text-slate-900 dark:text-white font-semibold">Qué hacer: </strong>
                       {step.actionable}
@@ -209,7 +240,7 @@ export function StepByStepGuide({
               ))}
             </div>
 
-            {/* VIDEO TUTORIALS SECTION WITH FULLSCREEN & PLAY BUTTONS */}
+            {/* VIDEO TUTORIAL SECTION: TAILSCALE FEATURED & COMPLEMENTARY OPTIONS */}
             <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-6 md:p-8 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
@@ -218,31 +249,91 @@ export function StepByStepGuide({
                   </div>
                   <div>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                      Tutoriales Oficiales en Video (Play List)
+                      Tutorial en Video: Instalación y Vinculación
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Haz clic en cualquier video para reproducirlo directamente en pantalla completa.
+                      Sigue este video paso a paso para dejar lista tu app Tailscale y tu código QR.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Video 1 to 3: USB Debugging Playlist */}
-              <div className="mb-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <Usb className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Habilitar Depuración USB en Android TV / Google TV
-                  </h4>
+              {/* Main Tailscale Video Card */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-50 dark:bg-slate-950 p-4 md:p-6 rounded-2xl border border-cyan-200 dark:border-cyan-500/30">
+                <div className="lg:col-span-7">
+                  <button
+                    type="button"
+                    onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
+                    className="relative aspect-video w-full rounded-2xl overflow-hidden group cursor-pointer border border-cyan-300 dark:border-cyan-500/40 text-left block"
+                    aria-label="Reproducir tutorial de Tailscale en pantalla completa"
+                  >
+                    {TAILSCALE_TUTORIAL.thumbnailUrl && (
+                      <Image
+                        src={TAILSCALE_TUTORIAL.thumbnailUrl}
+                        alt={TAILSCALE_TUTORIAL.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-red-600/95 group-hover:bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.7)] flex items-center justify-center transition-all group-hover:scale-110">
+                        <Play className="w-7 h-7 text-white fill-white ml-0.5" />
+                      </div>
+                    </div>
+
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2.5 py-1 rounded-md bg-black/80 text-xs font-bold text-cyan-300 border border-cyan-500/40 backdrop-blur-md flex items-center gap-1.5">
+                        <Maximize2 className="w-3 h-3" />
+                        <span>Pantalla Completa</span>
+                      </span>
+                    </div>
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div className="lg:col-span-5 space-y-4">
+                  <span className="text-xs uppercase font-bold text-cyan-600 dark:text-cyan-400 tracking-wider block">
+                    Conexión Remota Segura
+                  </span>
+
+                  <h5 className="text-base font-bold text-slate-900 dark:text-white">
+                    ¿Cómo funciona el Código QR de Tailscale?
+                  </h5>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Tailscale crea un enlace cifrado seguro punto a punto entre tu TV y nuestro equipo técnico. No necesitas ingresar contraseñas de tu Wi-Fi ni alterar tu router: solo abres la app y el televisor te muestra un código QR para vincular.
+                  </p>
+
+                  <div className="p-3 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-500/30 rounded-xl text-xs text-cyan-900 dark:text-cyan-200">
+                    <strong>Paso clave:</strong> Cuando abras Tailscale en tu TV y pulses &quot;Sign in&quot; o &quot;Get Started&quot;, déjalo en la pantalla con el código QR. Al llegar tu turno le tomas foto y nos la envías por WhatsApp.
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all cursor-pointer hover:scale-[1.01]"
+                  >
+                    <Play className="w-4 h-4 fill-slate-950" />
+                    <span>Reproducir Video en Pantalla Completa</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Optional Collapsible USB Debugging / Developer Mode Tutorials */}
+              <details className="mt-6 border-t border-slate-200 dark:border-slate-800 pt-5 group">
+                <summary className="cursor-pointer flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 py-1 select-none">
+                  <span className="flex items-center gap-2">
+                    <Usb className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span>¿Tu dispositivo solicita permisos especiales o depuración? Ver tutoriales complementarios (opcional)</span>
+                  </span>
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+                </summary>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                   {USB_DEBUGGING_VIDEOS.map((video, idx) => (
                     <div
                       key={video.id}
-                      className="bg-slate-50 dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col justify-between group hover:border-cyan-500/60 transition-all shadow-sm"
+                      className="bg-slate-50 dark:bg-slate-950 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col justify-between group/v hover:border-cyan-500/60 transition-all shadow-sm"
                     >
-                      {/* Video Thumbnail with interactive full-screen play trigger */}
                       <button
                         type="button"
                         onClick={() => openFullscreen(video)}
@@ -254,127 +345,43 @@ export function StepByStepGuide({
                             src={video.thumbnailUrl}
                             alt={video.title}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                            className="object-cover group-hover/v:scale-105 transition-transform duration-500 opacity-90 group-hover/v:opacity-100"
                             unoptimized
                           />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent group-hover:from-slate-950/70 transition-colors flex items-center justify-center">
-                          {/* Centered Glowing Red YouTube-style Play Button */}
-                          <div className="w-14 h-14 rounded-full bg-red-600/95 group-hover:bg-red-500 shadow-[0_0_25px_rgba(239,68,68,0.7)] group-hover:shadow-[0_0_35px_rgba(239,68,68,0.9)] flex items-center justify-center transition-all group-hover:scale-110">
-                            <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-red-600/95 group-hover/v:bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.7)] flex items-center justify-center transition-all group-hover/v:scale-110">
+                            <Play className="w-5 h-5 text-white fill-white ml-0.5" />
                           </div>
-                        </div>
-
-                        {/* Top badge */}
-                        <div className="absolute top-2.5 right-2.5">
-                          <span className="px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-bold text-cyan-300 border border-slate-700/80 backdrop-blur-md flex items-center gap-1">
-                            <Maximize2 className="w-2.5 h-2.5" />
-                            <span>Pantalla Completa</span>
-                          </span>
                         </div>
                       </button>
 
-                      {/* Video Controls & Info Bar */}
-                      <div className="p-4 space-y-3">
+                      <div className="p-3.5 space-y-2">
                         <div>
-                          <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block mb-1">
-                            Video #{idx + 1}
+                          <span className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
+                            Opcional #{idx + 1}
                           </span>
                           <h5 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
                             {video.title}
                           </h5>
-                          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-2">
                             {video.description}
                           </p>
                         </div>
 
-                        {/* Primary Action Button: Always Opens Fullscreen */}
                         <button
                           type="button"
                           onClick={() => openFullscreen(video)}
-                          className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all cursor-pointer hover:scale-[1.01]"
+                          className="w-full py-2 rounded-xl bg-slate-200 hover:bg-cyan-500 hover:text-slate-950 dark:bg-slate-800 dark:hover:bg-cyan-400 text-slate-800 dark:text-slate-200 text-[11px] font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                         >
-                          <Play className="w-3.5 h-3.5 fill-slate-950" />
-                          <span>Reproducir en Pantalla Completa</span>
+                          <Play className="w-3 h-3 fill-current" />
+                          <span>Reproducir Video</span>
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Video 4: Tailscale Setup (Mandatory) */}
-              <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2 mb-4">
-                  <Network className="w-4 h-4 text-fuchsia-500 dark:text-fuchsia-400" />
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Configuración Obligatoria: Conexión Remota con Tailscale
-                  </h4>
-                  <span className="px-2 py-0.5 rounded-full bg-fuchsia-50 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 text-[10px] font-bold border border-fuchsia-200 dark:border-fuchsia-500/30">
-                    Indispensable
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-slate-50 dark:bg-slate-950 p-4 md:p-6 rounded-2xl border border-fuchsia-200 dark:border-fuchsia-500/30">
-                  {/* Tailscale Thumbnail with Play trigger */}
-                  <div className="lg:col-span-7">
-                    <button
-                      type="button"
-                      onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
-                      className="relative aspect-video w-full rounded-2xl overflow-hidden group cursor-pointer border border-fuchsia-300 dark:border-fuchsia-500/40 text-left block"
-                      aria-label="Reproducir Tailscale en pantalla completa"
-                    >
-                      {TAILSCALE_TUTORIAL.thumbnailUrl && (
-                        <Image
-                          src={TAILSCALE_TUTORIAL.thumbnailUrl}
-                          alt={TAILSCALE_TUTORIAL.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          unoptimized
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex items-center justify-center">
-                        <div className="w-16 h-16 rounded-full bg-red-600/95 group-hover:bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.7)] flex items-center justify-center transition-all group-hover:scale-110">
-                          <Play className="w-7 h-7 text-white fill-white ml-0.5" />
-                        </div>
-                      </div>
-
-                      <div className="absolute top-3 right-3">
-                        <span className="px-2.5 py-1 rounded-md bg-black/80 text-xs font-bold text-fuchsia-300 border border-fuchsia-500/40 backdrop-blur-md flex items-center gap-1.5">
-                          <Maximize2 className="w-3 h-3" />
-                          <span>Pantalla Completa</span>
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="lg:col-span-5 space-y-4">
-                    <span className="text-xs uppercase font-bold text-fuchsia-600 dark:text-fuchsia-400 tracking-wider block">
-                      Guía de Red VPN Segura
-                    </span>
-
-                    <h5 className="text-base font-bold text-slate-900 dark:text-white">
-                      ¿Por qué necesitas Tailscale?
-                    </h5>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Tailscale crea un túnel cifrado punto a punto directo entre tu TV y nuestro equipo técnico. Nos permite optimizar y personalizar tu pantalla de forma remota sin pedir contraseñas ni poner en riesgo tu router.
-                    </p>
-
-                    <div className="p-3 bg-fuchsia-50 dark:bg-fuchsia-950/30 border border-fuchsia-200 dark:border-fuchsia-500/30 rounded-xl text-xs text-fuchsia-900 dark:text-fuchsia-200">
-                      <strong>Paso clave:</strong> Cuando abras Tailscale en tu TV y le des &quot;Get Started&quot;, tomale una foto a la pantalla donde aparece el código o estado y envíala por WhatsApp junto con tu ticket.
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => openFullscreen(TAILSCALE_TUTORIAL)}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(217,70,239,0.4)] transition-all cursor-pointer hover:scale-[1.01]"
-                    >
-                      <Play className="w-4 h-4 fill-white" />
-                      <span>Reproducir Video en Pantalla Completa</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              </details>
             </div>
 
             {/* WhatsApp Checklist Box with Direct WhatsApp Button */}
@@ -389,10 +396,10 @@ export function StepByStepGuide({
                     Checklist para enviar a tu Técnico
                   </h3>
                   <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300">
-                    Envía estos datos cuando tomes tu turno para que la atención sea ágil. Recuerda que al llegar tu turno dispones de <strong className="text-amber-700 dark:text-amber-300 font-bold">5 minutos</strong> para responder y adjuntar estas fotos antes de que el ticket se cancele:
+                    Ten listos estos datos para que la atención sea inmediata al llegar tu turno. Recuerda que al llegar tu turno dispones de <strong className="text-amber-700 dark:text-amber-300 font-bold">5 minutos</strong> para responder y adjuntar la foto del código QR antes de que el turno se cancele:
                   </p>
 
-                  <div className="space-y-2 pt-2">
+                  <div className="space-y-2.5 pt-2">
                     {currentBrand.whatsappChecklist.map((item, idx) => (
                       <div key={idx} className="flex items-start gap-3 text-xs md:text-sm text-slate-700 dark:text-slate-200">
                         <CheckSquare className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
