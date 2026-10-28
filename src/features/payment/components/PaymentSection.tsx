@@ -128,7 +128,7 @@ export function PaymentSection({ userTicket }: PaymentSectionProps) {
               </span>
             </h3>
             <p className="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-              <strong>El pago se realiza únicamente cuando el técnico se conecte a tu televisor</strong> (una vez vinculado por Tailscale mediante tu código QR). En ese momento realizas el pago por Bre-B o Binance y nos envías el comprobante por WhatsApp para proceder de inmediato con la optimización.
+              <strong>El pago se realiza únicamente cuando el técnico se conecte a tu televisor</strong> (una vez aceptes la ventana de depuración USB en tu pantalla). En ese momento realizas el pago por Bre-B o Binance y nos envías el comprobante por WhatsApp para proceder de inmediato con la optimización.
             </p>
           </div>
         </div>
