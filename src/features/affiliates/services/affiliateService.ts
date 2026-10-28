@@ -180,7 +180,7 @@ export async function createOrActivateAffiliateAdmin(params: {
   });
 }
 
-export const getAllCommissions = () => financeRpc<AffiliateCommission[]>('affiliate_get_commissions');
+export const getAllCommissions = () => financeRpc<AffiliateCommission[]>('affiliate_get_commissions', { p_affiliate_id: null });
 export const getAllPayouts = () => readRows<AffiliatePayout>('affiliate_payouts');
 export const getMyCommissions = (id: string) => financeRpc<AffiliateCommission[]>('affiliate_get_commissions', { p_affiliate_id: id });
 export const getMyPayouts = (id: string) => readRows<AffiliatePayout>('affiliate_payouts', 'affiliate_id', id);
