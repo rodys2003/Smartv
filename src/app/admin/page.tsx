@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ticket, TicketStatus } from '@/types';
-import { getTickets, updateTicketStatus, updateTicketPaymentStatus } from '@/features/tickets/services/ticketService';
+import { getTickets } from '@/features/tickets/services/ticketService';
 import {
   getQueueSettings,
   updateQueueSettings,
@@ -30,15 +30,14 @@ import {
   getAllAffiliates,
   createOrActivateAffiliateAdmin,
   updateAffiliateStatus,
-  markCommissionPaymentConfirmed,
-  markCommissionServiceCompleted,
-  markCommissionCancelled,
   getAllPayouts,
-  completePayoutAdmin,
-  rejectPayoutAdmin,
   getAllCommissions,
 } from '@/features/affiliates/services/affiliateService';
 import { Affiliate, AffiliatePayout, AffiliateCommission } from '@/types/affiliate';
+import { setTicketPaymentStatus, setTicketServiceStatus } from '@/features/affiliates/services/affiliateFinanceService';
+import { AdminFinanceOverview } from '@/features/affiliates/components/AdminFinanceOverview';
+import { AdminPayoutQueue } from '@/features/affiliates/components/AdminPayoutQueue';
+import { AdminFinanceAudit } from '@/features/affiliates/components/AdminFinanceAudit';
 import {
   Tv,
   MessageCircle,
@@ -65,12 +64,6 @@ import {
   Copy,
   Check,
   UserCheck,
-  Share2,
-  Coins,
-  Wallet,
-  ArrowUpRight,
-  FileText,
-  X,
   Phone,
   ExternalLink,
   CheckCircle2,
@@ -80,7 +73,7 @@ import {
 
 export default function AdminPage() {
   const { user, isAuthenticated, loading: authLoading, signInWithGoogle, signOut } = useAuth();
-  const isAdmin = isUserAdmin(user?.email);
+  const isAdmin = isUserAdmin(user?.email) || user?.app_metadata?.finance_admin === true;
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
@@ -105,7 +98,10 @@ export default function AdminPage() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [payouts, setPayouts] = useState<AffiliatePayout[]>([]);
   const [allCommissions, setAllCommissions] = useState<AffiliateCommission[]>([]);
-  const [affiliateSubTab, setAffiliateSubTab] = useState<'affiliates' | 'settlements' | 'commissions'>('affiliates');
+  const [workspace, setWorkspace] = useState<'tickets' | 'finance'>('tickets');
+  const [ticketError, setTicketError] = useState('');
+  const [financeAsOf, setFinanceAsOf] = useState(() => Date.now());
+  const [affiliateSubTab, setAffiliateSubTab] = useState<'overview' | 'affiliates' | 'settlements' | 'commissions' | 'audit'>('overview');
   const [newAffEmail, setNewAffEmail] = useState('');
   const [newAffName, setNewAffName] = useState('');
   const [newAffCode, setNewAffCode] = useState('');
@@ -113,12 +109,6 @@ export default function AdminPage() {
   const [creatingAffiliate, setCreatingAffiliate] = useState(false);
   const [affiliateFeedback, setAffiliateFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  // Modal de Liquidación Binance USDT
-  const [selectedPayout, setSelectedPayout] = useState<AffiliatePayout | null>(null);
-  const [binanceTxRef, setBinanceTxRef] = useState('');
-  const [payoutCopRate, setPayoutCopRate] = useState('');
-  const [processingPayout, setProcessingPayout] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -137,8 +127,10 @@ export default function AdminPage() {
       setAffiliates(affiliatesData);
       setPayouts(payoutsData);
       setAllCommissions(commissionsData);
+      setFinanceAsOf(Date.now());
     } catch (err) {
       console.error('Failed to fetch admin data:', err);
+      setTicketError(err instanceof Error ? err.message : 'No se pudieron cargar los datos. Actualiza antes de realizar operaciones.');
     } finally {
       setLoading(false);
     }
@@ -153,27 +145,13 @@ export default function AdminPage() {
   }, [isAdmin, fetchData]);
 
   const handleStatusChange = async (id: string, newStatus: TicketStatus) => {
-    const targetTicket = tickets.find((t) => t.id === id);
-    const ok = await updateTicketStatus(id, newStatus);
-    if (ok) {
-      setTickets((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t))
-      );
-      if (targetTicket?.ticket_number) {
-        if (newStatus === 'in_progress') {
-          markCommissionPaymentConfirmed(targetTicket.ticket_number).catch((err) =>
-            console.warn('Failed to confirm affiliate commission:', err)
-          );
-        } else if (newStatus === 'completed') {
-          markCommissionServiceCompleted(targetTicket.ticket_number).catch((err) =>
-            console.warn('Failed to complete affiliate commission:', err)
-          );
-        } else if (newStatus === 'cancelled') {
-          markCommissionCancelled(targetTicket.ticket_number).catch((err) =>
-            console.warn('Failed to cancel affiliate commission:', err)
-          );
-        }
-      }
+    setTicketError('');
+    try {
+      await setTicketServiceStatus(id, newStatus);
+      setTickets(previous => previous.map(ticket => ticket.id === id ? { ...ticket, status: newStatus } : ticket));
+      await fetchData();
+    } catch (error) {
+      setTicketError(error instanceof Error ? error.message : 'No se pudo cambiar el estado. Revisa si el retiro requiere conciliación.');
     }
   };
 
@@ -301,7 +279,13 @@ export default function AdminPage() {
   };
 
   const handleUpdateAffiliateStatus = async (affiliateId: string, nextStatus: 'pending' | 'active' | 'suspended') => {
-    const res = await updateAffiliateStatus(affiliateId, nextStatus);
+    let res;
+    try {
+      res = await updateAffiliateStatus(affiliateId, nextStatus);
+    } catch (error) {
+      setAffiliateFeedback({ type: 'error', text: error instanceof Error ? error.message : 'No se pudo actualizar el afiliado.' });
+      return;
+    }
     if (res.success) {
       setAffiliates((prev) =>
         prev.map((a) =>
@@ -324,18 +308,13 @@ export default function AdminPage() {
   };
 
   const handleTogglePaymentStatus = async (ticket: Ticket) => {
-    const current = getTicketPaymentStatus(ticket);
-    const nextStatus: 'paid' | 'pending' = current === 'paid' ? 'pending' : 'paid';
-    const updated = await updateTicketPaymentStatus(ticket.id, nextStatus, ticket.notes);
-    if (updated) {
-      setTickets((prev) =>
-        prev.map((t) => (t.id === ticket.id ? { ...t, notes: updated.notes } : t))
-      );
-      if (nextStatus === 'paid') {
-        markCommissionPaymentConfirmed(ticket.ticket_number).catch((err) =>
-          console.error('Failed to confirm affiliate commission:', err)
-        );
-      }
+    setTicketError('');
+    const paid = getTicketPaymentStatus(ticket) !== 'paid';
+    try {
+      await setTicketPaymentStatus(ticket.id, paid);
+      await fetchData();
+    } catch (error) {
+      setTicketError(error instanceof Error ? error.message : 'No se pudo cambiar el pago. Revisa si las comisiones requieren conciliación.');
     }
   };
 
@@ -345,53 +324,6 @@ export default function AdminPage() {
     navigator.clipboard.writeText(url);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2500);
-  };
-
-  const handleCompletePayout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPayout || !binanceTxRef.trim()) return;
-    setProcessingPayout(true);
-    try {
-      const rateNum = payoutCopRate.trim() ? parseFloat(payoutCopRate.trim()) : undefined;
-      const ok = await completePayoutAdmin({
-        payoutId: selectedPayout.id,
-        binanceTxReference: binanceTxRef.trim(),
-        copToUsdtRate: rateNum,
-      });
-      if (ok) {
-        setPayouts((prev) =>
-          prev.map((p) =>
-            p.id === selectedPayout.id
-              ? {
-                  ...p,
-                  status: 'completed',
-                  binance_tx_reference: binanceTxRef.trim(),
-                  paid_at: new Date().toISOString(),
-                }
-              : p
-          )
-        );
-        setSelectedPayout(null);
-        setBinanceTxRef('');
-        setPayoutCopRate('');
-        setAffiliateFeedback({ type: 'success', text: '¡Liquidación completada y registrada en Binance!' });
-        setTimeout(() => setAffiliateFeedback(null), 3000);
-      } else {
-        setAffiliateFeedback({ type: 'error', text: 'Error al registrar la liquidación.' });
-      }
-    } finally {
-      setProcessingPayout(false);
-    }
-  };
-
-  const handleRejectPayout = async (payoutId: string) => {
-    if (!confirm('¿Deseas rechazar esta solicitud? Las comisiones volverán a estar disponibles.')) return;
-    const ok = await rejectPayoutAdmin(payoutId);
-    if (ok) {
-      setPayouts((prev) => prev.map((p) => (p.id === payoutId ? { ...p, status: 'rejected' } : p)));
-      setAffiliateFeedback({ type: 'success', text: 'Solicitud rechazada y comisiones liberadas.' });
-      setTimeout(() => setAffiliateFeedback(null), 3000);
-    }
   };
 
   const filteredTickets = tickets.filter((t) => {
@@ -588,6 +520,11 @@ export default function AdminPage() {
           </div>
         </div>
 
+        <nav aria-label="Área de administración" className="flex flex-wrap gap-2">
+          {([['tickets', 'Turnos y cupones'], ['finance', 'Afiliados y pagos']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={workspace === id} onClick={() => setWorkspace(id)} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 ${workspace === id ? 'border-cyan-700 bg-cyan-700 text-white' : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900'}`}>{label}</button>)}
+        </nav>
+        {ticketError && <p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">{ticketError}</p>}
+        {workspace === 'tickets' && <>
         {/* Queue Settings & Capacity Controller Box */}
         <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-md dark:shadow-[0_0_30px_rgba(6,182,212,0.15)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -921,6 +858,8 @@ export default function AdminPage() {
           </div>
         </div>
 
+        </>}
+        {workspace === 'finance' && <>
         {/* GESTIÓN DEL PROGRAMA DE AFILIADOS */}
         <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-5 sm:p-6 shadow-md dark:shadow-[0_0_30px_rgba(6,182,212,0.12)] space-y-6">
           {/* Header */}
@@ -931,14 +870,14 @@ export default function AdminPage() {
                   <UserCheck className="w-4 h-4" />
                 </div>
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-                  Programa de Afiliados (30% Comisión · Liquidación Binance USDT)
+                  Afiliados y pagos
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-800 border border-cyan-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-500/30">
                   {affiliates.filter((a) => a.status === 'active').length} Activos
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
-                Activa o suspende afiliados, valida su Binance UID para transferir comisiones y comparte su enlace oficial de referido.
+                Comisiones del 30%, retiros manuales por Binance y control de la tasa COP/USDT.
               </p>
             </div>
 
@@ -960,57 +899,11 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Subtabs del Módulo de Afiliados */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-            <button
-              type="button"
-              onClick={() => setAffiliateSubTab('affiliates')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
-                affiliateSubTab === 'affiliates'
-                  ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Cuentas y Solicitudes ({affiliates.length})</span>
-              {affiliates.filter((a) => a.status === 'pending').length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">
-                  {affiliates.filter((a) => a.status === 'pending').length} nuevas
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAffiliateSubTab('settlements')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
-                affiliateSubTab === 'settlements'
-                  ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Wallet className="w-3.5 h-3.5" />
-              <span>Liquidaciones Binance USDT</span>
-              {payouts.filter((p) => p.status === 'pending').length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-950">
-                  {payouts.filter((p) => p.status === 'pending').length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAffiliateSubTab('commissions')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                affiliateSubTab === 'commissions'
-                  ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/30'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Ledger de Comisiones ({allCommissions.length})</span>
-            </button>
-          </div>
+          <nav aria-label="Finanzas de afiliados" className="flex flex-wrap gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
+            {([['overview', 'Resumen'], ['affiliates', 'Afiliados'], ['commissions', 'Comisiones'], ['settlements', 'Retiros'], ['audit', 'Historial']] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={affiliateSubTab === id} onClick={() => setAffiliateSubTab(id)} className={`min-h-11 rounded-xl px-4 py-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 ${affiliateSubTab === id ? 'bg-cyan-700 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>{label}{id === 'settlements' ? ` (${payouts.filter(p => p.status === 'pending' || p.status === 'processing').length})` : ''}</button>)}
+          </nav>
+          {affiliateSubTab === 'overview' && <AdminFinanceOverview commissions={allCommissions} payouts={payouts} />}
+          {affiliateSubTab === 'audit' && <AdminFinanceAudit />}
 
           {/* Subtab 1: Cuentas y Enlaces de Afiliados */}
           {affiliateSubTab === 'affiliates' && (
@@ -1311,7 +1204,7 @@ export default function AdminPage() {
 
                             {/* Enlace de referido y botones */}
                             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                              {aff.referral_code ? (
+                              {isActive && aff.referral_code ? (
                                 <button
                                   type="button"
                                   onClick={() => handleCopyReferralLink(aff.referral_code!)}
@@ -1355,204 +1248,8 @@ export default function AdminPage() {
           )}
 
           {/* Subtab 2: Liquidaciones Binance USDT */}
-          {affiliateSubTab === 'settlements' && (
-            <div className="space-y-6">
-              {/* Regla Operativa y Financiera */}
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
-                <Coins className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-bold">Protocolo de Pagos en USDT (Binance Pay UID):</p>
-                  <p className="text-[11px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
-                    1. Revisa la solicitud y copia el <strong>Binance UID</strong> del afiliado.
-                    <br />
-                    2. Envía exactamente el <strong>Neto a Enviar</strong> desde tu Binance (la tarifa fija de <strong>2 USDT</strong> ya está descontada).
-                    <br />
-                    3. Ingresa el <strong>ID o Hash de Transacción de Binance</strong> y confirma para que las comisiones queden marcadas como pagadas sin riesgo de duplicidad.
-                  </p>
-                </div>
-              </div>
+          {affiliateSubTab === 'settlements' && <AdminPayoutQueue affiliates={affiliates} payouts={payouts} onChanged={fetchData} />}
 
-              {/* Solicitudes Pendientes */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <span>Solicitudes Pendientes de Liquidación</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                    {payouts.filter((p) => p.status === 'pending').length}
-                  </span>
-                </h4>
-
-                {payouts.filter((p) => p.status === 'pending').length === 0 ? (
-                  <div className="p-6 text-center rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-                    No hay solicitudes de liquidación pendientes en este momento.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {payouts
-                      .filter((p) => p.status === 'pending')
-                      .map((payout) => {
-                        const aff = affiliates.find((a) => a.id === payout.affiliate_id);
-                        return (
-                          <div
-                            key={payout.id}
-                            className="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-amber-200 dark:border-amber-500/30 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
-                          >
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-xs text-slate-900 dark:text-white">
-                                  {aff?.user_name || 'Afiliado'} ({aff?.referral_code || 'N/A'})
-                                </span>
-                                <span className="text-[10px] text-slate-400">
-                                  {new Date(payout.created_at).toLocaleString('es-CO')}
-                                </span>
-                              </div>
-
-                              <div className="flex flex-wrap items-center gap-3 text-xs">
-                                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-lg">
-                                  <span className="text-[11px] text-slate-500">Binance UID:</span>
-                                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                                    {payout.binance_uid}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleCopyReferralLink(payout.binance_uid)}
-                                    className="text-cyan-600 hover:text-cyan-500 cursor-pointer ml-1"
-                                    title="Copiar UID"
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                  </button>
-                                </div>
-
-                                {payout.cop_total_original ? (
-                                  <span className="text-[11px] text-slate-500">
-                                    Original: ${payout.cop_total_original.toLocaleString()} COP
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                <div className="text-[11px] text-slate-400">
-                                  Bruto: <span className="font-mono font-semibold">{payout.gross_amount_usdt.toFixed(2)} USDT</span> · Fee: <span className="font-mono text-rose-500">-2.00 USDT</span>
-                                </div>
-                                <div className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400">
-                                  {payout.net_amount_usdt.toFixed(2)} USDT a transferir
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="primary"
-                                  onClick={() => {
-                                    setSelectedPayout(payout);
-                                    setBinanceTxRef('');
-                                    setPayoutCopRate(payout.cop_to_usdt_rate ? String(payout.cop_to_usdt_rate) : '');
-                                  }}
-                                  className="text-xs font-bold px-3 py-2 cursor-pointer flex items-center gap-1"
-                                >
-                                  <ArrowUpRight className="w-3.5 h-3.5" />
-                                  <span>Pagar en Binance</span>
-                                </Button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleRejectPayout(payout.id)}
-                                  className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
-                                  title="Rechazar solicitud"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-
-              {/* Historial de Liquidaciones Completadas */}
-              <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Historial de Liquidaciones ({payouts.filter((p) => p.status !== 'pending').length})
-                </h4>
-
-                {payouts.filter((p) => p.status !== 'pending').length === 0 ? (
-                  <div className="p-4 text-center rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 text-xs text-slate-500">
-                    Aún no hay liquidaciones registradas en el historial.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                        <tr>
-                          <th className="py-2.5 px-3">Fecha</th>
-                          <th className="py-2.5 px-3">Afiliado</th>
-                          <th className="py-2.5 px-3">Binance UID</th>
-                          <th className="py-2.5 px-3">Bruto</th>
-                          <th className="py-2.5 px-3">Tarifa Fija</th>
-                          <th className="py-2.5 px-3">Neto Pagado</th>
-                          <th className="py-2.5 px-3">Tasa COP/USDT</th>
-                          <th className="py-2.5 px-3">Ref. Binance (TxHash)</th>
-                          <th className="py-2.5 px-3">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                        {payouts
-                          .filter((p) => p.status !== 'pending')
-                          .map((p) => {
-                            const aff = affiliates.find((a) => a.id === p.affiliate_id);
-                            return (
-                              <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
-                                <td className="py-2 px-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                                  {new Date(p.paid_at || p.created_at).toLocaleDateString('es-CO')}
-                                </td>
-                                <td className="py-2 px-3 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                                  {aff?.user_name || aff?.user_email || p.affiliate_id.slice(0, 8)}
-                                </td>
-                                <td className="py-2 px-3 font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                  {p.binance_uid}
-                                </td>
-                                <td className="py-2 px-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                                  {p.gross_amount_usdt.toFixed(2)} USDT
-                                </td>
-                                <td className="py-2 px-3 font-mono text-rose-500 whitespace-nowrap">
-                                  -{p.withdrawal_fee_usdt.toFixed(2)} USDT
-                                </td>
-                                <td className="py-2 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                                  {p.net_amount_usdt.toFixed(2)} USDT
-                                </td>
-                                <td className="py-2 px-3 font-mono text-slate-500 whitespace-nowrap">
-                                  {p.cop_to_usdt_rate ? `$${p.cop_to_usdt_rate.toLocaleString()}` : '-'}
-                                </td>
-                                <td className="py-2 px-3 font-mono text-cyan-600 dark:text-cyan-400 whitespace-nowrap">
-                                  {p.binance_tx_reference || '-'}
-                                </td>
-                                <td className="py-2 px-3 whitespace-nowrap">
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                      p.status === 'completed'
-                                        ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-rose-50 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                                    }`}
-                                  >
-                                    {p.status === 'completed' ? 'Pagado' : 'Rechazado'}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Subtab 3: Ledger de Comisiones Referidas */}
           {affiliateSubTab === 'commissions' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1560,7 +1257,7 @@ export default function AdminPage() {
                   Historial de Comisiones Generadas ({allCommissions.length})
                 </h4>
                 <span className="text-[11px] text-slate-500">
-                  Regla contable: 30% sobre el importe neto cobrado del plan
+                  30% sobre el importe neto cobrado. Disponible 7 días después de confirmar el pago; iniciar el servicio no confirma el pago.
                 </span>
               </div>
 
@@ -1587,6 +1284,7 @@ export default function AdminPage() {
                       {allCommissions.map((comm) => {
                         const aff = affiliates.find((a) => a.id === comm.affiliate_id);
                         const isUSDT = comm.currency === 'USDT';
+                        const matured = !comm.requires_reconciliation && !!comm.ticket_paid_at && new Date(comm.ticket_paid_at).getTime() + 7 * 86400000 <= financeAsOf;
                         return (
                           <tr key={comm.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
                             <td className="py-2 px-3 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
@@ -1625,12 +1323,16 @@ export default function AdminPage() {
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                                 }`}
                               >
-                                {comm.status === 'paid'
+                                {comm.payout_id && comm.status !== 'paid'
+                                  ? 'Reservada para retiro'
+                                  : comm.status === 'paid'
                                   ? 'Pagada'
-                                  : comm.status === 'available'
+                                  : comm.requires_reconciliation && comm.status !== 'cancelled'
+                                  ? 'Requiere conciliación'
+                                  : (comm.status === 'available' || comm.status === 'validating') && matured
                                   ? 'Disponible'
-                                  : comm.status === 'validating'
-                                  ? 'En Validación'
+                                  : comm.status === 'available' || comm.status === 'validating'
+                                  ? (comm.ticket_paid_at ? 'En validación (7 días)' : 'Revisar confirmación del pago')
                                   : comm.status === 'cancelled'
                                   ? 'Cancelada'
                                   : 'Estimada'}
@@ -1650,129 +1352,8 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* Modal para Registrar Liquidación Binance USDT */}
-        {selectedPayout && (
-          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-cyan-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-bold text-sm">
-                  <Coins className="w-5 h-5" />
-                  <span>Registrar Liquidación Binance USDT</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPayout(null)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Resumen del Payout */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Binance UID Destino:</span>
-                  <div className="flex items-center gap-1.5 font-mono font-black text-cyan-600 dark:text-cyan-400 text-sm">
-                    <span>{selectedPayout.binance_uid}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyReferralLink(selectedPayout.binance_uid)}
-                      className="hover:opacity-75 cursor-pointer"
-                      title="Copiar UID"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-500">Monto Bruto:</span>
-                  <span className="font-mono font-semibold">{selectedPayout.gross_amount_usdt.toFixed(2)} USDT</span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Tarifa Fija de Retiro:</span>
-                  <span className="font-mono font-semibold text-rose-500">-2.00 USDT</span>
-                </div>
-
-                {selectedPayout.cop_total_original ? (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">Comisiones COP originales:</span>
-                    <span className="font-mono text-slate-400">
-                      ${selectedPayout.cop_total_original.toLocaleString()} COP
-                    </span>
-                  </div>
-                ) : null}
-
-                <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <span className="font-bold text-slate-800 dark:text-white">Neto a Transferir en Binance:</span>
-                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-base">
-                    {selectedPayout.net_amount_usdt.toFixed(2)} USDT
-                  </span>
-                </div>
-              </div>
-
-              {/* Formulario de Confirmación */}
-              <form onSubmit={handleCompletePayout} className="space-y-4">
-                {selectedPayout.cop_total_original ? (
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Tasa de conversión COP/USDT aplicada (opcional para auditoría)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      placeholder="ej. 4150"
-                      value={payoutCopRate}
-                      onChange={(e) => setPayoutCopRate(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                ) : null}
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Referencia / ID de Transacción Binance<RequiredIndicator />
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ej. 28475819382 o Binance Pay Order ID"
-                    value={binanceTxRef}
-                    onChange={(e) => setBinanceTxRef(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
-                  />
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    Ingresa el ID generado por Binance tras enviar la transferencia a {selectedPayout.binance_uid}.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedPayout(null)}
-                    disabled={processingPayout}
-                    className="text-xs"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    disabled={processingPayout || !binanceTxRef.trim()}
-                    className="text-xs font-bold px-4 py-2 cursor-pointer"
-                  >
-                    {processingPayout ? 'Registrando...' : 'Confirmar Liquidación'}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
+        </>}
+        {workspace === 'tickets' && <>
         {/* Metric Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
           <button
@@ -2113,6 +1694,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+        </>}
       </div>
 
       {/* Edit Plan Modal for Admin */}
